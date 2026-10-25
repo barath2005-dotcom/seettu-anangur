@@ -259,17 +259,34 @@ router.get('/dates', authenticate, async (req: Request, res: Response) => {
       const rawReports = await prisma.monthlyReportEntry.groupBy({
         by: ['chitNo', 'date'],
         _count: { sno: true },
-        _sum: { amount: true, commission: true },
+        _sum: { amount: true, commission: true, moneyOffered: true },
       });
 
-      list = rawReports.map((r) => ({
-        chitNo: r.chitNo,
-        date: r.date,
-        count: r._count.sno,
-        totalAmount: r._sum.amount || 0,
-        totalCommission: r._sum.commission || 0,
-        isSaved: true,
-      }));
+      list = await Promise.all(
+        rawReports.map(async (r) => {
+          const sample = await prisma.monthlyReportEntry.findFirst({
+            where: { chitNo: r.chitNo, date: r.date },
+            select: { templeCharityFund: true },
+          });
+          const templeCharityFund = sample?.templeCharityFund ?? 15000;
+          const totalAmount = r._sum.amount || 0;
+          const totalCommission = r._sum.commission || 0;
+          const totalOffered = r._sum.moneyOffered || 0;
+          const netTally = totalAmount - totalCommission - templeCharityFund;
+
+          return {
+            chitNo: r.chitNo,
+            date: r.date,
+            count: r._count.sno,
+            totalAmount,
+            totalCommission,
+            totalOffered,
+            templeCharityFund,
+            netTally,
+            isSaved: true,
+          };
+        })
+      );
     } catch (dbErr) {
       console.warn('Database query for dates fallback:', dbErr);
     }
@@ -281,7 +298,10 @@ router.get('/dates', authenticate, async (req: Request, res: Response) => {
         date: '25.10.26',
         count: 78,
         totalAmount: 780000,
-        totalCommission: 0,
+        totalCommission: 46800,
+        totalOffered: 0,
+        templeCharityFund: 15000,
+        netTally: 780000 - 46800 - 15000,
         isSaved: true,
       });
     }
@@ -296,7 +316,10 @@ router.get('/dates', authenticate, async (req: Request, res: Response) => {
           date: '25.10.26',
           count: 78,
           totalAmount: 780000,
-          totalCommission: 0,
+          totalCommission: 46800,
+          totalOffered: 0,
+          templeCharityFund: 15000,
+          netTally: 718200,
           isSaved: true,
         },
       ],

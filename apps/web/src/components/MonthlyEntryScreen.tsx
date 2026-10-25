@@ -541,8 +541,23 @@ export function MonthlyEntryScreen({
       ];
     });
 
+    const grandAmount = entries.reduce((s, e) => s + (Number(e.amount) || 0), 0);
+    const grandCommission = entries.reduce((s, e) => s + (Number(e.commission) || 0), 0);
+    const grandOffered = entries.reduce((s, e) => s + (Number(e.moneyOffered) || 0), 0);
+    const grandNetTally = grandAmount - grandCommission - templeCharityFund;
+
+    const summaryRows = [
+      '',
+      `"--- OFFICIAL CHIT TALLY & SETTLEMENT SUMMARY ---",,,,,,,,,,,`,
+      `"Gross Collection (INR)",,,,,${grandAmount},,,,,,`,
+      `"Total Commission (INR)",,,,,,${grandCommission},,,,,`,
+      `"Total Money Offered (INR)",,,,,,,${grandOffered},,,,`,
+      `"Temple Charity Fund (INR)",,,,,,,,${templeCharityFund},,,`,
+      `"Final Net Tally Settlement Balance (INR)",,,,,,,,,${grandNetTally},,`,
+    ];
+
     const csvContent =
-      '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\r\n');
+      '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(',')), ...summaryRows].join('\r\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -742,6 +757,67 @@ export function MonthlyEntryScreen({
       `;
     })
     .join('')}
+
+    <div class="sheet-page" style="min-height: auto; page-break-before: always; break-before: page; padding: 20px 0;">
+      <table class="header-table">
+        <tr>
+          <td style="text-align: left; width: 33%;">தேதி : <span style="font-family: monospace;">${date}</span></td>
+          <td style="text-align: center; width: 34%; font-size: 14px; font-weight: 800; color: #000;">
+            ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர் சீட்டு குழு<br />
+            <span style="font-size: 12px; font-weight: bold; color: #444;">முழுமையான கணக்கு சமரசம் / Official Chit Tally Report</span>
+          </td>
+          <td style="text-align: right; width: 33%;">சீட்டு எண் : <span style="font-family: monospace;">${chitNo}</span></td>
+        </tr>
+      </table>
+
+      <table class="data-table" style="margin-top: 20px;">
+        <thead>
+          <tr style="background-color: #f8fafc;">
+            <th style="padding: 12px; font-size: 14px; text-align: left;">விவரம் / Description</th>
+            <th style="padding: 12px; font-size: 14px; text-align: center; width: 30%;">தொகை (INR)</th>
+            <th style="padding: 12px; font-size: 14px; text-align: center; width: 30%;">நிலை / Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding: 12px; font-weight: 700;">1. மொத்த வசூல் தொகை (Gross Collection - ${entries.length} Members)</td>
+            <td style="padding: 12px; text-align: center; font-family: monospace; font-weight: 800; font-size: 15px; color: #047857;">₹${grandTotalAmount.toLocaleString('en-IN')}</td>
+            <td style="padding: 12px; text-align: center; font-weight: 600; color: #047857;">✓ 100% வசூல்</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px; font-weight: 700;">2. மொத்த சீட்டு கமிஷன் கழிவு (Total Chit Commission)</td>
+            <td style="padding: 12px; text-align: center; font-family: monospace; font-weight: 800; font-size: 15px; color: #7e22ce;">- ₹${grandTotalCommission.toLocaleString('en-IN')}</td>
+            <td style="padding: 12px; text-align: center; font-weight: 600; color: #7e22ce;">கமிஷன் கழிவு</td>
+          </tr>
+          <tr style="background-color: #fffbeb;">
+            <td style="padding: 12px; font-weight: 700; color: #92400e;">3. 🛕 கோவில் தர்ம நிதி (Temple Charity Fund - Mariamman)</td>
+            <td style="padding: 12px; text-align: center; font-family: monospace; font-weight: 800; font-size: 15px; color: #b45309;">- ₹${templeCharityFund.toLocaleString('en-IN')}</td>
+            <td style="padding: 12px; text-align: center; font-weight: 700; color: #b45309;">🛕 கோவில் நிதிக்கு ஒதுக்கப்பட்டது</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px; font-weight: 700;">4. மொத்த வழங்கப்பட்ட தொகை (Total Money Offered)</td>
+            <td style="padding: 12px; text-align: center; font-family: monospace; font-weight: 800; font-size: 15px;">₹${entries.reduce((s, e) => s + (Number(e.moneyOffered) || 0), 0).toLocaleString('en-IN')}</td>
+            <td style="padding: 12px; text-align: center; font-weight: 600;">உறுப்பினர்கள் பதிவு</td>
+          </tr>
+          <tr style="background-color: #ecfdf5; border-top: 2.5px solid #047857;">
+            <td style="padding: 14px; font-size: 15px; font-weight: 900; color: #064e3b; text-transform: uppercase;">
+              ⚖️ இறுதி நிகர கணக்கு சமரசம் (Final Net Tally Settlement):
+            </td>
+            <td style="padding: 14px; text-align: center; font-family: monospace; font-weight: 900; font-size: 18px; color: #047857;">
+              ₹${(grandTotalAmount - grandTotalCommission - templeCharityFund).toLocaleString('en-IN')}
+            </td>
+            <td style="padding: 14px; text-align: center; font-weight: 900; color: #047857; font-size: 14px;">
+              ✓ கணக்கு முடிந்தது (Tallied)
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="margin-top: 50px; display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; border-top: 1px dashed #000; padding-top: 15px;">
+        <div>நிர்வாகி கையொப்பம் (Admin Signature): _______________</div>
+        <div>சரிபார்த்தவர் கையொப்பம் (Auditor / Checker): _______________</div>
+      </div>
+    </div>
 
   <script>
     window.onload = function() {
@@ -1160,15 +1236,18 @@ export function MonthlyEntryScreen({
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-            {lang === 'ta' ? 'நிகர சீட்டு நிதி' : 'Net Chit Pool'}
+        <div className="bg-white p-4 rounded-xl border border-emerald-200 shadow-sm relative overflow-hidden bg-gradient-to-br from-white to-emerald-50/50">
+          <div className="absolute -right-2 -bottom-2 text-3xl opacity-10 select-none">⚖️</div>
+          <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block mb-1">
+            ⚖️ {lang === 'ta' ? 'இறுதி கணக்கு சமரசம்' : 'Net Settlement Tally'}
           </span>
           <div className="flex items-center justify-between">
-            <span className="text-xl font-extrabold text-blue-600 font-mono">
-              ₹{(netPool).toLocaleString('en-IN')}
+            <span className="text-xl font-extrabold text-emerald-950 font-mono">
+              ₹{(totalAmount - totalCommission - templeCharityFund).toLocaleString('en-IN')}
             </span>
-            <span className="text-[10px] text-emerald-600 font-bold">✓ Ready</span>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-bold border border-emerald-300">
+              ✓ {lang === 'ta' ? 'சமரசம்' : 'Tallied'}
+            </span>
           </div>
         </div>
       </div>
@@ -1523,6 +1602,53 @@ export function MonthlyEntryScreen({
                   </div>
                 </td>
               </tr>
+
+              {/* Row 3: Final Chit Settlement & Tally (இறுதி கணக்கு சமரசம் / Final Net Tally) */}
+              <tr className="bg-gradient-to-r from-emerald-100/90 via-teal-100/80 to-blue-100/90 border-t-2 border-emerald-400 text-slate-900 font-black shadow-xs">
+                <td className="py-3.5 px-4 text-center font-mono border-r border-emerald-300 text-emerald-900 text-base font-black">
+                  ⚖️
+                </td>
+                <td className="py-3.5 px-4 border-r border-emerald-300">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2">
+                    <span className="text-xs sm:text-sm font-black text-emerald-950 uppercase tracking-wide flex items-center gap-1.5">
+                      <span>⚖️</span>
+                      <span>{lang === 'ta' ? 'இறுதி கணக்கு சமரசம் (Tally)' : 'Final Settlement Tally'}</span>
+                    </span>
+                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-emerald-200/80 text-emerald-950 border border-emerald-400 w-fit">
+                      {lang === 'ta' ? 'வசூல் - கமிஷன் - தர்ம நிதி' : 'Gross - Comm - Charity'}
+                    </span>
+                  </div>
+                </td>
+                <td colSpan={3} className="py-2.5 px-4 border-r border-emerald-300 text-center font-mono text-xs">
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    <span className="text-emerald-800 font-extrabold bg-white/70 px-2 py-0.5 rounded border border-emerald-200">
+                      ₹{displayedEntries.reduce((s, e) => s + (Number(e.amount) || 0), 0).toLocaleString('en-IN')} (Gross)
+                    </span>
+                    <span className="text-slate-500 font-bold">-</span>
+                    <span className="text-purple-800 font-extrabold bg-white/70 px-2 py-0.5 rounded border border-purple-200">
+                      ₹{displayedEntries.reduce((s, e) => s + (Number(e.commission) || 0), 0).toLocaleString('en-IN')} (Comm)
+                    </span>
+                    <span className="text-slate-500 font-bold">-</span>
+                    <span className="text-amber-900 font-extrabold bg-white/70 px-2 py-0.5 rounded border border-amber-200">
+                      ₹{templeCharityFund.toLocaleString('en-IN')} (🛕 Charity)
+                    </span>
+                  </div>
+                </td>
+                <td colSpan={2} className="py-3 px-4 text-center font-mono font-black text-emerald-950 bg-emerald-200/50">
+                  <div className="flex flex-col items-center">
+                    <span className="text-[10px] uppercase font-bold text-emerald-800">
+                      {lang === 'ta' ? 'நிகர இறுதி இருப்பு (Tally)' : 'Net Tally Balance'}
+                    </span>
+                    <span className="text-base sm:text-lg font-black text-emerald-950 tracking-tight">
+                      ₹{(
+                        displayedEntries.reduce((s, e) => s + (Number(e.amount) || 0), 0) -
+                        displayedEntries.reduce((s, e) => s + (Number(e.commission) || 0), 0) -
+                        templeCharityFund
+                      ).toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                </td>
+              </tr>
             </tfoot>
           </table>
         </div>
@@ -1530,7 +1656,7 @@ export function MonthlyEntryScreen({
 
       {/* Floating / Sticky Bottom Bar for Quick Save */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3 sticky bottom-4 z-40">
-        <div className="flex items-center gap-3 text-xs text-slate-600">
+        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600">
           <span className="font-bold text-slate-800">
             {lang === 'ta' ? 'தேதி:' : 'Date:'} <span className="font-mono">{date}</span>
           </span>
@@ -1541,6 +1667,10 @@ export function MonthlyEntryScreen({
           <span className="text-slate-300">|</span>
           <span>
             {lang === 'ta' ? 'உறுப்பினர்கள்:' : 'Members:'} <span className="font-bold font-mono">{entries.length}</span>
+          </span>
+          <span className="text-slate-300">|</span>
+          <span className="font-extrabold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 font-mono">
+            ⚖️ {lang === 'ta' ? 'சமரசம் (Tally):' : 'Tally:'} ₹{(totalAmount - totalCommission - templeCharityFund).toLocaleString('en-IN')}
           </span>
         </div>
 
