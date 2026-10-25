@@ -225,7 +225,7 @@ export const api = {
     const query = new URLSearchParams(params as any).toString();
     return apiFetch<{ success: boolean; data: any }>(`/monthly-reports?${query}`);
   },
-  saveMonthlyReport: (data: { chitNo: string; date: string; entries: any[] }) =>
+  saveMonthlyReport: (data: { chitNo: string; date: string; entries: any[]; templeCharityFund?: number }) =>
     apiFetch<{ success: boolean; data: any; message: string }>('/monthly-reports', {
       method: 'POST',
       body: JSON.stringify(data),

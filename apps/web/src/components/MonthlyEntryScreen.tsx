@@ -34,6 +34,7 @@ interface MonthlyEntry {
   amount: number;
   commission: number;
   moneyOffered?: number;
+  templeCharityFund?: number;
   status: string;
   paymentMethod: string;
   notes?: string;
@@ -67,6 +68,7 @@ function getDefaultEntries(chitNo: string, date: string): MonthlyEntry[] {
     amount: 10000,
     commission: 0,
     moneyOffered: 10000,
+    templeCharityFund: 10000,
     status: 'PAID',
     paymentMethod: 'CASH',
     notes: '',
@@ -148,6 +150,16 @@ export function MonthlyEntryScreen({
   const [saving, setSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(true);
   const [savedReportsList, setSavedReportsList] = useState<any[]>(getStoredSavedReports);
+  const [templeCharityFund, setTempleCharityFund] = useState<number>(() => {
+    const initChit = getInitialChit();
+    const initDate = getInitialDate();
+    try {
+      const fundKey = `seettu_charity_fund_${initChit}_${initDate}`;
+      const saved = localStorage.getItem(fundKey);
+      if (saved) return Number(saved) || 10000;
+    } catch (e) {}
+    return 10000;
+  });
 
   // Bulk edit state
   const [bulkCommission, setBulkCommission] = useState('');
@@ -285,6 +297,12 @@ export function MonthlyEntryScreen({
     setLoading(true);
     // Instant local cache recovery
     const localKey = `seettu_monthly_report_${targetChit}_${targetDate}`;
+    const fundKey = `seettu_charity_fund_${targetChit}_${targetDate}`;
+    try {
+      const savedFund = localStorage.getItem(fundKey);
+      if (savedFund) setTempleCharityFund(Number(savedFund) || 10000);
+    } catch (e) {}
+
     let currentData = entries;
     const cached = localStorage.getItem(localKey);
     if (cached) {
@@ -294,6 +312,9 @@ export function MonthlyEntryScreen({
           currentData = parsed;
           setEntries(parsed);
           setIsSaved(true);
+          if (parsed[0]?.templeCharityFund !== undefined) {
+            setTempleCharityFund(Number(parsed[0].templeCharityFund) || 10000);
+          }
         }
       } catch (e) {}
     }
@@ -305,10 +326,20 @@ export function MonthlyEntryScreen({
     api.getMonthlyReport({ chitNo: targetChit, date: targetDate })
       .then((res) => {
         if (res.success && res.data) {
+          if (res.data.templeCharityFund !== undefined && res.data.templeCharityFund !== null) {
+            const fund = Number(res.data.templeCharityFund) || 10000;
+            setTempleCharityFund(fund);
+            try {
+              localStorage.setItem(fundKey, String(fund));
+            } catch (e) {}
+          }
           if (Array.isArray(res.data.entries) && res.data.entries.length > 0) {
             setEntries(res.data.entries);
             setIsSaved(Boolean(res.data.isSaved));
             localStorage.setItem(localKey, JSON.stringify(res.data.entries));
+            if (res.data.entries[0]?.templeCharityFund !== undefined) {
+              setTempleCharityFund(Number(res.data.entries[0].templeCharityFund) || 10000);
+            }
           } else if (currentData && currentData.length > 0) {
             // Keep existing valid entries; never overwrite with empty
             setEntries(currentData);
@@ -411,11 +442,14 @@ export function MonthlyEntryScreen({
     setSaving(true);
     try {
       const localKey = `seettu_monthly_report_${chitNo}_${date}`;
+      const fundKey = `seettu_charity_fund_${chitNo}_${date}`;
       const totalAmount = entries.reduce((s, e) => s + (Number(e.amount) || 0), 0);
       const totalCommission = entries.reduce((s, e) => s + (Number(e.commission) || 0), 0);
 
       // 1. Immediately persist locally so refresh will NEVER lose it
-      localStorage.setItem(localKey, JSON.stringify(entries));
+      const entriesToSave = entries.map((e) => ({ ...e, templeCharityFund }));
+      localStorage.setItem(localKey, JSON.stringify(entriesToSave));
+      localStorage.setItem(fundKey, String(templeCharityFund));
       localStorage.setItem(LAST_ACTIVE_CHIT_KEY, JSON.stringify({ chitNo, date }));
       setIsSaved(true);
 
@@ -429,6 +463,7 @@ export function MonthlyEntryScreen({
         count: entries.length,
         totalAmount,
         totalCommission,
+        templeCharityFund,
         isSaved: true,
       });
       const updatedList = Array.from(map.values());
@@ -441,7 +476,8 @@ export function MonthlyEntryScreen({
       const res = await api.saveMonthlyReport({
         chitNo,
         date,
-        entries,
+        entries: entriesToSave,
+        templeCharityFund,
       });
 
       showToast(
@@ -473,6 +509,7 @@ export function MonthlyEntryScreen({
       'Amount (INR)',
       'Commission (INR)',
       'Money Offered (INR)',
+      'Temple Charity Fund (INR)',
       'Payment Mode',
       'Status',
       'Date',
@@ -496,6 +533,7 @@ export function MonthlyEntryScreen({
         e.amount,
         e.commission,
         offered,
+        templeCharityFund,
         `"${e.paymentMethod}"`,
         `"${e.status}"`,
         `"${date}"`,
@@ -700,7 +738,7 @@ export function MonthlyEntryScreen({
 
         <div class="sheet-footer">
           <div>Sheet ${sNum} of 6 • ${sheetEntries.length} Members</div>
-          <div>Subtotal: ₹${sheetAmount.toLocaleString('en-IN')} | Commission: ₹${sheetCommission.toLocaleString('en-IN')} | Offered: ₹${sheetOffered.toLocaleString('en-IN')}</div>
+          <div>Subtotal: ₹${sheetAmount.toLocaleString('en-IN')} | Commission: ₹${sheetCommission.toLocaleString('en-IN')} | Offered: ₹${sheetOffered.toLocaleString('en-IN')} | 🛕 Charity: ₹${templeCharityFund.toLocaleString('en-IN')}</div>
         </div>
       </div>
       `;
@@ -1072,8 +1110,8 @@ export function MonthlyEntryScreen({
         </div>
       )}
 
-      {/* 4 Summary Stat Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* 5 Summary Stat Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
         <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
             {lang === 'ta' ? 'மொத்த உறுப்பினர்கள்' : 'Total Members'}
@@ -1108,6 +1146,21 @@ export function MonthlyEntryScreen({
             </span>
             <span className="text-[10px] text-purple-600 font-bold">
               {totalAmount > 0 ? `${((totalCommission / totalAmount) * 100).toFixed(1)}%` : '0%'}
+            </span>
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-xl border border-amber-200 dark:border-amber-800/50 shadow-sm relative overflow-hidden">
+          <div className="absolute -right-2 -bottom-2 text-3xl opacity-10 select-none">🛕</div>
+          <span className="text-[11px] font-bold text-amber-700 uppercase tracking-wider block mb-1">
+            🛕 {lang === 'ta' ? 'கோவில் தர்ம நிதி' : 'Temple Charity Fund'}
+          </span>
+          <div className="flex items-center justify-between">
+            <span className="text-xl font-extrabold text-amber-800 font-mono">
+              ₹{Number(templeCharityFund).toLocaleString('en-IN')}
+            </span>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">
+              {lang === 'ta' ? 'மாரியம்மன்' : 'Temple'}
             </span>
           </div>
         </div>
@@ -1250,6 +1303,11 @@ export function MonthlyEntryScreen({
                           {isMyRow && (
                             <span className="px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[10px] font-black uppercase">
                               ⭐ You ({lang === 'ta' ? 'நீங்கள்' : 'You'})
+                            </span>
+                          )}
+                          {e.sno === 78 && (
+                            <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-black uppercase flex items-center gap-1 shadow-2xs">
+                              🛕 {lang === 'ta' ? 'கோவில் சீட்டு' : 'Temple Ticket'}
                             </span>
                           )}
                         </div>
@@ -1395,8 +1453,61 @@ export function MonthlyEntryScreen({
                 <td className="py-3 px-4 text-center font-mono text-purple-700 border-r border-slate-300 text-sm">
                   ₹{displayedEntries.reduce((s, e) => s + (Number(e.commission) || 0), 0).toLocaleString('en-IN')}
                 </td>
+                <td className="py-3 px-4 text-center font-mono text-emerald-800 border-r border-slate-300 text-sm bg-emerald-50/50">
+                  ₹{displayedEntries.reduce((s, e) => s + (e.moneyOffered !== undefined && e.moneyOffered !== null ? Number(e.moneyOffered) : ((Number(e.amount) || 10000) - (Number(e.commission) || 0))), 0).toLocaleString('en-IN')}
+                </td>
                 <td colSpan={2} className="py-3 px-4 text-center font-mono text-blue-700 text-xs">
-                  Net Pool: ₹{displayedEntries.reduce((s, e) => s + (Number(e.amount) - Number(e.commission)), 0).toLocaleString('en-IN')}
+                  Net Pool: ₹{displayedEntries.reduce((s, e) => s + ((Number(e.amount) || 0) - (Number(e.commission) || 0)), 0).toLocaleString('en-IN')}
+                </td>
+              </tr>
+
+              {/* Dedicated Temple Charity Fund (கோவில் தர்ம நிதி) Row */}
+              <tr className="bg-gradient-to-r from-amber-50 via-yellow-50/80 to-amber-50 border-t-2 border-amber-300 text-slate-800">
+                <td className="py-3 px-4 text-center font-mono border-r border-amber-200 text-amber-800 font-bold text-sm">
+                  🛕
+                </td>
+                <td className="py-3 px-4 border-r border-amber-200">
+                  <div className="flex items-center gap-2">
+                    <span className="font-extrabold text-amber-950 text-xs sm:text-sm">
+                      🛕 {lang === 'ta' ? 'கோவில் தர்ம நிதி' : 'Temple Charity Fund'}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-900 shadow-2xs">
+                      {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன்' : 'Mariamman Temple'}
+                    </span>
+                  </div>
+                </td>
+                <td colSpan={3} className="py-2.5 px-4 border-r border-amber-200 text-center">
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="text-xs font-bold text-amber-900">
+                      {lang === 'ta' ? 'தர்ம நிதித் தொகை:' : 'Charity Fund Amount:'}
+                    </span>
+                    {!isMember ? (
+                      <div className="flex items-center gap-1">
+                        <span className="font-mono font-bold text-amber-800 text-sm">₹</span>
+                        <input
+                          type="number"
+                          value={templeCharityFund}
+                          onChange={(e) => setTempleCharityFund(Number(e.target.value) || 0)}
+                          className="w-28 text-center font-mono font-bold text-amber-900 px-2 py-1 rounded-lg border-2 border-amber-300 bg-white shadow-2xs focus:ring-2 focus:ring-amber-500 text-sm"
+                          placeholder="10000"
+                        />
+                      </div>
+                    ) : (
+                      <span className="font-mono font-black text-amber-900 text-sm bg-white px-3 py-1 rounded-lg border border-amber-300 shadow-2xs">
+                        ₹{Number(templeCharityFund).toLocaleString('en-IN')}
+                      </span>
+                    )}
+                  </div>
+                </td>
+                <td colSpan={2} className="py-3 px-4 text-center font-mono font-extrabold text-amber-950 text-xs bg-amber-100/60">
+                  <div className="flex flex-col items-center">
+                    <span className="text-[10px] uppercase font-bold text-amber-700">
+                      {lang === 'ta' ? 'தர்ம நிதி நிலை' : 'Charity Fund Status'}
+                    </span>
+                    <span className="text-xs font-bold text-emerald-700 flex items-center gap-1 mt-0.5">
+                      ✓ {lang === 'ta' ? 'ஒதுக்கப்பட்டது' : 'Allocated'}
+                    </span>
+                  </div>
                 </td>
               </tr>
             </tfoot>

@@ -20,6 +20,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
     if (existing.length > 0) {
       const totalAmount = existing.reduce((sum, e) => sum + e.amount, 0);
       const totalCommission = existing.reduce((sum, e) => sum + e.commission, 0);
+      const charityFund = existing[0]?.templeCharityFund ?? 10000;
 
       res.json({
         success: true,
@@ -30,6 +31,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
           totalMembers: existing.length,
           totalAmount,
           totalCommission,
+          templeCharityFund: charityFund,
           netAmount: totalAmount - totalCommission,
           entries: existing,
         },
@@ -58,6 +60,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       amount: 10000,
       commission: 0,
       moneyOffered: 10000,
+      templeCharityFund: 10000,
       status: 'PAID',
       paymentMethod: 'CASH',
       notes: '',
@@ -74,6 +77,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
         totalMembers: entries.length,
         totalAmount,
         totalCommission: 0,
+        templeCharityFund: 10000,
         netAmount: totalAmount,
         entries,
       },
@@ -87,7 +91,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
 // POST /api/monthly-reports - Save or update monthly report entries (Batch)
 router.post('/', authenticate, requireRole('ADMIN', 'STAFF'), async (req: Request, res: Response) => {
   try {
-    const { chitNo, date, entries } = req.body;
+    const { chitNo, date, entries, templeCharityFund = 10000 } = req.body;
 
     if (!chitNo || !date || !Array.isArray(entries) || entries.length === 0) {
       res.status(400).json({ success: false, error: 'Chit number, date, and entries array are required' });
@@ -103,6 +107,8 @@ router.post('/', authenticate, requireRole('ADMIN', 'STAFF'), async (req: Reques
       where: { status: 'ACTIVE' },
     });
 
+    const fundAmount = Number(templeCharityFund) || 10000;
+
     await prisma.$transaction(async (tx) => {
       for (const item of entries) {
         const sno = Number(item.sno);
@@ -111,6 +117,9 @@ router.post('/', authenticate, requireRole('ADMIN', 'STAFF'), async (req: Reques
         const moneyOffered = item.moneyOffered !== undefined && item.moneyOffered !== null
           ? Number(item.moneyOffered)
           : (amount - commission);
+        const itemCharity = item.templeCharityFund !== undefined && item.templeCharityFund !== null
+          ? Number(item.templeCharityFund)
+          : fundAmount;
         const sheetNumber = item.sheetNumber || Math.floor((sno - 1) / 13) + 1;
 
         totalAmount += amount;
@@ -128,6 +137,7 @@ router.post('/', authenticate, requireRole('ADMIN', 'STAFF'), async (req: Reques
             amount,
             commission,
             moneyOffered,
+            templeCharityFund: itemCharity,
             status: item.status || 'PAID',
             paymentMethod: item.paymentMethod || 'CASH',
             notes: item.notes || null,
@@ -142,6 +152,7 @@ router.post('/', authenticate, requireRole('ADMIN', 'STAFF'), async (req: Reques
             amount,
             commission,
             moneyOffered,
+            templeCharityFund: itemCharity,
             status: item.status || 'PAID',
             paymentMethod: item.paymentMethod || 'CASH',
             notes: item.notes || null,

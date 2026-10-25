@@ -224,6 +224,7 @@ model MonthlyReportEntry {
   amount          Int       @default(10000) // ₹10,000
   commission      Int       @default(0)     // Commission
   moneyOffered    Int?      @default(10000) // Money Offered
+  templeCharityFund Int?    @default(10000) // Temple Charity Fund (கோவில் தர்ம நிதி)
   status          String    @default("PAID") // PAID, PENDING, UNPAID
   paymentMethod   String    @default("CASH") // CASH, UPI, GPAY
   notes           String?
