@@ -219,4 +219,16 @@ export const api = {
     const query = new URLSearchParams(params as any).toString();
     return apiFetch<{ success: boolean; data: any[]; pagination: any }>(`/audit?${query}`);
   },
+
+  // Monthly Report Entries
+  getMonthlyReport: (params?: { chitNo?: string; date?: string }) => {
+    const query = new URLSearchParams(params as any).toString();
+    return apiFetch<{ success: boolean; data: any }>(`/monthly-reports?${query}`);
+  },
+  saveMonthlyReport: (data: { chitNo: string; date: string; entries: any[] }) =>
+    apiFetch<{ success: boolean; data: any; message: string }>('/monthly-reports', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  getMonthlyReportDates: () => apiFetch<{ success: boolean; data: any[] }>('/monthly-reports/dates'),
 };

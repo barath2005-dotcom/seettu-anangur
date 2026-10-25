@@ -212,3 +212,22 @@ model AuditLog {
 
   user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
+
+model MonthlyReportEntry {
+  id              String    @id @default(uuid())
+  chitNo          String    // e.g. "08"
+  date            String    // e.g. "25.10.26" or "2026-10-25"
+  sno             Int       // 1 to 78
+  sheetNumber     Int       @default(1) // 1 to 6
+  memberNumber    String?   // e.g. "M-001"
+  memberName      String    // e.g. "பழனிச்சாமி பி எல் ஆர் / Palanisamy B.L.R"
+  amount          Int       @default(10000) // ₹10,000
+  commission      Int       @default(0)     // Commission
+  status          String    @default("PAID") // PAID, PENDING, UNPAID
+  paymentMethod   String    @default("CASH") // CASH, UPI, GPAY
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([chitNo, date, sno])
+}

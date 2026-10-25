@@ -15,6 +15,7 @@ import reportRoutes from './routes/reports';
 import notificationRoutes from './routes/notifications';
 import staffRoutes from './routes/staff';
 import auditRoutes from './routes/audit';
+import monthlyReportRoutes from './routes/monthlyReports';
 
 const app = express();
 
@@ -53,6 +54,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/audit', auditRoutes);
+app.use('/api/monthly-reports', monthlyReportRoutes);
 
 // Error Handling
 app.use(errorHandler);

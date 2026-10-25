@@ -32,6 +32,7 @@ import {
   Sun,
   Moon,
   Trash2,
+  ClipboardList,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -47,6 +48,7 @@ import { formatINR, formatKolkataDate, translations, SupportedLanguage, getNextP
 import { StatCard } from './components/StatCard';
 import { ReceiptModal } from './components/ReceiptModal';
 import { ChitCalendar } from './components/ChitCalendar';
+import { MonthlyEntryScreen } from './components/MonthlyEntryScreen';
 
 export function App() {
   // Language State
@@ -361,6 +363,7 @@ export function App() {
   const navItems = [
     { id: 'dashboard', label: t.dashboard, icon: LayoutDashboard, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
     { id: 'members', label: t.members, icon: Users, roles: ['ADMIN', 'STAFF'] },
+    { id: 'monthly-entry', label: lang === 'ta' ? 'மாதாந்திர அறிக்கை பதிவு' : 'Monthly Report Entry', icon: ClipboardList, roles: ['ADMIN', 'STAFF'] },
     { id: 'schemes', label: t.schemes, icon: Coins, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
     { id: 'calendar', label: t.calendar, icon: Calendar, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
     { id: 'payments', label: t.payments, icon: Receipt, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
@@ -558,6 +561,13 @@ export function App() {
           )}
           {activeTab === 'members' && (
             <MembersScreen
+              user={user}
+              lang={lang}
+              showToast={showToast}
+            />
+          )}
+          {activeTab === 'monthly-entry' && (
+            <MonthlyEntryScreen
               user={user}
               lang={lang}
               showToast={showToast}
