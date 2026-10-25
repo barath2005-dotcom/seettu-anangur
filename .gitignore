@@ -33,6 +33,7 @@ apps/backend/prisma/dev.db-shm
 *.db
 *.sqlite
 *.sqlite3
+!apps/backend/prisma/seed-data.db
 
 # OS files
 .DS_Store

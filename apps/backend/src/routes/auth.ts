@@ -85,7 +85,7 @@ router.post('/login', validateBody(LoginSchema), async (req: Request, res: Respo
     });
   } catch (err: any) {
     console.error('Login error:', err);
-    res.status(500).json({ success: false, error: 'Login failed', code: 'SERVER_ERROR' });
+    res.status(500).json({ success: false, error: err?.message || 'Login failed', code: 'SERVER_ERROR' });
   }
 });
 
