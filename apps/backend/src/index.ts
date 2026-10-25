@@ -57,7 +57,7 @@ app.use('/api/audit', auditRoutes);
 // Error Handling
 app.use(errorHandler);
 
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
   app.listen(config.port, '0.0.0.0', () => {
     console.log(`===============================================`);
     console.log(`  ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர் சீட்டு குழு`);

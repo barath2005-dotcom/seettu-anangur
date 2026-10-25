@@ -1,11 +1,15 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build:shared && npm --workspace=@seettu/web run build",
+  "buildCommand": "npm run build:shared && npm run build:backend && npm --workspace=@seettu/web run build",
   "outputDirectory": "apps/web/dist",
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/api/(.*)",
+      "destination": "/api"
+    },
+    {
+      "source": "/((?!api).*)",
       "destination": "/index.html"
     }
   ]
