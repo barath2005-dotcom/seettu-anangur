@@ -386,7 +386,7 @@ export function App() {
   ].filter((item) => item.roles.includes(user.role));
 
   return (
-    <div className="min-h-screen flex bg-[#F4F7FC] dark:bg-[#080E1A]">
+    <div className="h-screen w-screen overflow-hidden flex bg-[#F4F7FC] dark:bg-[#080E1A]">
       {/* Toast Notification */}
       {toast && (
         <div
@@ -410,43 +410,73 @@ export function App() {
         />
       )}
 
-      {/* Desktop Sidebar Navigation */}
-      <aside className="hidden lg:flex w-64 bg-gradient-to-b from-[#091529] via-[#0D1C36] to-[#071120] text-white border-r border-slate-800/80 flex-col shrink-0 relative overflow-hidden">
-        {/* Subtle Temple Gopuram Watermark Silhouette at bottom */}
-        <div className="absolute -bottom-6 -right-6 w-56 h-72 pointer-events-none opacity-15 text-blue-400">
-          <svg viewBox="0 0 200 280" className="w-full h-full" fill="currentColor">
-            <path d="M100 10 L108 30 L92 30 Z M97 0 L103 0 L103 10 L97 10 Z" />
-            <path d="M75 32 L125 32 L130 55 L70 55 Z" />
-            <path d="M65 57 L135 57 L142 85 L58 85 Z" />
-            <path d="M55 87 L145 87 L154 125 L46 125 Z" />
-            <path d="M42 127 L158 127 L168 175 L32 175 Z" />
-            <path d="M28 177 L172 177 L184 235 L16 235 Z" />
-            <path d="M12 237 L188 237 L194 280 L6 280 Z" />
-            <path d="M82 280 L82 245 C82 235 118 235 118 245 L118 280 Z" fill="#091529" />
+      {/* Desktop Sidebar Navigation (Image 2 style) */}
+      <aside className="hidden lg:flex w-64 h-full bg-gradient-to-b from-[#0B1E40] via-[#081730] to-[#050D1C] text-white border-r border-blue-950/60 flex-col justify-between shrink-0 relative overflow-hidden select-none">
+        {/* Subtle Temple Gopuram Watermark Silhouette at bottom right (Image 2 style) */}
+        <div className="absolute bottom-24 -right-1 w-44 h-64 pointer-events-none opacity-25 text-blue-400 select-none">
+          <svg viewBox="0 0 160 220" className="w-full h-full fill-current" xmlns="http://www.w3.org/2000/svg">
+            <path d="M78 8 L80 2 L82 8 Z M74 10 L76 4 L78 10 Z M82 10 L84 4 L86 10 Z M70 12 L72 7 L74 12 Z M86 12 L88 7 L90 12 Z" />
+            <path d="M68 12 H92 V15 H68 Z" />
+            <path d="M65 16 H95 L93 26 H67 Z" />
+            <circle cx="80" cy="21" r="2" fill="#081730" />
+            <path d="M62 28 H98 L96 42 H64 Z" />
+            <rect x="76" y="32" width="8" height="8" rx="1" fill="#081730" />
+            <path d="M60 42 H100 V45 H60 Z" />
+            <path d="M57 46 H103 L101 64 H59 Z" />
+            <rect x="74" y="50" width="12" height="12" rx="2" fill="#081730" />
+            <circle cx="67" cy="56" r="2" fill="#081730" />
+            <circle cx="93" cy="56" r="2" fill="#081730" />
+            <path d="M54 64 H106 V67 H54 Z" />
+            <path d="M51 68 H109 L107 90 H53 Z" />
+            <rect x="72" y="74" width="16" height="14" rx="2" fill="#081730" />
+            <circle cx="63" cy="80" r="2.5" fill="#081730" />
+            <circle cx="97" cy="80" r="2.5" fill="#081730" />
+            <path d="M48 90 H112 V94 H48 Z" />
+            <path d="M45 95 H115 L113 122 H47 Z" />
+            <rect x="70" y="102" width="20" height="18" rx="2" fill="#081730" />
+            <circle cx="59" cy="110" r="3" fill="#081730" />
+            <circle cx="101" cy="110" r="3" fill="#081730" />
+            <path d="M42 122 H118 V127 H42 Z" />
+            <path d="M39 128 H121 L119 160 H41 Z" />
+            <rect x="68" y="136" width="24" height="22" rx="3" fill="#081730" />
+            <circle cx="54" cy="146" r="3.5" fill="#081730" />
+            <circle cx="106" cy="146" r="3.5" fill="#081730" />
+            <path d="M35 160 H125 V166 H35 Z" />
+            <path d="M32 167 H128 L126 215 H34 Z" />
+            <path d="M66 215 V182 Q80 170 94 182 V215 Z" fill="#081730" />
+          </svg>
+        </div>
+
+        {/* Glowing Electric Curved Waves (Image 2 style) */}
+        <div className="absolute bottom-24 -left-4 -right-4 h-20 pointer-events-none opacity-45 select-none overflow-hidden">
+          <svg viewBox="0 0 280 80" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M-10 40 C40 18, 90 65, 150 35 C210 10, 250 48, 290 30" stroke="#3B82F6" strokeWidth="2.5" />
+            <path d="M-10 55 C50 32, 110 75, 170 45 C230 18, 260 60, 300 45" stroke="#2563EB" strokeWidth="2" opacity="0.8" />
+            <path d="M-10 70 C60 48, 120 90, 180 60 C240 32, 270 70, 310 55" stroke="#1D4ED8" strokeWidth="1.5" opacity="0.6" />
           </svg>
         </div>
 
         {/* Top Header */}
-        <div className="p-4 border-b border-white/10 flex items-center gap-3 relative z-10">
-          <div className="p-0.5 rounded-xl border border-amber-400/60 bg-amber-400/10 shadow-md shadow-amber-500/10 shrink-0">
+        <div className="p-4 border-b border-white/10 flex items-center gap-3 relative z-10 shrink-0">
+          <div className="p-1 rounded-2xl border-2 border-amber-400/60 bg-gradient-to-b from-amber-400/20 to-amber-600/10 shadow-[0_0_15px_rgba(251,191,36,0.25)] shrink-0">
             <img
               src="/logo.jpg"
               alt="Sri Pattanathu Mariamman"
-              className="w-10 h-10 rounded-lg object-cover"
+              className="w-10 h-10 rounded-xl object-cover"
             />
           </div>
           <div className="overflow-hidden min-w-0">
-            <h2 className="font-bold text-white text-xs sm:text-[13px] leading-tight truncate">
+            <h2 className="font-extrabold text-white text-[13px] leading-tight tracking-tight truncate">
               {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன்' : 'Sri Pattanathu Mariamman'}
             </h2>
-            <p className="text-[11px] text-slate-400 font-medium truncate mt-0.5">
+            <p className="text-[11px] text-blue-300/80 font-medium tracking-tight truncate mt-0.5">
               {lang === 'ta' ? 'ஆனங்கூர் சீட்டு குழு' : 'Anangur Seettu Kuzhu'}
             </p>
           </div>
         </div>
 
         {/* Nav Links */}
-        <nav className="flex-1 px-3 py-3 space-y-1 overflow-y-auto relative z-10">
+        <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto relative z-10 scrollbar-none">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -454,14 +484,14 @@ export function App() {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-[13px] transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-[#2563EB] text-white shadow-lg shadow-blue-600/30 font-bold'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    ? 'bg-[#2563EB] text-white shadow-lg shadow-blue-600/40 font-bold'
+                    : 'text-slate-300 hover:text-white hover:bg-white/5 font-semibold'
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                  <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} />
                   <span className="truncate">{item.label}</span>
                 </div>
                 {item.badge && item.badge > 0 ? (
@@ -476,29 +506,33 @@ export function App() {
           })}
         </nav>
 
-        {/* Bottom User Card & Logout */}
-        <div className="p-3 border-t border-white/10 relative z-10 space-y-2">
-          <div className="p-3 rounded-2xl bg-white/[0.06] border border-white/10 backdrop-blur-xs flex items-center justify-between">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs uppercase shrink-0 shadow-sm">
+        {/* Bottom User Card & Logout (Image 2 style) */}
+        <div className="p-3 border-t border-blue-900/40 relative z-10 shrink-0">
+          <div className="p-3 rounded-2xl bg-[#091830]/90 border border-blue-500/25 shadow-xl shadow-black/40 backdrop-blur-md">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center font-black text-xs uppercase shrink-0 shadow-md ring-2 ring-blue-400/30">
                 {user.name.slice(0, 2).toUpperCase()}
               </div>
-              <div className="overflow-hidden min-w-0">
+              <div className="overflow-hidden min-w-0 flex-1">
                 <p className="text-xs font-bold text-white truncate">{user.name}</p>
-                <span className="inline-block px-1.5 py-0.2 rounded text-[9px] font-black tracking-wider bg-blue-900/70 text-blue-300 uppercase">
+                <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-black tracking-wider uppercase mt-0.5 shadow-2xs ${
+                  user.role === 'ADMIN'
+                    ? 'bg-[#3B28CC] text-indigo-100'
+                    : 'bg-blue-700 text-blue-100'
+                }`}>
                   {user.role}
                 </span>
               </div>
             </div>
-          </div>
 
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>{t.signOut}</span>
-          </button>
+            <button
+              onClick={handleLogout}
+              className="mt-3 pt-2.5 border-t border-white/10 w-full flex items-center gap-2 px-1 text-slate-300 hover:text-rose-400 transition-colors text-xs font-semibold cursor-pointer group"
+            >
+              <LogOut className="w-4 h-4 text-slate-400 group-hover:text-rose-400 transition-colors" />
+              <span>{lang === 'ta' ? 'வெளியேறு' : 'Logout'}</span>
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -512,52 +546,73 @@ export function App() {
           />
 
           {/* Drawer Content */}
-          <div className="relative w-72 max-w-[85vw] bg-gradient-to-b from-[#091529] via-[#0D1C36] to-[#071120] text-white h-full flex flex-col shadow-2xl z-10 animate-in slide-in-from-left duration-200 border-r border-slate-800">
+          <div className="relative w-72 max-w-[85vw] bg-gradient-to-b from-[#0B1E40] via-[#081730] to-[#050D1C] text-white h-full flex flex-col justify-between shadow-2xl z-10 animate-in slide-in-from-left duration-200 border-r border-blue-900/50 overflow-hidden">
+            {/* Subtle Temple Gopuram Watermark Silhouette */}
+            <div className="absolute bottom-28 -right-2 w-44 h-64 pointer-events-none opacity-20 text-blue-400 select-none">
+              <svg viewBox="0 0 160 220" className="w-full h-full fill-current" xmlns="http://www.w3.org/2000/svg">
+                <path d="M78 8 L80 2 L82 8 Z M74 10 L76 4 L78 10 Z M82 10 L84 4 L86 10 Z M70 12 L72 7 L74 12 Z M86 12 L88 7 L90 12 Z" />
+                <path d="M68 12 H92 V15 H68 Z" />
+                <path d="M65 16 H95 L93 26 H67 Z" />
+                <circle cx="80" cy="21" r="2" fill="#081730" />
+                <path d="M62 28 H98 L96 42 H64 Z" />
+                <rect x="76" y="32" width="8" height="8" rx="1" fill="#081730" />
+                <path d="M60 42 H100 V45 H60 Z" />
+                <path d="M57 46 H103 L101 64 H59 Z" />
+                <rect x="74" y="50" width="12" height="12" rx="2" fill="#081730" />
+                <path d="M54 64 H106 V67 H54 Z" />
+                <path d="M51 68 H109 L107 90 H53 Z" />
+                <rect x="72" y="74" width="16" height="14" rx="2" fill="#081730" />
+                <path d="M48 90 H112 V94 H48 Z" />
+                <path d="M45 95 H115 L113 122 H47 Z" />
+                <rect x="70" y="102" width="20" height="18" rx="2" fill="#081730" />
+                <path d="M42 122 H118 V127 H42 Z" />
+                <path d="M39 128 H121 L119 160 H41 Z" />
+                <rect x="68" y="136" width="24" height="22" rx="3" fill="#081730" />
+                <path d="M35 160 H125 V166 H35 Z" />
+                <path d="M32 167 H128 L126 215 H34 Z" />
+                <path d="M66 215 V182 Q80 170 94 182 V215 Z" fill="#081730" />
+              </svg>
+            </div>
+
+            {/* Glowing Electric Curved Waves */}
+            <div className="absolute bottom-28 -left-4 -right-4 h-20 pointer-events-none opacity-40 select-none overflow-hidden">
+              <svg viewBox="0 0 280 80" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M-10 40 C40 18, 90 65, 150 35 C210 10, 250 48, 290 30" stroke="#3B82F6" strokeWidth="2.5" />
+                <path d="M-10 55 C50 32, 110 75, 170 45 C230 18, 260 60, 300 45" stroke="#2563EB" strokeWidth="2" opacity="0.8" />
+                <path d="M-10 70 C60 48, 120 90, 180 60 C240 32, 270 70, 310 55" stroke="#1D4ED8" strokeWidth="1.5" opacity="0.6" />
+              </svg>
+            </div>
+
             {/* Header with App Logo & Close Button */}
-            <div className="p-4 border-b border-white/10 flex items-center justify-between">
+            <div className="p-4 border-b border-white/10 flex items-center justify-between shrink-0 relative z-10">
               <div className="flex items-center gap-2.5 overflow-hidden">
-                <div className="p-0.5 rounded-xl border border-amber-400/60 bg-amber-400/10 shadow-sm shrink-0">
+                <div className="p-1 rounded-2xl border-2 border-amber-400/60 bg-gradient-to-b from-amber-400/20 to-amber-600/10 shadow-sm shrink-0">
                   <img
                     src="/logo.jpg"
                     alt="Logo"
-                    className="w-10 h-10 rounded-lg object-cover"
+                    className="w-10 h-10 rounded-xl object-cover"
                   />
                 </div>
                 <div className="overflow-hidden">
-                  <h2 className="font-bold text-white text-xs leading-tight truncate">
+                  <h2 className="font-extrabold text-white text-xs leading-tight truncate">
                     {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன்' : 'Sri Pattanathu Mariamman'}
                   </h2>
-                  <p className="text-[11px] text-slate-400 font-medium truncate mt-0.5">
+                  <p className="text-[11px] text-blue-300/80 font-medium truncate mt-0.5">
                     {lang === 'ta' ? 'ஆனங்கூர் சீட்டு குழு' : 'Anangur Seettu Kuzhu'}
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 shrink-0 ml-1"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 shrink-0 ml-1 cursor-pointer"
                 aria-label="Close Menu"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* User Card */}
-            <div className="p-3.5 mx-3 my-2.5 rounded-2xl bg-white/[0.06] border border-white/10">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs uppercase shrink-0">
-                  {user.name.slice(0, 2).toUpperCase()}
-                </div>
-                <div className="overflow-hidden">
-                  <p className="text-xs font-bold text-white truncate">{user.name}</p>
-                  <span className="inline-block px-1.5 py-0.2 rounded text-[9px] font-black tracking-wider bg-blue-900/70 text-blue-300 uppercase">
-                    {user.role}
-                  </span>
-                </div>
-              </div>
-            </div>
-
             {/* Nav Links */}
-            <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
+            <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto relative z-10 scrollbar-none">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
@@ -568,15 +623,15 @@ export function App() {
                       setActiveTab(item.id);
                       setMobileMenuOpen(false);
                     }}
-                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-[13px] transition-all cursor-pointer ${
                       isActive
-                        ? 'bg-[#2563EB] text-white shadow-md shadow-blue-600/30 font-bold'
-                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                        ? 'bg-[#2563EB] text-white shadow-lg shadow-blue-600/40 font-bold'
+                        : 'text-slate-300 hover:text-white hover:bg-white/5 font-semibold'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                      <span>{item.label}</span>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                      <span className="truncate">{item.label}</span>
                     </div>
                     {item.badge && item.badge > 0 ? (
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -591,7 +646,7 @@ export function App() {
             </nav>
 
             {/* Quick Language & Theme switcher in mobile drawer */}
-            <div className="p-3 border-t border-white/10 flex items-center justify-between gap-2">
+            <div className="p-3 border-t border-white/10 flex items-center justify-between gap-2 relative z-10 shrink-0">
               <div className="flex items-center bg-white/10 rounded-full p-0.5 text-xs font-bold border border-white/10">
                 <button
                   onClick={() => handleLanguageChange('en')}
@@ -623,25 +678,43 @@ export function App() {
               </button>
             </div>
 
-            {/* Drawer Logout */}
-            <div className="p-3 border-t border-white/10">
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  handleLogout();
-                }}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>{t.signOut}</span>
-              </button>
+            {/* Mobile Drawer User Card & Logout (Image 2 style) */}
+            <div className="p-3 border-t border-blue-900/40 relative z-10 shrink-0">
+              <div className="p-3 rounded-2xl bg-[#091830]/90 border border-blue-500/25 shadow-xl shadow-black/40 backdrop-blur-md">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center font-black text-xs uppercase shrink-0 shadow-md ring-2 ring-blue-400/30">
+                    {user.name.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="overflow-hidden min-w-0 flex-1">
+                    <p className="text-xs font-bold text-white truncate">{user.name}</p>
+                    <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-black tracking-wider uppercase mt-0.5 shadow-2xs ${
+                      user.role === 'ADMIN'
+                        ? 'bg-[#3B28CC] text-indigo-100'
+                        : 'bg-blue-700 text-blue-100'
+                    }`}>
+                      {user.role}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="mt-3 pt-2.5 border-t border-white/10 w-full flex items-center gap-2 px-1 text-slate-300 hover:text-rose-400 transition-colors text-xs font-semibold cursor-pointer group"
+                >
+                  <LogOut className="w-4 h-4 text-slate-400 group-hover:text-rose-400 transition-colors" />
+                  <span>{lang === 'ta' ? 'வெளியேறு' : 'Logout'}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         {/* Top Header Bar */}
         <header className="bg-white dark:bg-[#0E1726] border-b border-slate-200/80 dark:border-slate-800 px-4 sm:px-6 py-3 flex items-center justify-between gap-4 sticky top-0 z-30">
           <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -731,7 +804,7 @@ export function App() {
         </header>
 
         {/* Content Body */}
-        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 lg:p-8 pb-24 lg:pb-8">
+        <main className="flex-1 overflow-y-auto p-3.5 sm:p-4 md:p-5 lg:p-6 pb-6">
           {activeTab === 'dashboard' && (
             <DashboardScreen
               user={user}
@@ -901,144 +974,455 @@ function DashboardScreen({ user, lang, onNavigate, onViewReceipt }: { user: any;
   }
 
   if (data?.isMember) {
+    const memberPaidRounds = data.recentTransactions?.length || 1;
+    const memberTotalRounds = 10;
+    const memberPaidPercent = Math.min(100, Math.round((memberPaidRounds / memberTotalRounds) * 100));
+    const memberPendingPercent = 100 - memberPaidPercent;
+
+    const donutRadius = 34;
+    const donutCircumference = 2 * Math.PI * donutRadius;
+    const donutOffset = donutCircumference - (memberPaidPercent / 100) * donutCircumference;
+
     return (
-      <div className="space-y-6">
-        {/* Auspicious Chit Lunar Day Banner */}
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-amber-400/10 to-indigo-500/15 border-2 border-amber-300 dark:border-amber-700/60 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl p-2 rounded-xl bg-amber-400/20 border border-amber-400/40 shrink-0">
-              🌕
-            </span>
+      <div className="space-y-4">
+        {/* Dashboard Top Title & Date Card */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              {lang === 'ta' ? 'உறுப்பினர் டாஷ்போர்டு' : 'Member Dashboard'}
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {lang === 'ta' ? `வணக்கம், ${user.name}` : `Welcome back, ${user.name}`}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2.5 bg-white dark:bg-[#111C2E] border border-slate-200/80 dark:border-slate-800 rounded-2xl px-3.5 py-2 shadow-2xs self-start sm:self-auto">
+            <div className="p-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#2563EB] shrink-0">
+              <Calendar className="w-4 h-4" />
+            </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-amber-900 dark:text-amber-300 text-sm">
-                  {lang === 'ta' ? 'அடுத்த சீட்டு நாள் (பௌர்ணமி):' : 'Next Chit Day (Pournami):'} {nextPournami.dateStr}
-                </span>
-                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500 text-white shadow-sm">
-                  {nextPournami.isToday
-                    ? lang === 'ta' ? 'இன்று!' : 'Today!'
-                    : `${nextPournami.daysRemaining} ${t.daysRemaining}`}
-                </span>
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                {lang === 'ta' ? 'இன்று' : 'Today'}
               </div>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                🎯 {lang === 'ta' ? 'அனைத்து சீட்டுத் தவணைகள் & குலுக்கல் பௌர்ணமி நாளில் நடைபெறும்.' : 'Monthly lucky draw and collections held on every Full Moon day.'}
-              </p>
+              <div className="text-xs font-black text-slate-800 dark:text-slate-200">
+                Sunday, 26 Oct 2026
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Hero Banner: Pournami / Next Chit Day (Image 1 style) */}
+        <div className="rounded-3xl bg-gradient-to-r from-[#0C1E3E] via-[#0E2954] to-[#0A1732] text-white p-5 sm:p-6 relative overflow-hidden shadow-xl border border-blue-900/50 flex flex-col md:flex-row items-center justify-between gap-5">
+          <div className="hidden md:flex items-center justify-center shrink-0 w-20 h-20 relative">
+            <img
+              src="/logo.jpg"
+              alt="Sri Pattanathu Mariamman Gopuram"
+              className="w-18 h-18 rounded-2xl object-cover border-2 border-amber-400/60 shadow-[0_0_25px_rgba(251,191,36,0.35)] ring-4 ring-amber-400/20"
+            />
+          </div>
+
+          <div className="flex-1 min-w-0 z-10 text-center md:text-left">
+            <div className="text-[11px] font-bold tracking-widest text-blue-300 uppercase flex items-center justify-center md:justify-start gap-1.5 mb-1">
+              <span>{lang === 'ta' ? 'அடுத்த சீட்டு நாள்' : 'NEXT CHIT DAY'}</span>
+              <ChevronRight className="w-3.5 h-3.5 text-blue-400" />
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              Pournami - 2026-10-26
+            </h2>
+            <p className="text-xs text-blue-200/90 mt-1 flex items-center justify-center md:justify-start gap-1.5">
+              <span>🎁</span>
+              <span>
+                {lang === 'ta'
+                  ? 'மாதாந்திர அதிர்ஷ்ட குலுக்கல் & தவணை செலுத்துதல் பௌர்ணமி நாளில் நடைபெறும்.'
+                  : 'Monthly lucky draw and collections held on every Full Moon day.'}
+              </span>
+            </p>
+          </div>
+
+          <div className="relative flex items-center justify-center shrink-0 z-10">
+            <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-amber-200 via-amber-100 to-yellow-300 shadow-[0_0_40px_rgba(251,191,36,0.7)] border-2 border-yellow-200/70 overflow-hidden relative flex items-center justify-center">
+              <div className="absolute top-2 left-3 w-4 h-4 rounded-full bg-amber-300/35 blur-xs"></div>
+              <div className="absolute bottom-3 right-4 w-6 h-5 rounded-full bg-amber-300/40 blur-xs"></div>
+              <div className="absolute inset-0 bg-radial from-transparent via-amber-200/10 to-amber-400/30"></div>
             </div>
           </div>
 
-          <button
-            onClick={() => onNavigate('calendar')}
-            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all shadow-md shadow-amber-500/20 flex items-center gap-1.5 shrink-0"
-          >
-            <Calendar className="w-4 h-4" />
-            <span>{lang === 'ta' ? 'நாட்காட்டியைப் பார்க்க ➔' : 'View Chit Calendar ➔'}</span>
-          </button>
+          <div className="flex flex-col items-center md:items-end shrink-0 z-10">
+            <div className="text-amber-400 font-black text-xs sm:text-sm tracking-wider uppercase mb-2">
+              {nextPournami.isToday
+                ? (lang === 'ta' ? 'இன்று பௌர்ணமி!' : 'TODAY IS POURNAMI!')
+                : (lang === 'ta' ? `${nextPournami.daysRemaining} நாள் மீதமுள்ளது` : `${nextPournami.daysRemaining} DAY REMAINING`)}
+            </div>
+            <button
+              onClick={() => onNavigate('calendar')}
+              className="bg-[#F59E0B] hover:bg-[#D97706] text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
+            >
+              <Calendar className="w-4 h-4" />
+              <span>{lang === 'ta' ? 'சீட்டு நாட்காட்டி ➔' : 'View Chit Calendar →'}</span>
+            </button>
+          </div>
         </div>
 
         {/* Official Monthly Report Quick Access Banner for Member */}
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="text-3xl p-2 rounded-xl bg-white/10 shrink-0">📋</span>
+            <span className="text-2xl p-2 rounded-xl bg-white/10 shrink-0">📋</span>
             <div>
-              <h4 className="font-extrabold text-sm">
+              <h4 className="font-extrabold text-xs sm:text-sm">
                 {lang === 'ta' ? 'அதிகாரப்பூர்வ மாதாந்திர சீட்டு அறிக்கை' : 'Official Monthly Chit Report'}
               </h4>
-              <p className="text-xs text-blue-100 mt-0.5">
+              <p className="text-[11px] text-blue-100 mt-0.5">
                 {lang === 'ta'
-                  ? 'சீட்டு எண் 08 (25.10.26) - 78 உறுப்பினர்களின் தவணை வசூல் மற்றும் கமிஷன் விபரம்'
+                  ? 'சீட்டு எண்: 08 (25.10.26) - 78 உறுப்பினர்களின் தவணை வசூல் மற்றும் கமிஷன் விபரம்'
                   : 'Chit No: 08 (25.10.26) - 78 Members contribution & commission statement'}
               </p>
             </div>
           </div>
           <button
             onClick={() => onNavigate('monthly-entry')}
-            className="px-4 py-2 rounded-xl bg-white text-blue-700 hover:bg-blue-50 text-xs font-black transition-all shadow-md shrink-0 flex items-center gap-1.5"
+            className="px-3.5 py-2 rounded-xl bg-white text-blue-700 hover:bg-blue-50 text-xs font-black transition-all shadow-sm shrink-0 flex items-center gap-1.5 cursor-pointer"
           >
             <ClipboardList className="w-4 h-4 text-blue-600" />
             <span>{lang === 'ta' ? 'அறிக்கையைக் காண்க ➔' : 'View Monthly Report ➔'}</span>
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* 4 Stat Cards for Member (Image 1 style) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
           <StatCard
-            title={t.totalContributed}
+            title={lang === 'ta' ? 'என் மொத்த சேமிப்பு' : 'TOTAL CONTRIBUTIONS'}
             value={formatINR(data.totalContributedPaise)}
             icon={<Coins className="w-5 h-5" />}
             color="blue"
-            trend={lang === 'ta' ? 'செயலில் உள்ள சேமிப்பு' : 'Active Savings'}
+            trend={lang === 'ta' ? '↑ நேரடி வரவு' : '↑ Live Ledger Sync'}
           />
           <StatCard
-            title={t.outstandingBalance}
+            title={lang === 'ta' ? 'இந்த மாத தவணை' : 'EXPECTED THIS MONTH'}
+            value="₹10,000"
+            icon={<Target className="w-5 h-5" />}
+            color="amber"
+            subtitle={lang === 'ta' ? 'தவணை எண் 08 இலக்கு' : 'Target for round 08'}
+          />
+          <StatCard
+            title={lang === 'ta' ? 'நிலுவை தொகை' : 'OUTSTANDING BALANCE'}
             value={formatINR(data.outstandingContributionsPaise)}
             icon={<AlertCircle className="w-5 h-5" />}
             color={data.outstandingContributionsPaise > 0 ? 'red' : 'green'}
-            subtitle={data.outstandingContributionsPaise > 0 ? (lang === 'ta' ? 'செலுத்த வேண்டிய தவணைகள்' : 'Due for active rounds') : (lang === 'ta' ? 'அனைத்து தவணைகளும் செலுத்தப்பட்டன' : 'All installments cleared')}
+            subtitle={data.outstandingContributionsPaise > 0
+              ? (lang === 'ta' ? 'செலுத்த வேண்டிய தவணை' : 'Overdue collections')
+              : (lang === 'ta' ? 'அனைத்தும் செலுத்தப்பட்டது' : 'All cleared')}
           />
           <StatCard
-            title={t.enrolledSchemes}
-            value={`${data.activeSchemesCount} ${lang === 'ta' ? 'திட்டங்கள்' : 'Active'}`}
-            icon={<Building className="w-5 h-5" />}
-            color="purple"
+            title={lang === 'ta' ? 'செயலில் உள்ள சீட்டு' : 'ACTIVE CHIT SCHEME'}
+            value="Chit No: 08"
+            icon={<Gift className="w-5 h-5" />}
+            color="green"
+            subtitle={lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன்' : 'Sri Pattanathu Mariamman'}
           />
         </div>
 
-        {/* Upcoming dues */}
-        <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-sm">
-          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">{t.upcomingInstallments}</h3>
-          {data.upcomingRounds.length === 0 ? (
-            <p className="text-xs text-slate-400">{t.noPendingDues}</p>
-          ) : (
-            <div className="space-y-3">
-              {data.upcomingRounds.map((r: any, idx: number) => (
-                <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-100">
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-800">{r.schemeName}</h4>
-                    <span className="text-xs text-slate-500">{t.roundNumber} #{r.roundNumber} • {t.dueDate}: {formatKolkataDate(r.dueDate)}</span>
+        {/* Middle Row: Upcoming Installments & Member Chit Donut */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 bg-white dark:bg-[#111C2E] rounded-2xl p-4 sm:p-5 border border-slate-100 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#2563EB] shrink-0">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-white">
+                    {lang === 'ta' ? 'வரவிருக்கும் தவணைகள் & அட்டவணை' : 'Upcoming Installment Schedule'}
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    {lang === 'ta' ? 'பௌர்ணமி தோறும் செலுத்த வேண்டிய தவணைகள்' : 'Monthly Full Moon due dates & round amounts'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => onNavigate('payments')}
+                className="text-xs font-bold text-[#2563EB] hover:underline"
+              >
+                {lang === 'ta' ? 'பதிவேடு ➔' : 'View Ledger →'}
+              </button>
+            </div>
+
+            <div className="space-y-2.5 mt-2">
+              {(data.upcomingRounds && data.upcomingRounds.length > 0) ? (
+                data.upcomingRounds.slice(0, 3).map((r: any, idx: number) => (
+                  <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 hover:bg-slate-100/70 transition-all">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-[#2563EB] font-bold text-xs flex items-center justify-center">
+                        #{r.roundNumber}
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-800 dark:text-white">{r.schemeName}</h4>
+                        <span className="text-[11px] text-slate-400">
+                          {lang === 'ta' ? 'கடைசி தேதி:' : 'Due Date:'} {formatKolkataDate(r.dueDate)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs font-extrabold text-[#2563EB]">{formatINR(r.amountDuePaise || 1000000)}</span>
+                      <span className="block text-[10px] text-emerald-600 font-semibold">{lang === 'ta' ? 'தவணை 10,000' : 'Per Round'}</span>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-sm font-extrabold text-[#2F7BFF]">{formatINR(r.amountDuePaise)}</span>
+                ))
+              ) : (
+                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-center text-xs text-slate-400">
+                  {lang === 'ta' ? 'தற்போது நிலுவை தவணைகள் ஏதுமில்லை.' : 'No pending installment dues at this time.'}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Member Chit Progress Donut */}
+          <div className="bg-white dark:bg-[#111C2E] rounded-2xl p-4 sm:p-5 border border-slate-100 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#2563EB] shrink-0">
+                  <Coins className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-white">
+                    {lang === 'ta' ? 'சீட்டு தவணை நிலை' : 'Chit Round Progress'}
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    {lang === 'ta' ? '10 தவணைகளில் உங்கள் நிலை' : 'Your status across 10 rounds'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-5 my-3">
+                <div className="relative w-20 h-20 flex items-center justify-center shrink-0">
+                  <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r={donutRadius}
+                      className="text-slate-100 dark:text-slate-800"
+                      strokeWidth="9"
+                      stroke="currentColor"
+                      fill="transparent"
+                    />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r={donutRadius}
+                      stroke="#10B981"
+                      strokeWidth="9"
+                      strokeDasharray={donutCircumference}
+                      strokeDashoffset={donutOffset}
+                      strokeLinecap="round"
+                      fill="transparent"
+                    />
+                  </svg>
+                  <div className="absolute flex flex-col items-center justify-center text-center">
+                    <span className="text-lg font-black text-slate-800 dark:text-white leading-none">
+                      {memberPaidRounds}
+                    </span>
+                    <span className="text-[8px] font-bold text-slate-400 uppercase mt-0.5">
+                      / 10 {lang === 'ta' ? 'தவணை' : 'Rounds'}
+                    </span>
                   </div>
                 </div>
-              ))}
+
+                <div className="flex-1 space-y-2.5">
+                  <div>
+                    <div className="flex items-center justify-between text-xs font-semibold mb-1">
+                      <span className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span> {lang === 'ta' ? 'செலுத்தியது' : 'Paid'}
+                      </span>
+                      <span className="font-bold text-slate-900 dark:text-white">{memberPaidRounds} ({memberPaidPercent}%)</span>
+                    </div>
+                    <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                      <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${memberPaidPercent}%` }}></div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between text-xs font-semibold mb-1">
+                      <span className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200">
+                        <span className="w-2 h-2 rounded-full bg-amber-500"></span> {lang === 'ta' ? 'மீதமுள்ளவை' : 'Remaining'}
+                      </span>
+                      <span className="font-bold text-slate-900 dark:text-white">{10 - memberPaidRounds} ({memberPendingPercent}%)</span>
+                    </div>
+                    <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                      <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: `${memberPendingPercent}%` }}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          )}
+
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800">
+              <button
+                onClick={() => onNavigate('payments')}
+                className="w-full py-2 px-3 rounded-xl border border-blue-200 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/30 hover:bg-blue-100/60 text-[#2563EB] text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Receipt className="w-4 h-4" />
+                <span>{lang === 'ta' ? 'தவணை செலுத்து / பதிவேடு ➔' : 'View Payments Ledger →'}</span>
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Member Recent Transactions */}
-        <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-sm">
-          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">{t.recentPaymentsTitle}</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-500 uppercase font-semibold">
-                <tr>
-                  <th className="py-2.5 px-3">{t.receiptNumber}</th>
-                  <th className="py-2.5 px-3">{t.schemes}</th>
-                  <th className="py-2.5 px-3">{t.roundNumber}</th>
-                  <th className="py-2.5 px-3">{t.amountReceived}</th>
-                  <th className="py-2.5 px-3">{t.dueDate}</th>
-                  <th className="py-2.5 px-3">{lang === 'ta' ? 'நடவடிக்கை' : 'Action'}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 font-medium">
-                {data.recentTransactions.map((tx: any) => (
-                  <tr key={tx.id} className="hover:bg-slate-50">
-                    <td className="py-3 px-3 font-mono font-semibold text-slate-700">{tx.receiptNumber}</td>
-                    <td className="py-3 px-3">{tx.schemeName}</td>
-                    <td className="py-3 px-3">#{tx.roundNumber}</td>
-                    <td className="py-3 px-3 font-bold text-emerald-600">{formatINR(tx.amountReceivedPaise)}</td>
-                    <td className="py-3 px-3 text-slate-500">{formatKolkataDate(tx.paymentDate)}</td>
-                    <td className="py-3 px-3">
-                      <button
-                        onClick={() => onViewReceipt(tx)}
-                        className="inline-flex items-center gap-1 text-[#2F7BFF] hover:underline"
-                      >
-                        <Printer className="w-3.5 h-3.5" /> {t.viewReceipt}
-                      </button>
-                    </td>
+        {/* Bottom Row: Member Recent Transactions & Upcoming Events */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 bg-white dark:bg-[#111C2E] rounded-2xl p-4 sm:p-5 border border-slate-100 dark:border-slate-800 shadow-xs">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#2563EB] shrink-0">
+                  <Receipt className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-bold text-slate-800 dark:text-white">
+                  {lang === 'ta' ? 'எனது சமீபத்திய பரிவர்த்தனைகள்' : 'My Recent Transactions'}
+                </h3>
+              </div>
+              <button
+                onClick={() => onNavigate('payments')}
+                className="text-xs font-bold text-[#2563EB] hover:underline cursor-pointer"
+              >
+                {lang === 'ta' ? 'முழு பதிவேடு ➔' : 'View Full Ledger →'}
+              </button>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="border-b border-slate-100 dark:border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  <tr>
+                    <th className="py-2.5 px-3">#</th>
+                    <th className="py-2.5 px-3">{lang === 'ta' ? 'தேதி' : 'DATE'}</th>
+                    <th className="py-2.5 px-3">{lang === 'ta' ? 'ரசீது எண்' : 'RECEIPT NO'}</th>
+                    <th className="py-2.5 px-3">{lang === 'ta' ? 'வகை' : 'TYPE'}</th>
+                    <th className="py-2.5 px-3">{lang === 'ta' ? 'தொகை' : 'AMOUNT'}</th>
+                    <th className="py-2.5 px-3">{lang === 'ta' ? 'நிலை' : 'STATUS'}</th>
+                    <th className="py-2.5 px-3 text-center">{lang === 'ta' ? 'ரசீது' : 'ACTIONS'}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                  {data.recentTransactions && data.recentTransactions.length > 0 ? (
+                    data.recentTransactions.map((tx: any, idx: number) => (
+                      <tr key={tx.id || idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                        <td className="py-3 px-3 font-mono font-bold text-slate-500">{idx + 1}</td>
+                        <td className="py-3 px-3 text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                          {formatKolkataDate(tx.paymentDate)}
+                        </td>
+                        <td className="py-3 px-3">
+                          <div className="font-bold text-slate-900 dark:text-white font-mono">{tx.receiptNumber}</div>
+                          <div className="text-[11px] text-slate-400">{tx.schemeName} • #{tx.roundNumber}</div>
+                        </td>
+                        <td className="py-3 px-3">
+                          <span className="inline-block px-2 py-0.5 rounded-md text-[11px] font-bold bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800/60">
+                            {lang === 'ta' ? 'வசூல்' : 'Collection'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 font-mono font-bold text-slate-900 dark:text-white whitespace-nowrap">
+                          {formatINR(tx.amountReceivedPaise)}
+                        </td>
+                        <td className="py-3 px-3">
+                          <span className="inline-block px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
+                            {lang === 'ta' ? 'வெற்றி' : 'Completed'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3 text-center">
+                          <button
+                            onClick={() => onViewReceipt(tx)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-[#2563EB] hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors cursor-pointer"
+                            title={lang === 'ta' ? 'ரசீதைப் பார்க்க' : 'View Receipt'}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={7} className="py-6 text-center text-xs text-slate-400">
+                        {lang === 'ta' ? 'பரிவர்த்தனைகள் எதுவும் இல்லை.' : 'No recent transactions recorded.'}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Member Upcoming Events */}
+          <div className="bg-white dark:bg-[#111C2E] rounded-2xl p-4 sm:p-5 border border-slate-100 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 shrink-0">
+                    <Calendar className="w-4 h-4" />
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-white">
+                    {lang === 'ta' ? 'முக்கிய நிகழ்வுகள்' : 'Upcoming Events'}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => onNavigate('calendar')}
+                  className="text-xs font-bold text-[#2563EB] hover:underline cursor-pointer"
+                >
+                  {lang === 'ta' ? 'நாட்காட்டி ➔' : 'View Calendar →'}
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                <div
+                  onClick={() => onNavigate('calendar')}
+                  className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-all flex items-center justify-between cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-lg">🌕</span>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#2563EB] transition-colors">
+                        Pournami - Chit Day
+                      </h4>
+                      <span className="text-[11px] text-slate-400">26 Oct 2026</span>
+                    </div>
+                  </div>
+                  <span className="bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-950/50 dark:text-amber-300 text-[10px] font-black px-2 py-0.5 rounded-full">
+                    {nextPournami.isToday ? (lang === 'ta' ? 'இன்று!' : 'Today!') : '1 day left'}
+                  </span>
+                </div>
+
+                <div
+                  onClick={() => onNavigate('calendar')}
+                  className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-all flex items-center justify-between cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-[#2563EB]">
+                      <Calendar className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#2563EB] transition-colors">
+                        Monthly Collection
+                      </h4>
+                      <span className="text-[11px] text-slate-400">25 Nov 2026</span>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                </div>
+
+                <div
+                  onClick={() => onNavigate('payouts')}
+                  className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-all flex items-center justify-between cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-1.5 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-purple-600">
+                      <Gift className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#2563EB] transition-colors">
+                        Monthly Payout
+                      </h4>
+                      <span className="text-[11px] text-slate-400">25 Nov 2026</span>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1133,11 +1517,11 @@ function DashboardScreen({ user, lang, onNavigate, onViewReceipt }: { user: any;
       ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Dashboard Top Title & Date Card */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             Dashboard
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -1146,8 +1530,8 @@ function DashboardScreen({ user, lang, onNavigate, onViewReceipt }: { user: any;
         </div>
 
         {/* Today Card on Top Right */}
-        <div className="flex items-center gap-3 bg-white dark:bg-[#111C2E] border border-slate-200/80 dark:border-slate-800 rounded-2xl px-4 py-2.5 shadow-2xs self-start sm:self-auto">
-          <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#2563EB] shrink-0">
+        <div className="flex items-center gap-2.5 bg-white dark:bg-[#111C2E] border border-slate-200/80 dark:border-slate-800 rounded-2xl px-3.5 py-2 shadow-2xs self-start sm:self-auto">
+          <div className="p-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#2563EB] shrink-0">
             <Calendar className="w-4 h-4" />
           </div>
           <div>
@@ -1162,7 +1546,7 @@ function DashboardScreen({ user, lang, onNavigate, onViewReceipt }: { user: any;
       </div>
 
       {/* Hero Banner: Pournami / Next Chit Day */}
-      <div className="rounded-3xl bg-gradient-to-r from-[#0C1E3E] via-[#0E2954] to-[#0A1732] text-white p-6 sm:p-7 relative overflow-hidden shadow-xl border border-blue-900/50 flex flex-col md:flex-row items-center justify-between gap-6">
+      <div className="rounded-3xl bg-gradient-to-r from-[#0C1E3E] via-[#0E2954] to-[#0A1732] text-white p-5 sm:p-6 relative overflow-hidden shadow-xl border border-blue-900/50 flex flex-col md:flex-row items-center justify-between gap-5">
         {/* Subtle illuminated Temple Gopuram picture on the left */}
         <div className="hidden md:flex items-center justify-center shrink-0 w-24 h-24 relative">
           <img
@@ -1281,7 +1665,7 @@ function DashboardScreen({ user, lang, onNavigate, onViewReceipt }: { user: any;
             </div>
           </div>
 
-          <div className="h-64 w-full">
+          <div className="h-52 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
