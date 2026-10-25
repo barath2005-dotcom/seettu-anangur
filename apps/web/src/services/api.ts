@@ -84,7 +84,7 @@ export async function apiFetch<T = any>(endpoint: string, options: RequestInit =
 // API Module Methods
 export const api = {
   // Auth
-  login: (credentials: { email: string; password: string }) =>
+  login: (credentials: { identifier?: string; email?: string; password: string }) =>
     apiFetch<{ success: boolean; data: { accessToken: string; refreshToken: string; user: any } }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),

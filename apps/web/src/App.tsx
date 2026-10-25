@@ -139,7 +139,7 @@ export function App() {
     e.preventDefault();
     setLoginError('');
     try {
-      const res = await api.login({ email: loginEmail, password: loginPassword });
+      const res = await api.login({ identifier: loginEmail, email: loginEmail, password: loginPassword });
       if (res.success) {
         setAuthTokens(res.data.accessToken, res.data.refreshToken);
         setUser(res.data.user);
@@ -241,28 +241,52 @@ export function App() {
             </div>
           )}
 
+          {/* Member Login Guidance */}
+          <div className="mb-4 p-3 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/80 text-blue-900 text-xs flex items-start gap-2.5 shadow-sm">
+            <span className="text-base shrink-0">💡</span>
+            <div>
+              <p className="font-bold text-blue-900">
+                {lang === 'ta' ? 'உறுப்பினர்கள் உள்நுழைவு:' : 'Member Login:'}
+              </p>
+              <p className="text-[11px] text-blue-800 mt-0.5">
+                {lang === 'ta'
+                  ? 'உறுப்பினர்கள் தங்களின் பெயரையே (தமிழ் அல்லது ஆங்கிலம்) பயனர் பெயராகவும் கடவுச்சொல்லாகவும் பயன்படுத்தலாம்!'
+                  : 'All members can log in using their Name as both Username and Password (in Tamil or English)!'}
+              </p>
+            </div>
+          </div>
+
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.emailAddress}</label>
+              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                {lang === 'ta' ? 'உறுப்பினர் பெயர் / ஐடி / மின்னஞ்சல்' : 'Member Name, ID, or Email'}
+              </label>
               <input
-                type="email"
+                type="text"
                 required
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F7BFF] focus:border-transparent"
-                placeholder="name@seettu.com"
+                className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F7BFF] focus:border-transparent font-medium"
+                placeholder={lang === 'ta' ? 'எ.கா: பழனிச்சாமி அல்லது Palanisamy அல்லது M-001' : 'e.g. Palanisamy B.L.R or பழனிச்சாமி or M-001'}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.password}</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-slate-700 uppercase">
+                  {lang === 'ta' ? 'கடவுச்சொல் (உறுப்பினரின் பெயர்)' : 'Password (Member Name)'}
+                </label>
+                <span className="text-[10px] text-slate-400 font-medium">
+                  {lang === 'ta' ? 'பெயரையே உள்ளிடவும்' : 'Same as your name'}
+                </span>
+              </div>
               <input
                 type="password"
                 required
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F7BFF] focus:border-transparent"
-                placeholder="••••••••"
+                placeholder={lang === 'ta' ? 'உங்கள் பெயர் / கடவுச்சொல்' : 'Your name / password'}
               />
             </div>
 
@@ -279,27 +303,52 @@ export function App() {
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2 text-center">
               {t.quickDemoRoles}
             </span>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => quickLoginAs('admin@seettu.com', 'admin123')}
-                className="py-1.5 px-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold border border-blue-200 transition-colors"
+                className="py-1.5 px-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold border border-blue-200 transition-colors truncate"
               >
                 👑 {t.adminRole}
               </button>
               <button
                 type="button"
                 onClick={() => quickLoginAs('staff@seettu.com', 'staff123')}
-                className="py-1.5 px-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg text-xs font-semibold border border-amber-200 transition-colors"
+                className="py-1.5 px-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg text-xs font-semibold border border-amber-200 transition-colors truncate"
               >
                 💼 {t.staffRole}
               </button>
               <button
                 type="button"
-                onClick={() => quickLoginAs('member@seettu.com', 'member123')}
-                className="py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-semibold border border-emerald-200 transition-colors"
+                onClick={() => quickLoginAs('Palanisamy B.L.R', 'Palanisamy B.L.R')}
+                className="py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-semibold border border-emerald-200 transition-colors truncate"
+                title="M-001 Palanisamy (Name as password)"
               >
-                👤 {t.memberRole}
+                👤 பழனிச்சாமி
+              </button>
+              <button
+                type="button"
+                onClick={() => quickLoginAs('Loganathan B.L.R', 'Loganathan B.L.R')}
+                className="py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-semibold border border-emerald-200 transition-colors truncate"
+                title="M-002 Loganathan (Name as password)"
+              >
+                👤 லோகநாதன்
+              </button>
+              <button
+                type="button"
+                onClick={() => quickLoginAs('ராஜேஷ் கண்ணா', 'ராஜேஷ் கண்ணா')}
+                className="py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-semibold border border-emerald-200 transition-colors truncate"
+                title="M-003 Rajesh Khanna (Name as password)"
+              >
+                👤 ராஜேஷ் கண்ணா
+              </button>
+              <button
+                type="button"
+                onClick={() => quickLoginAs('சுகுமார் புனிதா', 'சுகுமார் புனிதா')}
+                className="py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-semibold border border-emerald-200 transition-colors truncate"
+                title="M-013 Sukumar Punitha (Name as password)"
+              >
+                👤 சுகுமார்
               </button>
             </div>
           </div>

@@ -146,23 +146,27 @@ async function main() {
     },
   });
 
-  // Link member user to the first member: Palanisamy B.L.R (M-001)
-  const memberUser = await prisma.user.create({
-    data: {
-      email: 'member@seettu.com',
-      passwordHash: hashedMemberPassword,
-      name: 'பழனிச்சாமி பி எல் ஆர் / Palanisamy B.L.R',
-      role: 'MEMBER',
-      phone: members[0].phone,
-      memberId: members[0].id,
-      isActive: true,
-    },
-  });
+  // Link User accounts for all 78 members (Password = Member Name)
+  console.log('Creating User accounts for all 78 members (Name as password)...');
+  for (const m of members) {
+    const passwordHash = await bcrypt.hash(m.fullName, 10);
+    const memberUser = await prisma.user.create({
+      data: {
+        email: m.email || `${m.memberNumber.toLowerCase()}@seettu.local`,
+        passwordHash,
+        name: m.fullName,
+        role: 'MEMBER',
+        phone: m.phone,
+        memberId: m.id,
+        isActive: true,
+      },
+    });
 
-  await prisma.member.update({
-    where: { id: members[0].id },
-    data: { userId: memberUser.id },
-  });
+    await prisma.member.update({
+      where: { id: m.id },
+      data: { userId: memberUser.id },
+    });
+  }
 
   // 3. Create Official Chit Scheme: சீட்டு எண் : 08
   console.log('Creating Official Scheme 08 (தேதி : 25.10.26 | ₹10,000 / மாதம்)...');
