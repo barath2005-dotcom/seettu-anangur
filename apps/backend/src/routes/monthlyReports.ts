@@ -59,7 +59,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       memberName: m.fullName,
       amount: 10000,
       commission: 0,
-      moneyOffered: 10000,
+      moneyOffered: 0,
       templeCharityFund: 10000,
       status: 'PAID',
       paymentMethod: 'CASH',
@@ -114,9 +114,9 @@ router.post('/', authenticate, requireRole('ADMIN', 'STAFF'), async (req: Reques
         const sno = Number(item.sno);
         const amount = Number(item.amount) || 10000;
         const commission = Number(item.commission) || 0;
-        const moneyOffered = item.moneyOffered !== undefined && item.moneyOffered !== null
-          ? Number(item.moneyOffered)
-          : (amount - commission);
+        const moneyOffered = item.moneyOffered !== undefined && item.moneyOffered !== null && item.moneyOffered !== ''
+          ? Number(item.moneyOffered) || 0
+          : 0;
         const itemCharity = item.templeCharityFund !== undefined && item.templeCharityFund !== null
           ? Number(item.templeCharityFund)
           : fundAmount;

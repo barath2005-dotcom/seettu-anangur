@@ -67,7 +67,7 @@ function getDefaultEntries(chitNo: string, date: string): MonthlyEntry[] {
     memberName: m.fullName,
     amount: 10000,
     commission: 0,
-    moneyOffered: 10000,
+    moneyOffered: 0,
     templeCharityFund: 10000,
     status: 'PAID',
     paymentMethod: 'CASH',
@@ -141,7 +141,12 @@ export function MonthlyEntryScreen({
       const cached = localStorage.getItem(localKey);
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((e: any) => ({
+            ...e,
+            moneyOffered: (e.moneyOffered === 10000 || e.moneyOffered === 9916 || e.moneyOffered === undefined || e.moneyOffered === null) ? 0 : (Number(e.moneyOffered) || 0),
+          }));
+        }
       }
     } catch (e) {}
     return getDefaultEntries(initChit, initDate);
@@ -309,8 +314,12 @@ export function MonthlyEntryScreen({
       try {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          currentData = parsed;
-          setEntries(parsed);
+          const cleaned = parsed.map((e: any) => ({
+            ...e,
+            moneyOffered: (e.moneyOffered === 10000 || e.moneyOffered === 9916 || e.moneyOffered === undefined || e.moneyOffered === null) ? 0 : (Number(e.moneyOffered) || 0),
+          }));
+          currentData = cleaned;
+          setEntries(cleaned);
           setIsSaved(true);
           if (parsed[0]?.templeCharityFund !== undefined) {
             setTempleCharityFund(Number(parsed[0].templeCharityFund) || 10000);
@@ -334,9 +343,13 @@ export function MonthlyEntryScreen({
             } catch (e) {}
           }
           if (Array.isArray(res.data.entries) && res.data.entries.length > 0) {
-            setEntries(res.data.entries);
+            const cleaned = res.data.entries.map((e: any) => ({
+              ...e,
+              moneyOffered: (e.moneyOffered === 10000 || e.moneyOffered === 9916 || e.moneyOffered === undefined || e.moneyOffered === null) ? 0 : (Number(e.moneyOffered) || 0),
+            }));
+            setEntries(cleaned);
             setIsSaved(Boolean(res.data.isSaved));
-            localStorage.setItem(localKey, JSON.stringify(res.data.entries));
+            localStorage.setItem(localKey, JSON.stringify(cleaned));
             if (res.data.entries[0]?.templeCharityFund !== undefined) {
               setTempleCharityFund(Number(res.data.entries[0].templeCharityFund) || 10000);
             }
@@ -405,17 +418,7 @@ export function MonthlyEntryScreen({
   const handleFieldChange = (index: number, field: keyof MonthlyEntry, value: any) => {
     setEntries((prev) => {
       const updated = [...prev];
-      const entry = { ...updated[index], [field]: value };
-      if (field === 'amount') {
-        const amt = Number(value) || 0;
-        const comm = Number(entry.commission) || 0;
-        entry.moneyOffered = amt - comm;
-      } else if (field === 'commission') {
-        const amt = Number(entry.amount) || 10000;
-        const comm = Number(value) || 0;
-        entry.moneyOffered = amt - comm;
-      }
-      updated[index] = entry;
+      updated[index] = { ...updated[index], [field]: value };
       return updated;
     });
   };
@@ -425,8 +428,7 @@ export function MonthlyEntryScreen({
     setEntries((prev) =>
       prev.map((e) => {
         if (selectedSheet === 'ALL' || e.sheetNumber === selectedSheet) {
-          const amt = Number(e.amount) || 10000;
-          return { ...e, commission: val, moneyOffered: amt - val };
+          return { ...e, commission: val };
         }
         return e;
       })
@@ -520,9 +522,7 @@ export function MonthlyEntryScreen({
       const parts = (e.memberName || '').split('/');
       const tamilName = (parts[0] || '').trim();
       const englishName = (parts[1] || '').trim();
-      const offered = e.moneyOffered !== undefined && e.moneyOffered !== null
-        ? Number(e.moneyOffered)
-        : ((Number(e.amount) || 0) - (Number(e.commission) || 0));
+      const offered = Number(e.moneyOffered) || 0;
 
       return [
         e.sno,
@@ -711,9 +711,7 @@ export function MonthlyEntryScreen({
                 .map((e, idx) => {
                   const sheetSno = idx + 1;
                   const tamilName = (e.memberName || '').split('/')[0].trim();
-                  const rowOffered = e.moneyOffered !== undefined && e.moneyOffered !== null
-                    ? Number(e.moneyOffered)
-                    : ((Number(e.amount) || 10000) - (Number(e.commission) || 0));
+                  const rowOffered = Number(e.moneyOffered) || 0;
                   return `
                 <tr>
                   <td class="sno-cell">${sheetSno}</td>
@@ -1092,10 +1090,7 @@ export function MonthlyEntryScreen({
               <div className="border-l border-slate-200 dark:border-slate-700 pl-3">
                 <span className="text-[10px] uppercase font-bold text-slate-400 block">{lang === 'ta' ? 'வழங்கப்பட்ட தொகை' : 'Money Offered'}</span>
                 <span className="text-base font-black text-emerald-700 font-mono">
-                  ₹{(myEntry.moneyOffered !== undefined && myEntry.moneyOffered !== null
-                    ? Number(myEntry.moneyOffered)
-                    : ((Number(myEntry.amount) || 10000) - (Number(myEntry.commission) || 0))
-                  ).toLocaleString('en-IN')}
+                  ₹{(Number(myEntry.moneyOffered) || 0).toLocaleString('en-IN')}
                 </span>
               </div>
               <div className="border-l border-slate-200 dark:border-slate-700 pl-3">
@@ -1226,6 +1221,27 @@ export function MonthlyEntryScreen({
               className="px-2.5 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded text-xs font-bold transition-colors"
             >
               {lang === 'ta' ? 'நிரப்பு' : 'Apply'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setEntries((prev) =>
+                  prev.map((e) =>
+                    selectedSheet === 'ALL' || e.sheetNumber === selectedSheet
+                      ? { ...e, moneyOffered: 0 }
+                      : e
+                  )
+                );
+                showToast(
+                  lang === 'ta'
+                    ? 'வழங்கப்பட்ட தொகை அனைத்தும் 0 என அமைக்கப்பட்டது'
+                    : 'Set Money Offered to 0 for all'
+                );
+              }}
+              className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded text-xs font-bold transition-colors ml-1 cursor-pointer"
+              title="Reset Money Offered to 0"
+            >
+              {lang === 'ta' ? 'Offered: 0 ஆக்கு' : 'Offered: 0'}
             </button>
           </div>
         )}
@@ -1360,23 +1376,20 @@ export function MonthlyEntryScreen({
                       <td className="py-2.5 px-3 text-center border-r border-slate-200 bg-emerald-50/30">
                         {isMember ? (
                           <span className="font-mono font-bold text-emerald-800 text-xs">
-                            ₹{(e.moneyOffered !== undefined && e.moneyOffered !== null
-                              ? Number(e.moneyOffered)
-                              : ((Number(e.amount) || 10000) - (Number(e.commission) || 0))
-                            ).toLocaleString('en-IN')}
+                            ₹{(Number(e.moneyOffered) || 0).toLocaleString('en-IN')}
                           </span>
                         ) : (
                           <input
                             type="number"
-                            value={
-                              e.moneyOffered !== undefined && e.moneyOffered !== null
-                                ? e.moneyOffered
-                                : ((Number(e.amount) || 10000) - (Number(e.commission) || 0))
-                            }
+                            value={e.moneyOffered !== undefined && e.moneyOffered !== null ? e.moneyOffered : 0}
                             onChange={(ev) =>
-                              handleFieldChange(globalIndex, 'moneyOffered', Number(ev.target.value))
+                              handleFieldChange(
+                                globalIndex,
+                                'moneyOffered',
+                                ev.target.value === '' ? '' : Number(ev.target.value)
+                              )
                             }
-                            placeholder="10000"
+                            placeholder="0"
                             className="w-full text-center font-mono font-bold text-emerald-700 px-2 py-1.5 rounded border border-emerald-300 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-xs"
                           />
                         )}
@@ -1454,7 +1467,7 @@ export function MonthlyEntryScreen({
                   ₹{displayedEntries.reduce((s, e) => s + (Number(e.commission) || 0), 0).toLocaleString('en-IN')}
                 </td>
                 <td className="py-3 px-4 text-center font-mono text-emerald-800 border-r border-slate-300 text-sm bg-emerald-50/50">
-                  ₹{displayedEntries.reduce((s, e) => s + (e.moneyOffered !== undefined && e.moneyOffered !== null ? Number(e.moneyOffered) : ((Number(e.amount) || 10000) - (Number(e.commission) || 0))), 0).toLocaleString('en-IN')}
+                  ₹{displayedEntries.reduce((s, e) => s + (Number(e.moneyOffered) || 0), 0).toLocaleString('en-IN')}
                 </td>
                 <td colSpan={2} className="py-3 px-4 text-center font-mono text-blue-700 text-xs">
                   Net Pool: ₹{displayedEntries.reduce((s, e) => s + ((Number(e.amount) || 0) - (Number(e.commission) || 0)), 0).toLocaleString('en-IN')}
