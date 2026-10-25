@@ -33,13 +33,15 @@ export function MonthlyEntryScreen({
   user,
   lang,
   showToast,
+  initialTarget,
 }: {
   user: any;
   lang: SupportedLanguage;
   showToast: any;
+  initialTarget?: { chitNo: string; date: string } | null;
 }) {
-  const [chitNo, setChitNo] = useState('08');
-  const [date, setDate] = useState('25.10.26');
+  const [chitNo, setChitNo] = useState(initialTarget?.chitNo || '08');
+  const [date, setDate] = useState(initialTarget?.date || '25.10.26');
   const [selectedSheet, setSelectedSheet] = useState<number | 'ALL'>('ALL');
   const [entries, setEntries] = useState<MonthlyEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,17 +52,49 @@ export function MonthlyEntryScreen({
   // Bulk edit state
   const [bulkCommission, setBulkCommission] = useState('');
 
+  const isMember = user?.role === 'MEMBER';
+
+  // Identify member's own entry if logged in as a member
+  const myEntry = entries.find((e) => {
+    if (!isMember) return false;
+    if (user?.member?.memberNumber && e.memberNumber === user.member.memberNumber) return true;
+    if (user?.name) {
+      const uNorm = user.name.toLowerCase().replace(/[\s\.\-]+/g, '');
+      const eNorm = (e.memberName || '').toLowerCase().replace(/[\s\.\-]+/g, '');
+      return eNorm.includes(uNorm) || uNorm.includes(eNorm);
+    }
+    return false;
+  });
+
   const loadReport = (targetChit = chitNo, targetDate = date) => {
     setLoading(true);
+    // Instant local cache recovery
+    const localKey = `seettu_monthly_report_${targetChit}_${targetDate}`;
+    const cached = localStorage.getItem(localKey);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setEntries(parsed);
+          setIsSaved(true);
+        }
+      } catch (e) {}
+    }
+
     api.getMonthlyReport({ chitNo: targetChit, date: targetDate })
       .then((res) => {
         if (res.success && res.data) {
           setEntries(res.data.entries || []);
           setIsSaved(Boolean(res.data.isSaved));
+          if (res.data.entries?.length) {
+            localStorage.setItem(localKey, JSON.stringify(res.data.entries));
+          }
         }
       })
       .catch((err) => {
-        showToast(err.message || 'Failed to load report', 'error');
+        if (!cached) {
+          showToast(err.message || 'Failed to load report', 'error');
+        }
       })
       .finally(() => setLoading(false));
   };
@@ -76,9 +110,13 @@ export function MonthlyEntryScreen({
   };
 
   useEffect(() => {
-    loadReport(chitNo, date);
+    const targetChit = initialTarget?.chitNo || chitNo;
+    const targetDate = initialTarget?.date || date;
+    setChitNo(targetChit);
+    setDate(targetDate);
+    loadReport(targetChit, targetDate);
     loadSavedDates();
-  }, []);
+  }, [initialTarget]);
 
   const handleFieldChange = (index: number, field: keyof MonthlyEntry, value: any) => {
     setEntries((prev) => {
@@ -115,6 +153,8 @@ export function MonthlyEntryScreen({
       });
       if (res.success) {
         setIsSaved(true);
+        const localKey = `seettu_monthly_report_${chitNo}_${date}`;
+        localStorage.setItem(localKey, JSON.stringify(entries));
         showToast(
           lang === 'ta'
             ? `சீட்டு எண் ${chitNo} (${date}) மாதாந்திர அறிக்கை வெற்றிகரமாகச் சேமிக்கப்பட்டது!`
@@ -398,7 +438,9 @@ export function MonthlyEntryScreen({
           <div className="flex items-center gap-2">
             <span className="text-xl">📋</span>
             <h2 className="text-lg font-black text-slate-900 tracking-tight">
-              {lang === 'ta' ? 'மாதாந்திர அறிக்கை பதிவு (நிர்வாகம்)' : 'Monthly Report Entry (Admin)'}
+              {isMember
+                ? (lang === 'ta' ? 'மாதாந்திர சீட்டு அறிக்கை' : 'Monthly Chit Report')
+                : (lang === 'ta' ? 'மாதாந்திர அறிக்கை பதிவு (நிர்வாகம்)' : 'Monthly Report Entry (Admin)')}
             </h2>
             <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
               isSaved ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
@@ -410,13 +452,37 @@ export function MonthlyEntryScreen({
           </div>
           <p className="text-xs text-slate-500 mt-1">
             {lang === 'ta'
-              ? 'தேதி, சீட்டு எண், உறுப்பினர் தொகை மற்றும் கமிஷன் விவரங்களைப் பதிவுசெய்க.'
-              : 'Enter monthly collections, member contributions, and commissions per Chit & Date.'}
+              ? 'தேதி, சீட்டு எண், உறுப்பினர் தொகை மற்றும் கமிஷன் விவரங்கள்.'
+              : 'Official monthly collections, member contributions, and commissions per Chit & Date.'}
           </p>
         </div>
 
         {/* Date, Chit No & Export / Save Action Buttons */}
         <div className="flex flex-wrap items-center gap-2.5">
+          {savedReportsList.length > 0 && (
+            <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200">
+              <span className="text-[10px] font-bold text-slate-500 uppercase">
+                {lang === 'ta' ? 'அறிக்கை:' : 'Chit:'}
+              </span>
+              <select
+                value={`${chitNo}|${date}`}
+                onChange={(e) => {
+                  const [c, d] = e.target.value.split('|');
+                  setChitNo(c);
+                  setDate(d);
+                  loadReport(c, d);
+                }}
+                className="bg-white border border-slate-200 text-xs font-bold text-slate-800 rounded-lg px-2 py-0.5 focus:ring-1 focus:ring-[#2F7BFF]"
+              >
+                {savedReportsList.map((r, i) => (
+                  <option key={i} value={`${r.chitNo}|${r.date}`}>
+                    Chit {r.chitNo} ({r.date})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
             <span className="text-xs font-bold text-slate-600 font-mono uppercase">
               {lang === 'ta' ? 'சீட்டு எண்:' : 'Chit No:'}
@@ -425,7 +491,8 @@ export function MonthlyEntryScreen({
               type="text"
               value={chitNo}
               onChange={(e) => setChitNo(e.target.value)}
-              className="w-16 px-2 py-1 rounded bg-white border border-slate-300 text-xs font-mono font-bold text-center focus:ring-1 focus:ring-[#2F7BFF]"
+              disabled={isMember}
+              className="w-16 px-2 py-1 rounded bg-white border border-slate-300 text-xs font-mono font-bold text-center focus:ring-1 focus:ring-[#2F7BFF] disabled:bg-slate-100"
               placeholder="08"
             />
           </div>
@@ -439,7 +506,8 @@ export function MonthlyEntryScreen({
               type="text"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-24 px-2 py-1 rounded bg-white border border-slate-300 text-xs font-mono font-bold text-center focus:ring-1 focus:ring-[#2F7BFF]"
+              disabled={isMember}
+              className="w-24 px-2 py-1 rounded bg-white border border-slate-300 text-xs font-mono font-bold text-center focus:ring-1 focus:ring-[#2F7BFF] disabled:bg-slate-100"
               placeholder="25.10.26"
             />
           </div>
@@ -473,17 +541,57 @@ export function MonthlyEntryScreen({
             <span>Export PDF</span>
           </button>
 
-          {/* Save Report Button */}
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="px-4 py-2 bg-[#2F7BFF] hover:bg-blue-600 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-colors shadow-sm flex items-center gap-1.5"
-          >
-            <Save className="w-4 h-4" />
-            <span>{saving ? (lang === 'ta' ? 'சேமிக்கப்படுகிறது...' : 'Saving...') : (lang === 'ta' ? 'சேமிக்க' : 'Save Report')}</span>
-          </button>
+          {/* Save Report Button (Admin / Staff only) */}
+          {!isMember && (
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="px-4 py-2 bg-[#2F7BFF] hover:bg-blue-600 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-colors shadow-sm flex items-center gap-1.5"
+            >
+              <Save className="w-4 h-4" />
+              <span>{saving ? (lang === 'ta' ? 'சேமிக்கப்படுகிறது...' : 'Saving...') : (lang === 'ta' ? 'சேமிக்க' : 'Save Report')}</span>
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Member Personalized Record Overview (Only for Member Login) */}
+      {isMember && myEntry && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-blue-500/15 border-2 border-emerald-400 dark:border-emerald-700 shadow-md">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-600 text-white shadow-xs">
+                  {lang === 'ta' ? 'உங்கள் சீட்டு பதிவு' : 'Your Chit Record'}
+                </span>
+                <span className="text-xs text-slate-500 font-bold font-mono">
+                  {myEntry.memberNumber} • S.No: #{myEntry.sno} • Sheet {myEntry.sheetNumber}
+                </span>
+              </div>
+              <h3 className="text-lg font-black text-slate-900 dark:text-white mt-1">
+                {myEntry.memberName}
+              </h3>
+            </div>
+            <div className="flex items-center gap-3 sm:gap-4 bg-white/90 dark:bg-slate-900/90 px-4 py-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-sm">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">{lang === 'ta' ? 'தவணைத் தொகை' : 'Installment'}</span>
+                <span className="text-base font-black text-slate-900 dark:text-white font-mono">₹{Number(myEntry.amount).toLocaleString('en-IN')}</span>
+              </div>
+              <div className="border-l border-slate-200 dark:border-slate-700 pl-3">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">{lang === 'ta' ? 'கமிஷன்' : 'Commission'}</span>
+                <span className="text-sm font-bold text-purple-700 font-mono">₹{Number(myEntry.commission).toLocaleString('en-IN')}</span>
+              </div>
+              <div className="border-l border-slate-200 dark:border-slate-700 pl-3">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">{lang === 'ta' ? 'நிலை' : 'Status'}</span>
+                <span className="inline-flex items-center gap-1 text-xs font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  {myEntry.status === 'PAID' ? (lang === 'ta' ? 'செலுத்தப்பட்டது' : 'Paid') : myEntry.status}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 4 Summary Stat Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -560,32 +668,35 @@ export function MonthlyEntryScreen({
                 selectedSheet === s
                   ? 'bg-[#2F7BFF] text-white shadow-sm'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
+              } ${isMember && myEntry?.sheetNumber === s ? 'ring-2 ring-emerald-500 font-black' : ''}`}
             >
               Sheet {s} ({(s - 1) * 13 + 1}-{s * 13})
+              {isMember && myEntry?.sheetNumber === s && ' ⭐'}
             </button>
           ))}
         </div>
 
-        {/* Bulk Commission Setter */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500 font-medium">
-            {lang === 'ta' ? 'கமிஷன் நிரப்ப:' : 'Set Commission:'}
-          </span>
-          <input
-            type="number"
-            value={bulkCommission}
-            onChange={(e) => setBulkCommission(e.target.value)}
-            placeholder="₹ 500"
-            className="w-20 px-2 py-1 rounded border border-slate-200 text-xs font-mono font-bold focus:ring-1 focus:ring-[#2F7BFF]"
-          />
-          <button
-            onClick={applyBulkCommission}
-            className="px-2.5 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded text-xs font-bold transition-colors"
-          >
-            {lang === 'ta' ? 'நிரப்பு' : 'Apply'}
-          </button>
-        </div>
+        {/* Bulk Commission Setter - Admin / Staff only */}
+        {!isMember && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-500 font-medium">
+              {lang === 'ta' ? 'கமிஷன் நிரப்ப:' : 'Set Commission:'}
+            </span>
+            <input
+              type="number"
+              value={bulkCommission}
+              onChange={(e) => setBulkCommission(e.target.value)}
+              placeholder="₹ 500"
+              className="w-20 px-2 py-1 rounded border border-slate-200 text-xs font-mono font-bold focus:ring-1 focus:ring-[#2F7BFF]"
+            />
+            <button
+              onClick={applyBulkCommission}
+              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded text-xs font-bold transition-colors"
+            >
+              {lang === 'ta' ? 'நிரப்பு' : 'Apply'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Main Table: S.No | Sheet / Name | Amount | Commission */}
@@ -635,19 +746,31 @@ export function MonthlyEntryScreen({
               ) : (
                 displayedEntries.map((e, idx) => {
                   const globalIndex = entries.findIndex((item) => item.sno === e.sno);
+                  const isMyRow = Boolean(isMember && myEntry && e.sno === myEntry.sno);
                   return (
                     <tr
                       key={e.sno}
-                      className="hover:bg-blue-50/40 transition-colors"
+                      className={`transition-colors ${
+                        isMyRow
+                          ? 'bg-emerald-50/90 dark:bg-emerald-950/40 ring-2 ring-emerald-500 font-bold'
+                          : 'hover:bg-blue-50/40'
+                      }`}
                     >
                       {/* S.No */}
-                      <td className="py-3 px-4 text-center font-mono font-bold text-slate-800 border-r border-slate-200 bg-slate-50/50">
+                      <td className={`py-3 px-4 text-center font-mono font-bold border-r border-slate-200 ${isMyRow ? 'bg-emerald-100 text-emerald-900 font-black' : 'bg-slate-50/50 text-slate-800'}`}>
                         {e.sno}
                       </td>
 
                       {/* Name */}
                       <td className="py-3 px-4 border-r border-slate-200">
-                        <div className="font-bold text-slate-900 text-sm">{e.memberName}</div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-slate-900 text-sm">{e.memberName}</span>
+                          {isMyRow && (
+                            <span className="px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[10px] font-black uppercase">
+                              ⭐ You ({lang === 'ta' ? 'நீங்கள்' : 'You'})
+                            </span>
+                          )}
+                        </div>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="font-mono text-[10px] text-slate-400">{e.memberNumber}</span>
                           <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-mono">
@@ -658,63 +781,91 @@ export function MonthlyEntryScreen({
 
                       {/* Amount */}
                       <td className="py-2.5 px-3 text-center border-r border-slate-200">
-                        <input
-                          type="number"
-                          value={e.amount}
-                          onChange={(ev) =>
-                            handleFieldChange(globalIndex, 'amount', Number(ev.target.value))
-                          }
-                          className="w-full text-center font-mono font-bold text-slate-800 px-2 py-1.5 rounded border border-slate-200 focus:ring-2 focus:ring-[#2F7BFF] focus:border-transparent text-xs"
-                        />
+                        {isMember ? (
+                          <span className="font-mono font-bold text-slate-900 text-xs">
+                            ₹{Number(e.amount).toLocaleString('en-IN')}
+                          </span>
+                        ) : (
+                          <input
+                            type="number"
+                            value={e.amount}
+                            onChange={(ev) =>
+                              handleFieldChange(globalIndex, 'amount', Number(ev.target.value))
+                            }
+                            className="w-full text-center font-mono font-bold text-slate-800 px-2 py-1.5 rounded border border-slate-200 focus:ring-2 focus:ring-[#2F7BFF] focus:border-transparent text-xs"
+                          />
+                        )}
                       </td>
 
                       {/* Commission */}
                       <td className="py-2.5 px-3 text-center border-r border-slate-200 bg-purple-50/20">
-                        <input
-                          type="number"
-                          value={e.commission}
-                          onChange={(ev) =>
-                            handleFieldChange(globalIndex, 'commission', Number(ev.target.value))
-                          }
-                          placeholder="0"
-                          className="w-full text-center font-mono font-bold text-purple-700 px-2 py-1.5 rounded border border-purple-200 bg-white focus:ring-2 focus:ring-purple-400 focus:border-transparent text-xs"
-                        />
+                        {isMember ? (
+                          <span className="font-mono font-semibold text-purple-700 text-xs">
+                            {e.commission ? `₹${Number(e.commission).toLocaleString('en-IN')}` : '-'}
+                          </span>
+                        ) : (
+                          <input
+                            type="number"
+                            value={e.commission}
+                            onChange={(ev) =>
+                              handleFieldChange(globalIndex, 'commission', Number(ev.target.value))
+                            }
+                            placeholder="0"
+                            className="w-full text-center font-mono font-bold text-purple-700 px-2 py-1.5 rounded border border-purple-200 bg-white focus:ring-2 focus:ring-purple-400 focus:border-transparent text-xs"
+                          />
+                        )}
                       </td>
 
                       {/* Payment Method */}
                       <td className="py-2.5 px-3 text-center border-r border-slate-200">
-                        <select
-                          value={e.paymentMethod}
-                          onChange={(ev) =>
-                            handleFieldChange(globalIndex, 'paymentMethod', ev.target.value)
-                          }
-                          className="w-full px-2 py-1.5 rounded border border-slate-200 bg-white text-xs font-semibold text-slate-700 focus:ring-1 focus:ring-[#2F7BFF]"
-                        >
-                          <option value="CASH">💵 Cash (ரொக்கம்)</option>
-                          <option value="UPI">📱 GPay / UPI</option>
-                          <option value="BANK_TRANSFER">🏦 Bank</option>
-                        </select>
+                        {isMember ? (
+                          <span className="text-xs font-semibold text-slate-700">
+                            {e.paymentMethod === 'CASH' ? '💵 Cash' : e.paymentMethod === 'UPI' ? '📱 UPI' : e.paymentMethod}
+                          </span>
+                        ) : (
+                          <select
+                            value={e.paymentMethod}
+                            onChange={(ev) =>
+                              handleFieldChange(globalIndex, 'paymentMethod', ev.target.value)
+                            }
+                            className="w-full px-2 py-1.5 rounded border border-slate-200 bg-white text-xs font-semibold text-slate-700 focus:ring-1 focus:ring-[#2F7BFF]"
+                          >
+                            <option value="CASH">💵 Cash (ரொக்கம்)</option>
+                            <option value="UPI">📱 GPay / UPI</option>
+                            <option value="BANK_TRANSFER">🏦 Bank</option>
+                          </select>
+                        )}
                       </td>
 
                       {/* Status */}
                       <td className="py-2.5 px-3 text-center">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleFieldChange(
-                              globalIndex,
-                              'status',
-                              e.status === 'PAID' ? 'PENDING' : 'PAID'
-                            )
-                          }
-                          className={`w-full py-1.5 px-2 rounded-lg text-xs font-bold transition-all ${
+                        {isMember ? (
+                          <span className={`inline-block py-1 px-2.5 rounded-lg text-xs font-bold ${
                             e.status === 'PAID'
-                              ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-                              : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
-                          }`}
-                        >
-                          {e.status === 'PAID' ? '✓ Paid' : '⏳ Pending'}
-                        </button>
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-amber-100 text-amber-800'
+                          }`}>
+                            {e.status === 'PAID' ? '✓ Paid' : '⏳ Pending'}
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleFieldChange(
+                                globalIndex,
+                                'status',
+                                e.status === 'PAID' ? 'PENDING' : 'PAID'
+                              )
+                            }
+                            className={`w-full py-1.5 px-2 rounded-lg text-xs font-bold transition-all ${
+                              e.status === 'PAID'
+                                ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                                : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                            }`}
+                          >
+                            {e.status === 'PAID' ? '✓ Paid' : '⏳ Pending'}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );
@@ -780,18 +931,20 @@ export function MonthlyEntryScreen({
             <span>Export PDF</span>
           </button>
 
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="px-6 py-2.5 bg-[#2F7BFF] hover:bg-blue-600 disabled:opacity-50 text-white rounded-xl text-xs font-black transition-all shadow-md shadow-blue-500/20 flex items-center gap-2"
-          >
-            <Save className="w-4 h-4" />
-            <span>
-              {saving
-                ? lang === 'ta' ? 'சேமிக்கப்படுகிறது...' : 'Saving...'
-                : lang === 'ta' ? 'மாதாந்திர அறிக்கையைச் சேமிக்க' : 'Save Monthly Report'}
-            </span>
-          </button>
+          {!isMember && (
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="px-6 py-2.5 bg-[#2F7BFF] hover:bg-blue-600 disabled:opacity-50 text-white rounded-xl text-xs font-black transition-all shadow-md shadow-blue-500/20 flex items-center gap-2"
+            >
+              <Save className="w-4 h-4" />
+              <span>
+                {saving
+                  ? lang === 'ta' ? 'சேமிக்கப்படுகிறது...' : 'Saving...'
+                  : lang === 'ta' ? 'மாதாந்திர அறிக்கையைச் சேமிக்க' : 'Save Monthly Report'}
+              </span>
+            </button>
+          )}
         </div>
       </div>
 

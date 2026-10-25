@@ -84,7 +84,13 @@ export function App() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [reportTarget, setReportTarget] = useState<{ chitNo: string; date: string } | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleOpenMonthlyReport = (chitNo: string, date: string) => {
+    setReportTarget({ chitNo, date });
+    setActiveTab('monthly-entry');
+  };
 
   // Login form state
   const [loginEmail, setLoginEmail] = useState('admin@seettu.com');
@@ -363,7 +369,14 @@ export function App() {
   const navItems = [
     { id: 'dashboard', label: t.dashboard, icon: LayoutDashboard, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
     { id: 'members', label: t.members, icon: Users, roles: ['ADMIN', 'STAFF'] },
-    { id: 'monthly-entry', label: lang === 'ta' ? 'மாதாந்திர அறிக்கை பதிவு' : 'Monthly Report Entry', icon: ClipboardList, roles: ['ADMIN', 'STAFF'] },
+    {
+      id: 'monthly-entry',
+      label: user.role === 'ADMIN'
+        ? (lang === 'ta' ? 'மாதாந்திர அறிக்கை பதிவு (Admin)' : 'Monthly Report Entry (Admin)')
+        : (lang === 'ta' ? 'மாதாந்திர அறிக்கை' : 'Monthly Report'),
+      icon: ClipboardList,
+      roles: ['ADMIN', 'STAFF', 'MEMBER'],
+    },
     { id: 'schemes', label: t.schemes, icon: Coins, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
     { id: 'calendar', label: t.calendar, icon: Calendar, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
     { id: 'payments', label: t.payments, icon: Receipt, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
@@ -571,6 +584,7 @@ export function App() {
               user={user}
               lang={lang}
               showToast={showToast}
+              initialTarget={reportTarget}
             />
           )}
           {activeTab === 'schemes' && (
@@ -582,7 +596,7 @@ export function App() {
             />
           )}
           {activeTab === 'calendar' && (
-            <ChitCalendar lang={lang} />
+            <ChitCalendar lang={lang} onOpenMonthlyReport={handleOpenMonthlyReport} />
           )}
           {activeTab === 'payments' && (
             <PaymentsScreen
@@ -682,6 +696,30 @@ function DashboardScreen({ user, lang, onNavigate, onViewReceipt }: { user: any;
           >
             <Calendar className="w-4 h-4" />
             <span>{lang === 'ta' ? 'நாட்காட்டியைப் பார்க்க ➔' : 'View Chit Calendar ➔'}</span>
+          </button>
+        </div>
+
+        {/* Official Monthly Report Quick Access Banner for Member */}
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="text-3xl p-2 rounded-xl bg-white/10 shrink-0">📋</span>
+            <div>
+              <h4 className="font-extrabold text-sm">
+                {lang === 'ta' ? 'அதிகாரப்பூர்வ மாதாந்திர சீட்டு அறிக்கை' : 'Official Monthly Chit Report'}
+              </h4>
+              <p className="text-xs text-blue-100 mt-0.5">
+                {lang === 'ta'
+                  ? 'சீட்டு எண் 08 (25.10.26) - 78 உறுப்பினர்களின் தவணை வசூல் மற்றும் கமிஷன் விபரம்'
+                  : 'Chit No: 08 (25.10.26) - 78 Members contribution & commission statement'}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => onNavigate('monthly-entry')}
+            className="px-4 py-2 rounded-xl bg-white text-blue-700 hover:bg-blue-50 text-xs font-black transition-all shadow-md shrink-0 flex items-center gap-1.5"
+          >
+            <ClipboardList className="w-4 h-4 text-blue-600" />
+            <span>{lang === 'ta' ? 'அறிக்கையைக் காண்க ➔' : 'View Monthly Report ➔'}</span>
           </button>
         </div>
 

@@ -4,8 +4,8 @@ import { authenticate, requireRole } from '../middleware/auth';
 
 const router = Router();
 
-// GET /api/monthly-reports - Get or initialize monthly report entries
-router.get('/', authenticate, requireRole('ADMIN', 'STAFF'), async (req: Request, res: Response) => {
+// GET /api/monthly-reports - Get or initialize monthly report entries (Accessible to ADMIN, STAFF, and MEMBER)
+router.get('/', authenticate, async (req: Request, res: Response) => {
   try {
     const chitNo = (req.query.chitNo as string) || '08';
     const date = (req.query.date as string) || '25.10.26';
@@ -91,6 +91,11 @@ router.post('/', authenticate, requireRole('ADMIN', 'STAFF'), async (req: Reques
     let totalAmount = 0;
     let totalCommission = 0;
 
+    // Check if an active scheme exists to sync member ledger payments
+    const activeScheme = await prisma.scheme.findFirst({
+      where: { status: 'ACTIVE' },
+    });
+
     await prisma.$transaction(async (tx) => {
       for (const item of entries) {
         const sno = Number(item.sno);
@@ -131,6 +136,58 @@ router.post('/', authenticate, requireRole('ADMIN', 'STAFF'), async (req: Reques
           },
         });
         savedCount++;
+
+        // Sync payment record for member ledger if status is PAID
+        if (activeScheme && (item.status === 'PAID' || item.status === 'Paid')) {
+          const roundNum = parseInt(String(chitNo), 10) || 1;
+          const memberRecord = item.memberNumber
+            ? await tx.member.findUnique({ where: { memberNumber: item.memberNumber } })
+            : null;
+
+          if (memberRecord) {
+            const existingPayment = await tx.payment.findFirst({
+              where: {
+                schemeId: activeScheme.id,
+                memberId: memberRecord.id,
+                roundNumber: roundNum,
+              },
+            });
+
+            if (!existingPayment) {
+              const amountPaise = amount * 100;
+              const txId = `TXN-C${chitNo}-${String(sno).padStart(3, '0')}-${Date.now().toString().slice(-4)}`;
+              const recNo = `REC-C${chitNo}-${String(sno).padStart(3, '0')}`;
+
+              const payment = await tx.payment.create({
+                data: {
+                  transactionId: txId,
+                  receiptNumber: recNo,
+                  schemeId: activeScheme.id,
+                  memberId: memberRecord.id,
+                  roundNumber: roundNum,
+                  amountDuePaise: amountPaise,
+                  amountReceivedPaise: amountPaise,
+                  balanceRemainingPaise: 0,
+                  paymentDate: new Date(),
+                  paymentMethod: item.paymentMethod || 'CASH',
+                  recordedByUserId: req.user!.id,
+                  status: 'SUCCESS',
+                  notes: `Monthly Report Chit ${chitNo} (${date}) S.No ${sno}`,
+                },
+              });
+
+              await tx.receipt.create({
+                data: {
+                  receiptNumber: recNo,
+                  paymentId: payment.id,
+                  memberId: memberRecord.id,
+                  schemeId: activeScheme.id,
+                  amountPaise,
+                },
+              });
+            }
+          }
+        }
       }
 
       // Record audit log
@@ -163,8 +220,8 @@ router.post('/', authenticate, requireRole('ADMIN', 'STAFF'), async (req: Reques
   }
 });
 
-// GET /api/monthly-reports/dates - Get all saved reports list
-router.get('/dates', authenticate, requireRole('ADMIN', 'STAFF'), async (req: Request, res: Response) => {
+// GET /api/monthly-reports/dates - Get all saved reports list (Accessible to ADMIN, STAFF, and MEMBER)
+router.get('/dates', authenticate, async (req: Request, res: Response) => {
   try {
     const rawReports = await prisma.monthlyReportEntry.groupBy({
       by: ['chitNo', 'date'],

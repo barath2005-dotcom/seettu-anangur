@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -6,6 +6,7 @@ import {
   Sparkles,
   Clock,
   CheckCircle2,
+  FileText,
 } from 'lucide-react';
 import {
   getLunarMonthCalendar,
@@ -14,12 +15,14 @@ import {
   translations,
   SupportedLanguage,
 } from '@seettu/shared';
+import { api } from '../services/api';
 
 interface ChitCalendarProps {
   lang: SupportedLanguage;
+  onOpenMonthlyReport?: (chitNo: string, date: string) => void;
 }
 
-export const ChitCalendar: React.FC<ChitCalendarProps> = ({ lang }) => {
+export const ChitCalendar: React.FC<ChitCalendarProps> = ({ lang, onOpenMonthlyReport }) => {
   const t = translations[lang];
 
   // Selected calendar view (defaults to today / Oct 2026)
@@ -27,6 +30,17 @@ export const ChitCalendar: React.FC<ChitCalendarProps> = ({ lang }) => {
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [selectedDayInfo, setSelectedDayInfo] = useState<any>(null);
+  const [savedReports, setSavedReports] = useState<any[]>([]);
+
+  useEffect(() => {
+    api.getMonthlyReportDates()
+      .then((res) => {
+        if (res.success && res.data) {
+          setSavedReports(res.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const monthCalendar = getLunarMonthCalendar(currentYear, currentMonth, today);
   const nextPournami = getNextPournami(today);
@@ -118,6 +132,43 @@ export const ChitCalendar: React.FC<ChitCalendarProps> = ({ lang }) => {
           </div>
         </div>
       </div>
+
+      {/* Saved Monthly Reports Bar */}
+      {savedReports.length > 0 && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#131B2E] border border-blue-200 dark:border-blue-900/60 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="p-2.5 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400 font-bold text-lg">
+              📋
+            </span>
+            <div>
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                {lang === 'ta' ? 'சேமிக்கப்பட்ட மாதாந்திர சீட்டு அறிக்கைகள்' : 'Saved Official Monthly Reports'}
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {lang === 'ta'
+                  ? 'உறுப்பினர்கள் தங்களின் மாதாந்திர தவணை, கமிஷன் மற்றும் வசூல் அறிக்கையை நேரடியாகக் காணலாம்.'
+                  : 'Click below to view official monthly collections, commissions, and member statements.'}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {savedReports.map((r, i) => (
+              <button
+                key={i}
+                onClick={() => onOpenMonthlyReport && onOpenMonthlyReport(r.chitNo, r.date)}
+                className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#2F7BFF] to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 flex items-center gap-2"
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span>Chit {r.chitNo} ({r.date})</span>
+                <span className="text-[10px] bg-white/20 px-1.5 py-0.2 rounded font-mono">
+                  ₹{(r.totalAmount || 0).toLocaleString('en-IN')}
+                </span>
+                <span>➔</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Main Interactive Lunar Calendar Grid */}
       <div className="bg-white dark:bg-[#131B2E] rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -225,8 +276,24 @@ export const ChitCalendar: React.FC<ChitCalendarProps> = ({ lang }) => {
                 {/* Event Pill / Badge */}
                 <div>
                   {isChitDay && (
-                    <div className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-bold text-center truncate shadow-sm">
-                      {lang === 'ta' ? 'சீட்டு நாள்' : 'Chit Day'}
+                    <div className="space-y-0.5">
+                      <div className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] font-bold text-center truncate shadow-sm">
+                        {lang === 'ta' ? 'சீட்டு நாள்' : 'Chit Day'}
+                      </div>
+                      {onOpenMonthlyReport && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenMonthlyReport('08', '25.10.26');
+                          }}
+                          className="w-full px-1 py-0.5 rounded bg-blue-600 hover:bg-blue-700 text-white text-[8px] font-bold text-center truncate shadow-xs flex items-center justify-center gap-0.5"
+                          title="Open Monthly Report"
+                        >
+                          <FileText className="w-2.5 h-2.5" />
+                          <span>{lang === 'ta' ? 'அறிக்கை' : 'Report'}</span>
+                        </button>
+                      )}
                     </div>
                   )}
                   {d.isToday && !isChitDay && (
@@ -345,9 +412,24 @@ export const ChitCalendar: React.FC<ChitCalendarProps> = ({ lang }) => {
               )}
             </div>
 
+            {onOpenMonthlyReport && (
+              <button
+                onClick={() => {
+                  const targetChit = '08';
+                  const targetDate = selectedDayInfo.dateStr || '25.10.26';
+                  onOpenMonthlyReport(targetChit, targetDate);
+                  setSelectedDayInfo(null);
+                }}
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2"
+              >
+                <FileText className="w-4 h-4" />
+                <span>{lang === 'ta' ? 'இத்தேதிக்கான மாதாந்திர அறிக்கையைக் காண்க' : 'View Monthly Report for this Date'}</span>
+              </button>
+            )}
+
             <button
               onClick={() => setSelectedDayInfo(null)}
-              className="w-full py-2.5 rounded-xl bg-[#2F7BFF] text-white text-xs font-bold hover:bg-blue-600 transition-colors shadow-sm"
+              className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white text-xs font-bold transition-colors"
             >
               {lang === 'ta' ? 'மூடுக' : 'Close'}
             </button>
