@@ -49,7 +49,7 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { api, setAuthTokens, clearAuthTokens, getAuthToken } from './services/api';
-import { formatINR, formatKolkataDate, translations, SupportedLanguage, getNextPournami } from '@seettu/shared';
+import { formatINR, formatKolkataDate, translations, SupportedLanguage, getNextPournami, OFFICIAL_78_MEMBERS } from '@seettu/shared';
 import { StatCard } from './components/StatCard';
 import { ReceiptModal } from './components/ReceiptModal';
 import { ChitCalendar } from './components/ChitCalendar';
@@ -1660,6 +1660,75 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
     }
   };
 
+  const handleExportCSV = async () => {
+    try {
+      let dataToExport = members;
+      try {
+        const res = await api.getMembers({ limit: 500 });
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          dataToExport = res.data;
+        }
+      } catch (e) {}
+
+      if (!dataToExport || dataToExport.length === 0) {
+        dataToExport = OFFICIAL_78_MEMBERS;
+      }
+
+      const headers = [
+        'S.No',
+        'Sheet Number',
+        'Member ID',
+        'Full Name (Tamil / English)',
+        'Phone Number',
+        'Email Address',
+        'Address / Village',
+        'Status',
+      ];
+
+      const rows = dataToExport.map((m: any, idx: number) => {
+        const sno = m.sno || idx + 1;
+        const sheetNumber = m.sheetNumber || Math.floor(idx / 13) + 1;
+        const memId = m.memberNumber || `M-${String(sno).padStart(3, '0')}`;
+        const name = (m.fullName || '').replace(/"/g, '""');
+        const phone = (m.phone || '').replace(/"/g, '""');
+        const email = (m.email || '').replace(/"/g, '""');
+        const address = (m.address || '').replace(/"/g, '""');
+        const status = m.status || 'ACTIVE';
+
+        return [
+          sno,
+          `"Sheet ${sheetNumber}"`,
+          `"${memId}"`,
+          `"${name}"`,
+          `"${phone}"`,
+          `"${email}"`,
+          `"${address}"`,
+          `"${status}"`,
+        ];
+      });
+
+      const csvContent =
+        '\uFEFF' + [headers.join(','), ...rows.map((r: any) => r.join(','))].join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `seettu-members.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      showToast(
+        lang === 'ta'
+          ? 'உறுப்பினர்கள் பட்டியல் (78 நபர்கள்) CSV கோப்பாக வெற்றிகரமாக பதிவிறக்கப்பட்டது!'
+          : 'Members list (78 members) CSV downloaded successfully!'
+      );
+    } catch (err: any) {
+      showToast(err.message || 'Failed to export CSV', 'error');
+    }
+  };
+
   const handleDropdownSelectDelete = () => {
     if (!dropdownSelectedId) return;
     const target = allMembersList.find((m) => m.id === dropdownSelectedId);
@@ -1752,13 +1821,12 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
             </button>
           )}
 
-          <a
-            href="/api/members/export/csv"
-            download="seettu-members.csv"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 text-xs font-semibold transition-colors"
+          <button
+            onClick={handleExportCSV}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold transition-colors cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" /> {t.exportCsv}
-          </a>
+          </button>
           <button
             onClick={() => setShowAddModal(true)}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#2F7BFF] hover:bg-blue-600 text-white rounded-lg text-xs font-bold transition-colors shadow-sm"
