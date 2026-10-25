@@ -1247,24 +1247,12 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
                       {formatINR(m.totalContributedPaise || 0)}
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                      <div className="inline-flex items-center gap-1.5 justify-end">
-                        <button
-                          onClick={() => handleViewProfile(m.id)}
-                          className="px-2.5 py-1 text-xs font-semibold text-[#2F7BFF] bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-                        >
-                          {t.profileAndLedger}
-                        </button>
-                        <button
-                          onClick={() => {
-                            setMemberToDelete(m);
-                            setShowDeleteModal(true);
-                          }}
-                          className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors"
-                          title={lang === 'ta' ? 'உறுப்பினரை நீக்கு' : 'Delete Member'}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => handleViewProfile(m.id)}
+                        className="px-2.5 py-1 text-xs font-semibold text-[#2F7BFF] bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                      >
+                        {t.profileAndLedger}
+                      </button>
                     </td>
                   </tr>
                 ))
