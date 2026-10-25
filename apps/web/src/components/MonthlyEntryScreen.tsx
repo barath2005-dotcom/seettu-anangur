@@ -447,6 +447,7 @@ export function MonthlyEntryScreen({
       const fundKey = `seettu_charity_fund_${chitNo}_${date}`;
       const totalAmount = entries.reduce((s, e) => s + (Number(e.amount) || 0), 0);
       const totalCommission = entries.reduce((s, e) => s + (Number(e.commission) || 0), 0);
+      const totalOffered = entries.reduce((s, e) => s + (Number(e.moneyOffered) || 0), 0);
 
       // 1. Immediately persist locally so refresh will NEVER lose it
       const entriesToSave = entries.map((e) => ({ ...e, templeCharityFund }));
@@ -465,6 +466,7 @@ export function MonthlyEntryScreen({
         count: entries.length,
         totalAmount,
         totalCommission,
+        totalOffered,
         templeCharityFund,
         isSaved: true,
       });
@@ -696,7 +698,7 @@ export function MonthlyEntryScreen({
       const sheetEntries = entries.filter((e) => e.sheetNumber === sNum);
       const sheetAmount = sheetEntries.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
       const sheetCommission = sheetEntries.reduce((sum, e) => sum + (Number(e.commission) || 0), 0);
-      const sheetOffered = sheetAmount - sheetCommission;
+      const sheetOffered = sheetEntries.reduce((sum, e) => sum + (Number(e.moneyOffered) || 0), 0);
 
       return `
       <div class="sheet-page">
