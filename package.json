@@ -1,0 +1,26 @@
+{
+  "name": "seettu-manager-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:backend": "npm --workspace=@seettu/backend run dev",
+    "dev:web": "npm --workspace=@seettu/web run dev",
+    "dev:mobile": "npm --workspace=@seettu/mobile run dev",
+    "dev": "concurrently \"npm:dev:backend\" \"npm:dev:web\"",
+    "build:shared": "npm --workspace=@seettu/shared run build",
+    "build:backend": "npm --workspace=@seettu/backend run build",
+    "build:web": "npm --workspace=@seettu/web run build",
+    "build": "npm run build:shared && npm run build:backend && npm run build:web",
+    "test": "npm --workspace=@seettu/backend run test",
+    "prisma:generate": "npm --workspace=@seettu/backend run prisma:generate",
+    "prisma:seed": "npm --workspace=@seettu/backend run prisma:seed"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "typescript": "^5.7.3"
+  }
+}

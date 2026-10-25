@@ -1,0 +1,231 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         String    @default("MEMBER") // ADMIN, STAFF, MEMBER
+  phone        String?
+  memberId     String?   @unique
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  member       Member?   @relation(fields: [memberId], references: [id])
+  paymentsRecorded Payment[] @relation("PaymentsRecorded")
+  payoutsPrepared  Payout[]  @relation("PayoutsPrepared")
+  payoutsApproved  Payout[]  @relation("PayoutsApproved")
+  notifications    Notification[]
+  auditLogs        AuditLog[]
+
+  @@map("users")
+}
+
+model Member {
+  id           String    @id @default(uuid())
+  memberNumber String    @unique // e.g. M-101
+  fullName     String
+  phone        String
+  email        String?
+  address      String?
+  dateJoined   DateTime  @default(now())
+  status       String    @default("ACTIVE") // ACTIVE, INACTIVE, SUSPENDED
+  notes        String?
+  userId       String?   @unique
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user         User?
+  memberships  SchemeMembership[]
+  roundsWon    CollectionRound[]   @relation("RoundWinner")
+  payments     Payment[]
+  payouts      Payout[]
+  receipts     Receipt[]
+
+  @@map("members")
+}
+
+model Scheme {
+  id                       String    @id @default(uuid())
+  code                     String    @unique // e.g. SCH-100K-01
+  name                     String
+  schemeType               String    @default("ROTATING_CHIT") // ROTATING_CHIT, FIXED_SAVINGS
+  startDate                DateTime
+  endDate                  DateTime
+  totalInstallments        Int
+  frequency                String    @default("MONTHLY") // MONTHLY, WEEKLY
+  contributionAmountPaise  Int       // Integer minor unit (Paise)
+  totalPoolAmountPaise     Int       // e.g. 10000000 (1 Lakh INR)
+  totalMembersCount        Int
+  organizerCommissionPaise Int       @default(0)
+  status                   String    @default("ACTIVE") // DRAFT, ACTIVE, COMPLETED, CANCELLED
+  notes                    String?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  memberships              SchemeMembership[]
+  collectionRounds         CollectionRound[]
+  payments                 Payment[]
+  payouts                  Payout[]
+  receipts                 Receipt[]
+
+  @@map("schemes")
+}
+
+model SchemeMembership {
+  id                 String    @id @default(uuid())
+  schemeId           String
+  memberId           String
+  slotNumber         Int       // Token / Ticket number in the scheme (1..N)
+  joinedAt           DateTime  @default(now())
+  hasReceivedPayout  Boolean   @default(false)
+  payoutRoundNumber  Int?
+  notes              String?
+
+  scheme             Scheme    @relation(fields: [schemeId], references: [id], onDelete: Cascade)
+  member             Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([schemeId, slotNumber])
+  @@unique([schemeId, memberId])
+  @@map("scheme_memberships")
+}
+
+model CollectionRound {
+  id                     String    @id @default(uuid())
+  schemeId               String
+  roundNumber            Int
+  dueDate                DateTime
+  targetAmountPaise      Int
+  collectedAmountPaise   Int       @default(0)
+  status                 String    @default("PENDING") // PENDING, COLLECTING, COMPLETED
+  payoutRecipientMemberId String?
+  grossPayoutPaise       Int?
+  deductionsPaise        Int?      @default(0)
+  netPayoutPaise         Int?
+  payoutStatus           String?   @default("DRAFT") // DRAFT, PENDING_APPROVAL, APPROVED, REJECTED, DISBURSED
+  payoutDisbursedAt      DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  scheme                 Scheme    @relation(fields: [schemeId], references: [id], onDelete: Cascade)
+  payoutRecipient        Member?   @relation("RoundWinner", fields: [payoutRecipientMemberId], references: [id])
+  payouts                Payout[]
+
+  @@unique([schemeId, roundNumber])
+  @@map("collection_rounds")
+}
+
+model Payment {
+  id                   String    @id @default(uuid())
+  transactionId        String    @unique
+  receiptNumber        String    @unique
+  schemeId             String
+  memberId             String
+  roundNumber          Int
+  amountDuePaise       Int
+  amountReceivedPaise  Int
+  balanceRemainingPaise Int
+  paymentDate          DateTime  @default(now())
+  paymentMethod        String    @default("CASH") // CASH, UPI, BANK_TRANSFER, OTHER
+  externalReference    String?
+  recordedByUserId     String
+  status               String    @default("SUCCESS") // SUCCESS, PENDING_VERIFICATION, REVERSED
+  idempotencyKey       String?   @unique
+  notes                String?
+  reversedAt           DateTime?
+  reversedReason       String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  scheme               Scheme    @relation(fields: [schemeId], references: [id], onDelete: Cascade)
+  member               Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  recordedBy           User      @relation("PaymentsRecorded", fields: [recordedByUserId], references: [id])
+  receipt              Receipt?
+
+  @@map("payments")
+}
+
+model Payout {
+  id                 String    @id @default(uuid())
+  schemeId           String
+  roundId            String
+  roundNumber        Int
+  recipientMemberId  String
+  grossPayoutPaise   Int
+  deductionsPaise    Int       @default(0)
+  netPayoutPaise     Int
+  disbursedDate      DateTime?
+  paymentMethod      String?   // CASH, UPI, BANK_TRANSFER, OTHER
+  referenceNumber    String?
+  approvalStatus     String    @default("DRAFT") // DRAFT, PENDING_APPROVAL, APPROVED, REJECTED, DISBURSED
+  preparedByUserId   String
+  approvedByUserId   String?
+  approvedAt         DateTime?
+  rejectionReason    String?
+  notes              String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  scheme             Scheme           @relation(fields: [schemeId], references: [id], onDelete: Cascade)
+  round              CollectionRound  @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  recipient          Member           @relation(fields: [recipientMemberId], references: [id], onDelete: Cascade)
+  preparedBy         User             @relation("PayoutsPrepared", fields: [preparedByUserId], references: [id])
+  approvedBy         User?            @relation("PayoutsApproved", fields: [approvedByUserId], references: [id])
+
+  @@map("payouts")
+}
+
+model Receipt {
+  id            String    @id @default(uuid())
+  receiptNumber String    @unique
+  paymentId     String    @unique
+  memberId      String
+  schemeId      String
+  amountPaise   Int
+  generatedAt   DateTime  @default(now())
+  pdfUrl        String?
+
+  payment       Payment   @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  member        Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  scheme        Scheme    @relation(fields: [schemeId], references: [id], onDelete: Cascade)
+
+  @@map("receipts")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  type      String   @default("ANNOUNCEMENT")
+  isRead    Boolean  @default(false)
+  linkUrl   String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String?
+  details    String?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}

@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர் சீட்டு குழு",
+    "slug": "pattanathu-mariamman-anangur-seettu",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#2F7BFF"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.seettu.manager"
+    },
+    "android": {
+      "package": "com.seettu.manager",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#2F7BFF"
+      },
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ]
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "scheme": "seettu",
+    "extra": {
+      "eas": {
+        "projectId": "seettu-manager-app"
+      }
+    }
+  }
+}
