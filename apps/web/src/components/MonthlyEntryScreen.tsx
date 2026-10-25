@@ -695,7 +695,9 @@ export function MonthlyEntryScreen({
 <body>
   ${sheetsToExport
     .map((sNum) => {
-      const sheetEntries = entries.filter((e) => e.sheetNumber === sNum);
+      const sheetEntries = entries
+        .filter((e) => e.sheetNumber === sNum)
+        .sort((a, b) => a.sno - b.sno);
       const sheetAmount = sheetEntries.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
       const sheetCommission = sheetEntries.reduce((sum, e) => sum + (Number(e.commission) || 0), 0);
       const sheetOffered = sheetEntries.reduce((sum, e) => sum + (Number(e.moneyOffered) || 0), 0);
@@ -726,7 +728,7 @@ export function MonthlyEntryScreen({
             <tbody>
               ${sheetEntries
                 .map((e, idx) => {
-                  const sheetSno = idx + 1;
+                  const sheetSno = e.sno || (sNum - 1) * 13 + idx + 1;
                   const tamilName = (e.memberName || '').split('/')[0].trim();
                   const rowOffered = Number(e.moneyOffered) || 0;
                   return `
