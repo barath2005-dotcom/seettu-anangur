@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   FileText,
   Save,
@@ -11,9 +11,18 @@ import {
   Download,
   RotateCcw,
   Sparkles,
+  ChevronLeft,
+  ChevronRight,
+  X,
 } from 'lucide-react';
 import { api } from '../services/api';
-import { formatINR, SupportedLanguage, OFFICIAL_78_MEMBERS } from '@seettu/shared';
+import {
+  formatINR,
+  SupportedLanguage,
+  OFFICIAL_78_MEMBERS,
+  getLunarMonthCalendar,
+  getNextPournami,
+} from '@seettu/shared';
 
 interface MonthlyEntry {
   sno: number;
@@ -31,6 +40,20 @@ interface MonthlyEntry {
 
 const SAVED_REGISTRY_KEY = 'seettu_saved_reports_registry';
 const LAST_ACTIVE_CHIT_KEY = 'seettu_last_active_chit';
+
+function parseChitDate(dateStr: string): { day: number; month: number; year: number } {
+  const now = new Date();
+  if (!dateStr) return { day: now.getDate(), month: now.getMonth(), year: now.getFullYear() };
+  if (dateStr.includes('.')) {
+    const parts = dateStr.split('.');
+    const d = parseInt(parts[0], 10) || now.getDate();
+    const m = (parseInt(parts[1], 10) || (now.getMonth() + 1)) - 1;
+    let y = parseInt(parts[2], 10) || now.getFullYear();
+    if (y < 100) y += 2000;
+    return { day: d, month: m, year: y };
+  }
+  return { day: now.getDate(), month: now.getMonth(), year: now.getFullYear() };
+}
 
 function getDefaultEntries(chitNo: string, date: string): MonthlyEntry[] {
   return OFFICIAL_78_MEMBERS.map((m, idx) => ({
@@ -128,6 +151,121 @@ export function MonthlyEntryScreen({
   const [bulkCommission, setBulkCommission] = useState('');
 
   const isMember = user?.role === 'MEMBER';
+
+  // Mini Calendar Popover State
+  const [showMiniCalendar, setShowMiniCalendar] = useState(false);
+  const calendarPickerRef = useRef<HTMLDivElement>(null);
+
+  const initialDateParsed = parseChitDate(date);
+  const [calYear, setCalYear] = useState(initialDateParsed.year);
+  const [calMonth, setCalMonth] = useState(initialDateParsed.month);
+
+  const toggleMiniCalendar = () => {
+    if (!showMiniCalendar) {
+      const p = parseChitDate(date);
+      setCalYear(p.year);
+      setCalMonth(p.month);
+    }
+    setShowMiniCalendar((prev) => !prev);
+  };
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (calendarPickerRef.current && !calendarPickerRef.current.contains(event.target as Node)) {
+        setShowMiniCalendar(false);
+      }
+    }
+    if (showMiniCalendar) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMiniCalendar]);
+
+  const monthSummary = getLunarMonthCalendar(calYear, calMonth);
+  const firstDayIndex = new Date(calYear, calMonth, 1).getDay(); // 0 = Sun
+  const paddingArray = Array.from({ length: firstDayIndex }, (_, i) => i);
+  const parsedCurrent = parseChitDate(date);
+
+  const monthNamesTa = [
+    'ஜனவரி', 'பிப்ரவரி', 'மார்ச்', 'ஏப்ரல்', 'மே', 'ஜூன்',
+    'ஜூலை', 'ஆகஸ்ட்', 'செப்டம்பர்', 'அக்டோபர்', 'நவம்பர்', 'டிசம்பர்'
+  ];
+  const displayMonthName = lang === 'ta' ? monthNamesTa[calMonth] : monthSummary.monthName;
+  const dayHeaders = lang === 'ta'
+    ? ['ஞா', 'தி', 'செ', 'பு', 'வி', 'வெ', 'ச']
+    : ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+  const handleSelectDay = (day: number) => {
+    const dd = String(day).padStart(2, '0');
+    const mm = String(calMonth + 1).padStart(2, '0');
+    const yy = String(calYear).slice(-2);
+    const newDateStr = `${dd}.${mm}.${yy}`;
+
+    setDate(newDateStr);
+    try {
+      localStorage.setItem(LAST_ACTIVE_CHIT_KEY, JSON.stringify({ chitNo, date: newDateStr }));
+    } catch (e) {}
+
+    setShowMiniCalendar(false);
+    loadReport(chitNo, newDateStr);
+  };
+
+  const handlePrevCalMonth = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (calMonth === 0) {
+      setCalMonth(11);
+      setCalYear((y) => y - 1);
+    } else {
+      setCalMonth((m) => m - 1);
+    }
+  };
+
+  const handleNextCalMonth = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (calMonth === 11) {
+      setCalMonth(0);
+      setCalYear((y) => y + 1);
+    } else {
+      setCalMonth((m) => m + 1);
+    }
+  };
+
+  const handleJumpToToday = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const now = new Date();
+    setCalYear(now.getFullYear());
+    setCalMonth(now.getMonth());
+    const dd = String(now.getDate()).padStart(2, '0');
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const yy = String(now.getFullYear()).slice(-2);
+    const newDateStr = `${dd}.${mm}.${yy}`;
+    setDate(newDateStr);
+    try {
+      localStorage.setItem(LAST_ACTIVE_CHIT_KEY, JSON.stringify({ chitNo, date: newDateStr }));
+    } catch (err) {}
+    setShowMiniCalendar(false);
+    loadReport(chitNo, newDateStr);
+  };
+
+  const handleJumpToNextPournami = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const nextP = getNextPournami(new Date());
+    const dt = nextP.date;
+    setCalYear(dt.getFullYear());
+    setCalMonth(dt.getMonth());
+    const dd = String(dt.getDate()).padStart(2, '0');
+    const mm = String(dt.getMonth() + 1).padStart(2, '0');
+    const yy = String(dt.getFullYear()).slice(-2);
+    const newDateStr = `${dd}.${mm}.${yy}`;
+    setDate(newDateStr);
+    try {
+      localStorage.setItem(LAST_ACTIVE_CHIT_KEY, JSON.stringify({ chitNo, date: newDateStr }));
+    } catch (err) {}
+    setShowMiniCalendar(false);
+    loadReport(chitNo, newDateStr);
+  };
 
   // Identify member's own entry if logged in as a member
   const myEntry = entries.find((e) => {
@@ -653,25 +791,166 @@ export function MonthlyEntryScreen({
             />
           </div>
 
-          <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-            <Calendar className="w-3.5 h-3.5 text-slate-500" />
-            <span className="text-xs font-bold text-slate-600 font-mono uppercase">
-              {lang === 'ta' ? 'தேதி:' : 'Date:'}
-            </span>
-            <input
-              type="text"
-              value={date}
-              onChange={(e) => {
-                const val = e.target.value;
-                setDate(val);
-                try {
-                  localStorage.setItem(LAST_ACTIVE_CHIT_KEY, JSON.stringify({ chitNo, date: val }));
-                } catch (err) {}
-              }}
-              disabled={isMember}
-              className="w-24 px-2 py-1 rounded bg-white border border-slate-300 text-xs font-mono font-bold text-center focus:ring-1 focus:ring-[#2F7BFF] disabled:bg-slate-100"
-              placeholder="25.10.26"
-            />
+          {/* Small Calendar Picker Popover Container */}
+          <div className="relative" ref={calendarPickerRef}>
+            <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs hover:border-slate-300 transition-colors">
+              <button
+                type="button"
+                onClick={toggleMiniCalendar}
+                className="text-slate-500 hover:text-[#2F7BFF] transition-colors p-0.5 rounded cursor-pointer"
+                title={lang === 'ta' ? 'நாட்காட்டியைத் திற' : 'Open Calendar'}
+              >
+                <Calendar className="w-4 h-4 text-[#2F7BFF]" />
+              </button>
+              <span className="text-xs font-bold text-slate-600 font-mono uppercase">
+                {lang === 'ta' ? 'தேதி:' : 'Date:'}
+              </span>
+              <input
+                type="text"
+                value={date}
+                onClick={toggleMiniCalendar}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setDate(val);
+                  try {
+                    localStorage.setItem(LAST_ACTIVE_CHIT_KEY, JSON.stringify({ chitNo, date: val }));
+                  } catch (err) {}
+                }}
+                disabled={isMember}
+                className="w-24 px-2 py-1 rounded bg-white border border-slate-300 text-xs font-mono font-bold text-center focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none disabled:bg-slate-100 cursor-pointer shadow-2xs"
+                placeholder="25.10.26"
+              />
+            </div>
+
+            {/* Small Calendar Dropdown Popover */}
+            {showMiniCalendar && (
+              <div className="absolute right-0 sm:left-0 sm:right-auto top-full mt-2 z-50 w-72 bg-white rounded-2xl shadow-2xl border border-slate-200 p-3.5 space-y-3 animate-in fade-in zoom-in-95 duration-150">
+                {/* Header: Month & Year + Prev / Next Arrows */}
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm font-extrabold text-slate-800">
+                      {displayMonthName} {calYear}
+                    </span>
+                    {monthSummary.pournamiDay && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800" title="Chit Pournami Day">
+                        🌕 {monthSummary.pournamiDay}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={handlePrevCalMonth}
+                      className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer"
+                      title="Previous Month"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleNextCalMonth}
+                      className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer"
+                      title="Next Month"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowMiniCalendar(false)}
+                      className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors ml-1 cursor-pointer"
+                      title="Close"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Day Headers (Su, Mo, Tu...) */}
+                <div className="grid grid-cols-7 gap-1 text-center">
+                  {dayHeaders.map((dh, i) => (
+                    <span
+                      key={i}
+                      className={`text-[11px] font-bold py-0.5 ${
+                        i === 0 ? 'text-rose-500' : 'text-slate-400'
+                      }`}
+                    >
+                      {dh}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Days Grid */}
+                <div className="grid grid-cols-7 gap-1">
+                  {/* Padding Days for alignment */}
+                  {paddingArray.map((_, i) => (
+                    <div key={`pad-${i}`} className="h-7 w-7" />
+                  ))}
+
+                  {/* Month Days */}
+                  {monthSummary.days.map((d) => {
+                    const isSelected =
+                      parsedCurrent.day === d.day &&
+                      parsedCurrent.month === calMonth &&
+                      parsedCurrent.year === calYear;
+
+                    return (
+                      <button
+                        key={d.day}
+                        type="button"
+                        onClick={() => handleSelectDay(d.day)}
+                        className={`h-7 w-7 mx-auto rounded-lg text-xs font-semibold flex items-center justify-center relative transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-[#2F7BFF] text-white font-extrabold shadow-sm scale-105'
+                            : d.isPournami
+                            ? 'bg-amber-100 text-amber-900 font-bold border border-amber-300 hover:bg-amber-200'
+                            : d.isToday
+                            ? 'bg-blue-50 text-[#2F7BFF] font-bold border border-blue-200 hover:bg-blue-100'
+                            : 'text-slate-700 hover:bg-slate-100'
+                        }`}
+                        title={
+                          d.isPournami
+                            ? lang === 'ta'
+                              ? `பௌர்ணமி சீட்டு நாள் (${d.day}.${String(calMonth + 1).padStart(2, '0')}.${String(calYear).slice(-2)})`
+                              : `Pournami Chit Day (${d.day}.${String(calMonth + 1).padStart(2, '0')}.${String(calYear).slice(-2)})`
+                            : undefined
+                        }
+                      >
+                        <span>{d.day}</span>
+                        {d.isPournami && !isSelected && (
+                          <span className="absolute -top-1 -right-0.5 text-[8px] leading-none">🌕</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Quick Selection Shortcuts Footer */}
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] font-semibold text-slate-600">
+                  <button
+                    type="button"
+                    onClick={handleJumpToToday}
+                    className="px-2 py-1 rounded-md hover:bg-slate-100 text-[#2F7BFF] font-bold transition-colors cursor-pointer"
+                  >
+                    {lang === 'ta' ? 'இன்று' : 'Today'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleJumpToNextPournami}
+                    className="px-2 py-1 rounded-md bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold border border-amber-200 transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>🌕</span>
+                    <span>{lang === 'ta' ? 'அடுத்த சீட்டு' : 'Next Chit'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowMiniCalendar(false)}
+                    className="px-2 py-1 rounded-md hover:bg-slate-100 text-slate-500 transition-colors cursor-pointer"
+                  >
+                    {lang === 'ta' ? 'மூடு' : 'Done'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <button
