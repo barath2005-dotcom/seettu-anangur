@@ -479,14 +479,155 @@ export function App() {
         </div>
       </aside>
 
+      {/* Mobile Slide-Over Navigation Drawer */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden flex">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+
+          {/* Drawer Content */}
+          <div className="relative w-72 max-w-[85vw] bg-white h-full flex flex-col shadow-2xl z-10 animate-in slide-in-from-left duration-200">
+            {/* Header with App Logo & Close Button */}
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-2.5 overflow-hidden">
+                <img
+                  src="/logo.jpg"
+                  alt="Logo"
+                  className="w-10 h-10 rounded-xl object-cover border-2 border-amber-300 shadow-sm shrink-0"
+                />
+                <h2 className="font-extrabold text-[#172033] text-xs leading-tight line-clamp-2">
+                  {t.appName}
+                </h2>
+              </div>
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 shrink-0 ml-1"
+                aria-label="Close Menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* User Card */}
+            <div className="p-3.5 mx-3 my-2.5 rounded-xl bg-slate-50 border border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-blue-100 text-[#2F7BFF] flex items-center justify-center font-bold text-xs uppercase shrink-0">
+                  {user.name.slice(0, 2)}
+                </div>
+                <div className="overflow-hidden">
+                  <p className="text-xs font-bold text-slate-800 truncate">{user.name}</p>
+                  <span className={`inline-block px-1.5 py-0.2 rounded text-[10px] font-bold ${
+                    user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' :
+                    user.role === 'STAFF' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+                  }`}>
+                    {user.role}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Nav Links */}
+            <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setActiveTab(item.id);
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
+                      isActive
+                        ? 'bg-[#2F7BFF] text-white shadow-sm shadow-blue-500/20'
+                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                      <span>{item.label}</span>
+                    </div>
+                    {item.badge && item.badge > 0 ? (
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        isActive ? 'bg-white text-blue-600' : 'bg-rose-500 text-white'
+                      }`}>
+                        {item.badge}
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* Quick Language & Theme switcher in mobile drawer */}
+            <div className="p-3 border-t border-slate-100 flex items-center justify-between gap-2">
+              <div className="flex items-center bg-slate-100 rounded-lg p-0.5 text-xs font-bold border border-slate-200">
+                <button
+                  onClick={() => handleLanguageChange('en')}
+                  className={`px-2 py-1 rounded-md text-[11px] transition-colors ${
+                    lang === 'en' ? 'bg-[#2F7BFF] text-white shadow-sm' : 'text-slate-600'
+                  }`}
+                >
+                  EN
+                </button>
+                <button
+                  onClick={() => handleLanguageChange('ta')}
+                  className={`px-2 py-1 rounded-md text-[11px] transition-colors ${
+                    lang === 'ta' ? 'bg-[#2F7BFF] text-white shadow-sm' : 'text-slate-600'
+                  }`}
+                >
+                  தமிழ்
+                </button>
+              </div>
+
+              <button
+                onClick={toggleTheme}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-semibold shadow-2xs"
+              >
+                {theme === 'light' ? (
+                  <>
+                    <Moon className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>{lang === 'ta' ? 'இரவு' : 'Night'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Sun className="w-3.5 h-3.5 text-amber-500" />
+                    <span>{lang === 'ta' ? 'பகல்' : 'Day'}</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Drawer Logout */}
+            <div className="p-3 border-t border-slate-100">
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleLogout();
+                }}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>{t.signOut}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header Bar */}
-        <header className="bg-white border-b border-slate-200 px-6 py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <header className="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 sm:py-3.5 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100"
+              onClick={() => setMobileMenuOpen(true)}
+              className="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 focus:outline-none"
+              aria-label="Open Navigation Menu"
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -549,7 +690,7 @@ export function App() {
         </header>
 
         {/* Content Body */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 lg:p-8 pb-24 lg:pb-8">
           {activeTab === 'dashboard' && (
             <DashboardScreen
               user={user}
@@ -628,6 +769,69 @@ export function App() {
             />
           )}
         </main>
+
+        {/* Mobile Bottom Navigation Bar (Phone Optimized) */}
+        <div className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-30 flex items-center justify-around py-1.5 px-1 shadow-lg pb-[max(0.375rem,env(safe-area-inset-bottom))]">
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl text-[10px] font-bold transition-all ${
+              activeTab === 'dashboard' ? 'text-[#2F7BFF]' : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <LayoutDashboard className={`w-5 h-5 ${activeTab === 'dashboard' ? 'text-[#2F7BFF] stroke-[2.5]' : 'text-slate-400'}`} />
+            <span>{lang === 'ta' ? 'முகப்பு' : 'Home'}</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('monthly-entry')}
+            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl text-[10px] font-bold transition-all ${
+              activeTab === 'monthly-entry' ? 'text-[#2F7BFF]' : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <ClipboardList className={`w-5 h-5 ${activeTab === 'monthly-entry' ? 'text-[#2F7BFF] stroke-[2.5]' : 'text-slate-400'}`} />
+            <span>{lang === 'ta' ? 'சீட்டு பதிவு' : 'Chit Entry'}</span>
+          </button>
+
+          {user.role !== 'MEMBER' ? (
+            <button
+              onClick={() => setActiveTab('members')}
+              className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl text-[10px] font-bold transition-all ${
+                activeTab === 'members' ? 'text-[#2F7BFF]' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Users className={`w-5 h-5 ${activeTab === 'members' ? 'text-[#2F7BFF] stroke-[2.5]' : 'text-slate-400'}`} />
+              <span>{lang === 'ta' ? 'உறுப்பினர்கள்' : 'Members'}</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setActiveTab('schemes')}
+              className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl text-[10px] font-bold transition-all ${
+                activeTab === 'schemes' ? 'text-[#2F7BFF]' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Coins className={`w-5 h-5 ${activeTab === 'schemes' ? 'text-[#2F7BFF] stroke-[2.5]' : 'text-slate-400'}`} />
+              <span>{lang === 'ta' ? 'திட்டங்கள்' : 'Schemes'}</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => setActiveTab('calendar')}
+            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl text-[10px] font-bold transition-all ${
+              activeTab === 'calendar' ? 'text-[#2F7BFF]' : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <Calendar className={`w-5 h-5 ${activeTab === 'calendar' ? 'text-[#2F7BFF] stroke-[2.5]' : 'text-slate-400'}`} />
+            <span>{lang === 'ta' ? 'காலண்டர்' : 'Calendar'}</span>
+          </button>
+
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl text-[10px] font-bold text-slate-500 hover:text-slate-800 transition-all cursor-pointer"
+          >
+            <Menu className="w-5 h-5 text-slate-400" />
+            <span>{lang === 'ta' ? 'மேலும்' : 'Menu'}</span>
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1419,88 +1623,90 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
 
       {/* Add Member Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 border border-slate-100">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+        <div className="fixed inset-0 z-50 flex flex-col sm:items-center sm:justify-center bg-black/60 sm:p-4 backdrop-blur-sm overflow-hidden">
+          <div className="bg-white w-full sm:max-w-md h-full sm:h-auto sm:max-h-[90vh] sm:rounded-2xl shadow-2xl flex flex-col border-0 sm:border border-slate-100 overflow-hidden">
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 shrink-0 bg-white">
               <h3 className="text-base font-bold text-slate-900">{t.addMember}</h3>
-              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setShowAddModal(false)} className="p-1 text-slate-400 hover:text-slate-600" aria-label="Close">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleCreateMember} className="space-y-3.5">
-              <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleCreateMember} className="flex-1 flex flex-col overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-5 space-y-3.5">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.memberId}</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="M-011"
+                      value={newMember.memberNumber}
+                      onChange={(e) => setNewMember({ ...newMember, memberNumber: e.target.value.toUpperCase() })}
+                      className="w-full px-3 py-2 border rounded-lg text-xs font-mono focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.status}</label>
+                    <select
+                      value={newMember.status}
+                      onChange={(e) => setNewMember({ ...newMember, status: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
+                    >
+                      <option value="ACTIVE">{t.active}</option>
+                      <option value="INACTIVE">{t.inactive}</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.memberId}</label>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.fullName}</label>
                   <input
                     type="text"
                     required
-                    placeholder="M-011"
-                    value={newMember.memberNumber}
-                    onChange={(e) => setNewMember({ ...newMember, memberNumber: e.target.value.toUpperCase() })}
-                    className="w-full px-3 py-2 border rounded-lg text-xs font-mono focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
+                    placeholder={lang === 'ta' ? 'எ.கா: சுப்பிரமணியன் கே' : 'e.g. Subramanian K'}
+                    value={newMember.fullName}
+                    onChange={(e) => setNewMember({ ...newMember, fullName: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.status}</label>
-                  <select
-                    value={newMember.status}
-                    onChange={(e) => setNewMember({ ...newMember, status: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
-                  >
-                    <option value="ACTIVE">{t.active}</option>
-                    <option value="INACTIVE">{t.inactive}</option>
-                  </select>
-                </div>
-              </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.fullName}</label>
-                <input
-                  type="text"
-                  required
-                  placeholder={lang === 'ta' ? 'எ.கா: சுப்பிரமணியன் கே' : 'e.g. Subramanian K'}
-                  value={newMember.fullName}
-                  onChange={(e) => setNewMember({ ...newMember, fullName: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.phoneNumber}</label>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="9840112233"
-                    value={newMember.phone}
-                    onChange={(e) => setNewMember({ ...newMember, phone: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg text-xs font-mono focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.phoneNumber}</label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="9840112233"
+                      value={newMember.phone}
+                      onChange={(e) => setNewMember({ ...newMember, phone: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg text-xs font-mono focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.emailOptional}</label>
+                    <input
+                      type="email"
+                      placeholder="name@example.com"
+                      value={newMember.email}
+                      onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
+                    />
+                  </div>
                 </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.emailOptional}</label>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.address}</label>
                   <input
-                    type="email"
-                    placeholder="name@example.com"
-                    value={newMember.email}
-                    onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
+                    type="text"
+                    placeholder={lang === 'ta' ? 'தெரு, ஊர், மாவட்டம்' : 'Street, City, Postal Code'}
+                    value={newMember.address}
+                    onChange={(e) => setNewMember({ ...newMember, address: e.target.value })}
                     className="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.address}</label>
-                <input
-                  type="text"
-                  placeholder={lang === 'ta' ? 'தெரு, ஊர், மாவட்டம்' : 'Street, City, Postal Code'}
-                  value={newMember.address}
-                  onChange={(e) => setNewMember({ ...newMember, address: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
-                />
-              </div>
-
-              <div className="pt-2 flex justify-end gap-2">
+              <div className="border-t border-slate-100 px-5 py-3.5 bg-slate-50 flex justify-end gap-2 shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
@@ -1510,7 +1716,7 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#2F7BFF] hover:bg-blue-600 text-white rounded-lg text-xs font-bold transition-colors"
+                  className="px-4 py-2 bg-[#2F7BFF] hover:bg-blue-600 text-white rounded-lg text-xs font-bold transition-colors shadow-sm"
                 >
                   {t.saveMember}
                 </button>
@@ -1522,74 +1728,86 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
 
       {/* Member Details Modal */}
       {selectedMember && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 border border-slate-100">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+        <div className="fixed inset-0 z-50 flex flex-col sm:items-center sm:justify-center bg-black/60 sm:p-4 backdrop-blur-sm overflow-hidden">
+          <div className="bg-white w-full sm:max-w-2xl h-full sm:h-auto sm:max-h-[90vh] sm:rounded-2xl shadow-2xl flex flex-col border-0 sm:border border-slate-100 overflow-hidden">
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 shrink-0 bg-white">
               <div>
                 <h3 className="text-lg font-bold text-slate-900">{selectedMember.fullName}</h3>
                 <span className="text-xs font-mono font-medium text-slate-500">
                   {t.memberId}: {selectedMember.memberNumber} • {selectedMember.phone}
                 </span>
               </div>
-              <button onClick={() => setSelectedMember(null)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setSelectedMember(null)} className="p-1 text-slate-400 hover:text-slate-600" aria-label="Close">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
-                <span className="text-xs font-semibold text-emerald-800 uppercase">{t.totalContributed}</span>
-                <p className="text-2xl font-bold text-emerald-700">{formatINR(selectedMember.totalContributedPaise)}</p>
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4">
+                <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
+                  <span className="text-xs font-semibold text-emerald-800 uppercase">{t.totalContributed}</span>
+                  <p className="text-2xl font-bold text-emerald-700">{formatINR(selectedMember.totalContributedPaise)}</p>
+                </div>
+                <div className="p-4 rounded-xl bg-amber-50 border border-amber-100">
+                  <span className="text-xs font-semibold text-amber-800 uppercase">{t.outstandingBalance}</span>
+                  <p className="text-2xl font-bold text-amber-700">{formatINR(selectedMember.totalPendingPaise)}</p>
+                </div>
               </div>
-              <div className="p-4 rounded-xl bg-amber-50 border border-amber-100">
-                <span className="text-xs font-semibold text-amber-800 uppercase">{t.outstandingBalance}</span>
-                <p className="text-2xl font-bold text-amber-700">{formatINR(selectedMember.totalPendingPaise)}</p>
-              </div>
-            </div>
 
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">{t.enrolledSchemesTitle}</h4>
-            <div className="space-y-2 mb-6">
-              {selectedMember.memberships.map((m: any) => (
-                <div key={m.id} className="p-3 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
-                  <div>
-                    <span className="font-bold text-slate-800">{m.schemeName}</span>
-                    <span className="text-slate-400 font-mono block text-[11px]">
-                      {lang === 'ta' ? 'இடம்' : 'Slot'} #{m.slotNumber} • {formatINR(m.contributionAmountPaise)}/{lang === 'ta' ? 'தவணை' : 'installment'}
+              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">{t.enrolledSchemesTitle}</h4>
+              <div className="space-y-2 mb-4">
+                {selectedMember.memberships.map((m: any) => (
+                  <div key={m.id} className="p-3 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="font-bold text-slate-800">{m.schemeName}</span>
+                      <span className="text-slate-400 font-mono block text-[11px]">
+                        {lang === 'ta' ? 'இடம்' : 'Slot'} #{m.slotNumber} • {formatINR(m.contributionAmountPaise)}/{lang === 'ta' ? 'தவணை' : 'installment'}
+                      </span>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                      m.hasReceivedPayout ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      {m.hasReceivedPayout ? (lang === 'ta' ? 'பட்டுவாடா வழங்கப்பட்டது' : 'Payout Awarded') : (lang === 'ta' ? 'செயலில் உள்ள உறுப்பினர்' : 'Active Contributor')}
                     </span>
                   </div>
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                    m.hasReceivedPayout ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
-                  }`}>
-                    {m.hasReceivedPayout ? (lang === 'ta' ? 'பட்டுவாடா வழங்கப்பட்டது' : 'Payout Awarded') : (lang === 'ta' ? 'செயலில் உள்ள உறுப்பினர்' : 'Active Contributor')}
-                  </span>
-                </div>
-              ))}
+                ))}
+              </div>
+
+              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">{t.recentPaymentsTitle}</h4>
+              <div className="overflow-x-auto rounded-xl border border-slate-100">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 text-slate-500 font-semibold">
+                    <tr>
+                      <th className="py-2.5 px-3">{t.receiptNumber}</th>
+                      <th className="py-2.5 px-3">{t.schemes}</th>
+                      <th className="py-2.5 px-3">{t.roundNumber}</th>
+                      <th className="py-2.5 px-3">{t.amountReceived}</th>
+                      <th className="py-2.5 px-3">{t.dueDate}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {selectedMember.recentPayments.map((p: any) => (
+                      <tr key={p.id}>
+                        <td className="py-2.5 px-3 font-mono font-semibold">{p.receiptNumber}</td>
+                        <td className="py-2.5 px-3">{p.schemeName}</td>
+                        <td className="py-2.5 px-3">#{p.roundNumber}</td>
+                        <td className="py-2.5 px-3 font-bold text-emerald-600">{formatINR(p.amountReceivedPaise)}</td>
+                        <td className="py-2.5 px-3 text-slate-400">{formatKolkataDate(p.paymentDate)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">{t.recentPaymentsTitle}</h4>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-500 font-semibold">
-                  <tr>
-                    <th className="py-2 px-3">{t.receiptNumber}</th>
-                    <th className="py-2 px-3">{t.schemes}</th>
-                    <th className="py-2 px-3">{t.roundNumber}</th>
-                    <th className="py-2 px-3">{t.amountReceived}</th>
-                    <th className="py-2 px-3">{t.dueDate}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {selectedMember.recentPayments.map((p: any) => (
-                    <tr key={p.id}>
-                      <td className="py-2 px-3 font-mono font-semibold">{p.receiptNumber}</td>
-                      <td className="py-2 px-3">{p.schemeName}</td>
-                      <td className="py-2 px-3">#{p.roundNumber}</td>
-                      <td className="py-2 px-3 font-bold text-emerald-600">{formatINR(p.amountReceivedPaise)}</td>
-                      <td className="py-2 px-3 text-slate-400">{formatKolkataDate(p.paymentDate)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="border-t border-slate-100 px-5 py-3 bg-slate-50 flex justify-end shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              <button
+                type="button"
+                onClick={() => setSelectedMember(null)}
+                className="px-5 py-2 bg-[#2F7BFF] hover:bg-blue-600 text-white rounded-lg text-xs font-bold transition-colors shadow-sm"
+              >
+                {lang === 'ta' ? 'முடிந்தது' : 'Done'}
+              </button>
             </div>
           </div>
         </div>
@@ -1597,9 +1815,9 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
 
       {/* Select Member to Delete Modal (Opened from Top Bar "Delete Member") */}
       {showSelectDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 border border-slate-100">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+        <div className="fixed inset-0 z-50 flex flex-col sm:items-center sm:justify-center bg-black/60 sm:p-4 backdrop-blur-sm overflow-hidden">
+          <div className="bg-white w-full sm:max-w-md h-full sm:h-auto sm:max-h-[90vh] sm:rounded-2xl shadow-2xl flex flex-col border-0 sm:border border-slate-100 overflow-hidden">
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 shrink-0 bg-white">
               <div className="flex items-center gap-2 text-rose-600">
                 <Trash2 className="w-5 h-5" />
                 <h3 className="text-base font-bold text-slate-900">
@@ -1608,49 +1826,52 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
               </div>
               <button
                 onClick={() => setShowSelectDeleteModal(false)}
-                className="text-slate-400 hover:text-slate-600"
+                className="p-1 text-slate-400 hover:text-slate-600"
+                aria-label="Close"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {loadingAllMembers ? (
-              <div className="py-8 text-center text-slate-400 text-xs">
+              <div className="py-12 text-center text-slate-400 text-xs flex-1 flex items-center justify-center">
                 {lang === 'ta' ? 'உறுப்பினர்கள் பட்டியல் ஏற்றப்படுகிறது...' : 'Loading members list...'}
               </div>
             ) : (
-              <div className="space-y-4 text-xs">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                    {lang === 'ta' ? 'உறுப்பினர் பெயர் & எண்' : 'Select Member'}
-                  </label>
-                  <select
-                    value={dropdownSelectedId}
-                    onChange={(e) => setDropdownSelectedId(e.target.value)}
-                    className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-xs font-medium focus:ring-2 focus:ring-rose-500 focus:outline-none"
-                  >
-                    {allMembersList.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.memberNumber} - {m.fullName} ({m.phone})
-                      </option>
-                    ))}
-                  </select>
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex-1 overflow-y-auto p-5 space-y-4 text-xs">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                      {lang === 'ta' ? 'உறுப்பினர் பெயர் & எண்' : 'Select Member'}
+                    </label>
+                    <select
+                      value={dropdownSelectedId}
+                      onChange={(e) => setDropdownSelectedId(e.target.value)}
+                      className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-xs font-medium focus:ring-2 focus:ring-rose-500 focus:outline-none"
+                    >
+                      {allMembersList.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.memberNumber} - {m.fullName} ({m.phone})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {dropdownSelectedId && (() => {
+                    const target = allMembersList.find((m) => m.id === dropdownSelectedId);
+                    if (!target) return null;
+                    return (
+                      <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-100 space-y-1 text-slate-700">
+                        <div className="font-bold text-rose-900 text-sm">{target.fullName}</div>
+                        <div className="font-mono text-slate-600">{t.memberId}: {target.memberNumber}</div>
+                        <div className="text-slate-600">{t.phoneNumber}: {target.phone}</div>
+                        {target.address && <div className="text-slate-500 text-[11px] truncate">{target.address}</div>}
+                      </div>
+                    );
+                  })()}
                 </div>
 
-                {dropdownSelectedId && (() => {
-                  const target = allMembersList.find((m) => m.id === dropdownSelectedId);
-                  if (!target) return null;
-                  return (
-                    <div className="p-3 rounded-xl bg-rose-50 border border-rose-100 space-y-1 text-slate-700">
-                      <div className="font-bold text-rose-900 text-sm">{target.fullName}</div>
-                      <div className="font-mono text-slate-600">{t.memberId}: {target.memberNumber}</div>
-                      <div className="text-slate-600">{t.phoneNumber}: {target.phone}</div>
-                      {target.address && <div className="text-slate-500 text-[11px] truncate">{target.address}</div>}
-                    </div>
-                  );
-                })()}
-
-                <div className="pt-2 flex justify-end gap-2">
+                <div className="border-t border-slate-100 px-5 py-3.5 bg-slate-50 flex justify-end gap-2 shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
                   <button
                     type="button"
                     onClick={() => setShowSelectDeleteModal(false)}
@@ -1676,8 +1897,8 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 border border-slate-100">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 sm:p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl max-w-md w-full shadow-2xl p-6 border border-slate-100 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 shrink-0">
                 <Trash2 className="w-5 h-5" />
@@ -1897,108 +2118,110 @@ function SchemesScreen({ user, lang, showToast, onRecordPaymentForScheme }: { us
 
       {/* Create Scheme Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl p-6 border border-slate-100">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+        <div className="fixed inset-0 z-50 flex flex-col sm:items-center sm:justify-center bg-black/60 sm:p-4 backdrop-blur-sm overflow-hidden">
+          <div className="bg-white w-full sm:max-w-lg h-full sm:h-auto sm:max-h-[90vh] sm:rounded-2xl shadow-2xl flex flex-col border-0 sm:border border-slate-100 overflow-hidden">
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 shrink-0 bg-white">
               <h3 className="text-base font-bold text-slate-900">{t.createNewScheme}</h3>
-              <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setShowCreateModal(false)} className="p-1 text-slate-400 hover:text-slate-600" aria-label="Close">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleCreateScheme} className="space-y-3.5">
-              <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleCreateScheme} className="flex-1 flex flex-col overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-5 space-y-3.5">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.schemeCode}</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="SCH-200K-01"
+                      value={form.code}
+                      onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
+                      className="w-full px-3 py-2 border rounded-lg text-xs font-mono focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.schemeType}</label>
+                    <select
+                      value={form.schemeType}
+                      onChange={(e) => setForm({ ...form, schemeType: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
+                    >
+                      <option value="ROTATING_CHIT">{t.rotatingChit}</option>
+                      <option value="FIXED_SAVINGS">{t.fixedSavings}</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.schemeCode}</label>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.schemeName}</label>
                   <input
                     type="text"
                     required
-                    placeholder="SCH-200K-01"
-                    value={form.code}
-                    onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
-                    className="w-full px-3 py-2 border rounded-lg text-xs font-mono focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.schemeType}</label>
-                  <select
-                    value={form.schemeType}
-                    onChange={(e) => setForm({ ...form, schemeType: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
-                  >
-                    <option value="ROTATING_CHIT">{t.rotatingChit}</option>
-                    <option value="FIXED_SAVINGS">{t.fixedSavings}</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.schemeName}</label>
-                <input
-                  type="text"
-                  required
-                  placeholder={lang === 'ta' ? 'தங்கம் மாதாந்திர சீட்டு (1 லட்சம்)' : 'Gold Monthly Chit Fund (1 Lakh)'}
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.installmentAmount}</label>
-                  <input
-                    type="number"
-                    required
-                    value={form.contributionAmountRupees}
-                    onChange={(e) => setForm({ ...form, contributionAmountRupees: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border rounded-lg text-xs font-bold focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.totalMembers}</label>
-                  <input
-                    type="number"
-                    required
-                    value={form.totalMembersCount}
-                    onChange={(e) => setForm({ ...form, totalMembersCount: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border rounded-lg text-xs font-bold focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.totalInstallments}</label>
-                  <input
-                    type="number"
-                    required
-                    value={form.totalInstallments}
-                    onChange={(e) => setForm({ ...form, totalInstallments: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border rounded-lg text-xs font-bold focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.startDate}</label>
-                  <input
-                    type="date"
-                    required
-                    value={form.startDate}
-                    onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+                    placeholder={lang === 'ta' ? 'தங்கம் மாதாந்திர சீட்டு (1 லட்சம்)' : 'Gold Monthly Chit Fund (1 Lakh)'}
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
                     className="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.organizerFee}</label>
-                  <input
-                    type="number"
-                    value={form.organizerCommissionRupees}
-                    onChange={(e) => setForm({ ...form, organizerCommissionRupees: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border rounded-lg text-xs font-bold focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
-                  />
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.installmentAmount}</label>
+                    <input
+                      type="number"
+                      required
+                      value={form.contributionAmountRupees}
+                      onChange={(e) => setForm({ ...form, contributionAmountRupees: Number(e.target.value) })}
+                      className="w-full px-3 py-2 border rounded-lg text-xs font-bold focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.totalMembers}</label>
+                    <input
+                      type="number"
+                      required
+                      value={form.totalMembersCount}
+                      onChange={(e) => setForm({ ...form, totalMembersCount: Number(e.target.value) })}
+                      className="w-full px-3 py-2 border rounded-lg text-xs font-bold focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.totalInstallments}</label>
+                    <input
+                      type="number"
+                      required
+                      value={form.totalInstallments}
+                      onChange={(e) => setForm({ ...form, totalInstallments: Number(e.target.value) })}
+                      className="w-full px-3 py-2 border rounded-lg text-xs font-bold focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.startDate}</label>
+                    <input
+                      type="date"
+                      required
+                      value={form.startDate}
+                      onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.organizerFee}</label>
+                    <input
+                      type="number"
+                      value={form.organizerCommissionRupees}
+                      onChange={(e) => setForm({ ...form, organizerCommissionRupees: Number(e.target.value) })}
+                      className="w-full px-3 py-2 border rounded-lg text-xs font-bold focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-2 flex justify-end gap-2">
+              <div className="border-t border-slate-100 px-5 py-3.5 bg-slate-50 flex justify-end gap-2 shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
@@ -2008,7 +2231,7 @@ function SchemesScreen({ user, lang, showToast, onRecordPaymentForScheme }: { us
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#2F7BFF] hover:bg-blue-600 text-white rounded-lg text-xs font-bold transition-colors"
+                  className="px-4 py-2 bg-[#2F7BFF] hover:bg-blue-600 text-white rounded-lg text-xs font-bold transition-colors shadow-sm"
                 >
                   {t.initializeScheme}
                 </button>
@@ -2020,44 +2243,56 @@ function SchemesScreen({ user, lang, showToast, onRecordPaymentForScheme }: { us
 
       {/* Scheme Details Drawer */}
       {selectedScheme && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 border border-slate-100">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+        <div className="fixed inset-0 z-50 flex flex-col sm:items-center sm:justify-center bg-black/60 sm:p-4 backdrop-blur-sm overflow-hidden">
+          <div className="bg-white w-full sm:max-w-3xl h-full sm:h-auto sm:max-h-[90vh] sm:rounded-2xl shadow-2xl flex flex-col border-0 sm:border border-slate-100 overflow-hidden">
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 shrink-0 bg-white">
               <div>
                 <h3 className="text-lg font-bold text-slate-900">{selectedScheme.name}</h3>
                 <span className="text-xs font-mono font-medium text-slate-500">
                   {selectedScheme.code} • {t.totalPoolPerRound}: {formatINR(selectedScheme.totalPoolAmountPaise)}
                 </span>
               </div>
-              <button onClick={() => setSelectedScheme(null)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setSelectedScheme(null)} className="p-1 text-slate-400 hover:text-slate-600" aria-label="Close">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">{t.collectionSchedule}</h4>
-            <div className="space-y-2 mb-6">
-              {selectedScheme.collectionRounds.map((r: any) => (
-                <div key={r.id} className="p-3 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
-                  <div>
-                    <span className="font-bold text-slate-800">{t.roundNumber} #{r.roundNumber}</span>
-                    <span className="text-slate-400 block text-[11px]">{t.dueDate}: {formatKolkataDate(r.dueDate)}</span>
-                  </div>
-                  <div className="text-center">
-                    <span className="text-[11px] text-slate-500">{t.totalCollected}:</span>
-                    <span className="font-bold text-emerald-600 block">{formatINR(r.collectedAmountPaise)}</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">
-                      {r.status}
-                    </span>
-                    {r.payoutRecipientName && (
-                      <span className="text-[10px] text-purple-700 font-semibold block mt-0.5">
-                        {t.winnerAwarded}: {r.payoutRecipientName}
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
+              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">{t.collectionSchedule}</h4>
+              <div className="space-y-2 mb-6">
+                {selectedScheme.collectionRounds.map((r: any) => (
+                  <div key={r.id} className="p-3 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="font-bold text-slate-800">{t.roundNumber} #{r.roundNumber}</span>
+                      <span className="text-slate-400 block text-[11px]">{t.dueDate}: {formatKolkataDate(r.dueDate)}</span>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-[11px] text-slate-500">{t.totalCollected}:</span>
+                      <span className="font-bold text-emerald-600 block">{formatINR(r.collectedAmountPaise)}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">
+                        {r.status}
                       </span>
-                    )}
+                      {r.payoutRecipientName && (
+                        <span className="text-[10px] text-purple-700 font-semibold block mt-0.5">
+                          {t.winnerAwarded}: {r.payoutRecipientName}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t border-slate-100 px-5 py-3 bg-slate-50 flex justify-end shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              <button
+                type="button"
+                onClick={() => setSelectedScheme(null)}
+                className="px-5 py-2 bg-[#2F7BFF] hover:bg-blue-600 text-white rounded-lg text-xs font-bold transition-colors shadow-sm"
+              >
+                {lang === 'ta' ? 'மூடுக' : 'Close'}
+              </button>
             </div>
           </div>
         </div>
@@ -2236,105 +2471,107 @@ function PaymentsScreen({ user, lang, showToast, onViewReceipt }: { user: any; l
 
       {/* Record Payment Modal */}
       {showRecordModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 border border-slate-100">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+        <div className="fixed inset-0 z-50 flex flex-col sm:items-center sm:justify-center bg-black/60 sm:p-4 backdrop-blur-sm overflow-hidden">
+          <div className="bg-white w-full sm:max-w-md h-full sm:h-auto sm:max-h-[90vh] sm:rounded-2xl shadow-2xl flex flex-col border-0 sm:border border-slate-100 overflow-hidden">
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 shrink-0 bg-white">
               <h3 className="text-base font-bold text-slate-900">{t.recordPayment}</h3>
-              <button onClick={() => setShowRecordModal(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setShowRecordModal(false)} className="p-1 text-slate-400 hover:text-slate-600" aria-label="Close">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleRecordPayment} className="space-y-3.5">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                  {lang === 'ta' ? 'உறுப்பினரைத் தேர்வு செய்க' : 'Select Member'}
-                </label>
-                <select
-                  required
-                  value={paymentForm.memberId}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, memberId: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
-                >
-                  <option value="">{lang === 'ta' ? '-- உறுப்பினரைத் தேர்ந்தெடுக்கவும் --' : '-- Choose Member --'}</option>
-                  {members.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.memberNumber} - {m.fullName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                  {lang === 'ta' ? 'சீட்டுத் திட்டத்தைத் தேர்வு செய்க' : 'Select Scheme'}
-                </label>
-                <select
-                  required
-                  value={paymentForm.schemeId}
-                  onChange={(e) => setPaymentForm({ ...paymentForm, schemeId: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
-                >
-                  <option value="">{lang === 'ta' ? '-- சீட்டைத் தேர்ந்தெடுக்கவும் --' : '-- Choose Scheme --'}</option>
-                  {schemes.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.code} - {s.name} ({formatINR(s.contributionAmountPaise)})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleRecordPayment} className="flex-1 flex flex-col overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-5 space-y-3.5">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.roundNumber}</label>
-                  <input
-                    type="number"
-                    min={1}
-                    required
-                    value={paymentForm.roundNumber}
-                    onChange={(e) => setPaymentForm({ ...paymentForm, roundNumber: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border rounded-lg text-xs font-bold focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.amountReceived} (₹)</label>
-                  <input
-                    type="number"
-                    min={1}
-                    required
-                    value={paymentForm.amountRupees}
-                    onChange={(e) => setPaymentForm({ ...paymentForm, amountRupees: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border rounded-lg text-xs font-bold text-[#2F7BFF] focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.paymentMethod}</label>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                    {lang === 'ta' ? 'உறுப்பினரைத் தேர்வு செய்க' : 'Select Member'}
+                  </label>
                   <select
-                    value={paymentForm.paymentMethod}
-                    onChange={(e) => setPaymentForm({ ...paymentForm, paymentMethod: e.target.value })}
+                    required
+                    value={paymentForm.memberId}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, memberId: e.target.value })}
                     className="w-full px-3 py-2 border rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
                   >
-                    <option value="UPI">{t.upi}</option>
-                    <option value="CASH">{t.cash}</option>
-                    <option value="BANK_TRANSFER">{t.bankTransfer}</option>
-                    <option value="OTHER">{t.chequeOther}</option>
+                    <option value="">{lang === 'ta' ? '-- உறுப்பினரைத் தேர்ந்தெடுக்கவும் --' : '-- Choose Member --'}</option>
+                    {members.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.memberNumber} - {m.fullName}
+                      </option>
+                    ))}
                   </select>
                 </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.txnReference}</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. UPI-998201"
-                    value={paymentForm.externalReference}
-                    onChange={(e) => setPaymentForm({ ...paymentForm, externalReference: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg text-xs font-mono focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
-                  />
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                    {lang === 'ta' ? 'சீட்டுத் திட்டத்தைத் தேர்வு செய்க' : 'Select Scheme'}
+                  </label>
+                  <select
+                    required
+                    value={paymentForm.schemeId}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, schemeId: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
+                  >
+                    <option value="">{lang === 'ta' ? '-- சீட்டைத் தேர்ந்தெடுக்கவும் --' : '-- Choose Scheme --'}</option>
+                    {schemes.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.code} - {s.name} ({formatINR(s.contributionAmountPaise)})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.roundNumber}</label>
+                    <input
+                      type="number"
+                      min={1}
+                      required
+                      value={paymentForm.roundNumber}
+                      onChange={(e) => setPaymentForm({ ...paymentForm, roundNumber: Number(e.target.value) })}
+                      className="w-full px-3 py-2 border rounded-lg text-xs font-bold focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.amountReceived} (₹)</label>
+                    <input
+                      type="number"
+                      min={1}
+                      required
+                      value={paymentForm.amountRupees}
+                      onChange={(e) => setPaymentForm({ ...paymentForm, amountRupees: Number(e.target.value) })}
+                      className="w-full px-3 py-2 border rounded-lg text-xs font-bold text-[#2F7BFF] focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.paymentMethod}</label>
+                    <select
+                      value={paymentForm.paymentMethod}
+                      onChange={(e) => setPaymentForm({ ...paymentForm, paymentMethod: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg text-xs font-medium focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
+                    >
+                      <option value="UPI">{t.upi}</option>
+                      <option value="CASH">{t.cash}</option>
+                      <option value="BANK_TRANSFER">{t.bankTransfer}</option>
+                      <option value="OTHER">{t.chequeOther}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.txnReference}</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. UPI-998201"
+                      value={paymentForm.externalReference}
+                      onChange={(e) => setPaymentForm({ ...paymentForm, externalReference: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg text-xs font-mono focus:ring-2 focus:ring-[#2F7BFF] focus:outline-none"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-2 flex justify-end gap-2">
+              <div className="border-t border-slate-100 px-5 py-3.5 bg-slate-50 flex justify-end gap-2 shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
                 <button
                   type="button"
                   onClick={() => setShowRecordModal(false)}
@@ -2356,8 +2593,8 @@ function PaymentsScreen({ user, lang, showToast, onViewReceipt }: { user: any; l
 
       {/* Payment Reversal Modal */}
       {showReverseModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-sm w-full shadow-2xl p-6 border border-slate-100">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 sm:p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl max-w-sm w-full shadow-2xl p-6 border border-slate-100 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
             <h3 className="text-base font-bold text-slate-900 mb-2">{t.reversePayment}</h3>
             <div className="mb-4">
               <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">{t.reversalReason}</label>

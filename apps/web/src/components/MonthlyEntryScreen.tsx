@@ -1655,8 +1655,8 @@ export function MonthlyEntryScreen({
       </div>
 
       {/* Floating / Sticky Bottom Bar for Quick Save */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-3 sticky bottom-4 z-40">
-        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600">
+      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3 sticky bottom-16 sm:bottom-4 z-20">
+        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 sm:gap-3 text-xs text-slate-600">
           <span className="font-bold text-slate-800">
             {lang === 'ta' ? 'தேதி:' : 'Date:'} <span className="font-mono">{date}</span>
           </span>
@@ -1669,15 +1669,15 @@ export function MonthlyEntryScreen({
             {lang === 'ta' ? 'உறுப்பினர்கள்:' : 'Members:'} <span className="font-bold font-mono">{entries.length}</span>
           </span>
           <span className="text-slate-300">|</span>
-          <span className="font-extrabold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 font-mono">
+          <span className="font-extrabold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 font-mono text-[11px] sm:text-xs">
             ⚖️ {lang === 'ta' ? 'சமரசம் (Tally):' : 'Tally:'} ₹{(totalAmount - totalCommission - templeCharityFund).toLocaleString('en-IN')}
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 w-full sm:w-auto">
           <button
             onClick={exportCSV}
-            className="px-3.5 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
+            className="px-3 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
             title="Download CSV Spreadsheet"
           >
             <Download className="w-4 h-4 text-emerald-600" />
@@ -1686,7 +1686,7 @@ export function MonthlyEntryScreen({
 
           <button
             onClick={exportPDF}
-            className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm"
+            className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm"
             title="Export official 6-sheet PDF"
           >
             <FileText className="w-4 h-4" />
@@ -1697,13 +1697,13 @@ export function MonthlyEntryScreen({
             <button
               onClick={handleSave}
               disabled={saving}
-              className="px-6 py-2.5 bg-[#2F7BFF] hover:bg-blue-600 disabled:opacity-50 text-white rounded-xl text-xs font-black transition-all shadow-md shadow-blue-500/20 flex items-center gap-2"
+              className="flex-1 sm:flex-none px-5 py-2.5 bg-[#2F7BFF] hover:bg-blue-600 disabled:opacity-50 text-white rounded-xl text-xs font-black transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2"
             >
               <Save className="w-4 h-4" />
               <span>
                 {saving
                   ? lang === 'ta' ? 'சேமிக்கப்படுகிறது...' : 'Saving...'
-                  : lang === 'ta' ? 'மாதாந்திர அறிக்கையைச் சேமிக்க' : 'Save Monthly Report'}
+                  : lang === 'ta' ? 'அறிக்கையைச் சேமிக்க' : 'Save Monthly Report'}
               </span>
             </button>
           )}

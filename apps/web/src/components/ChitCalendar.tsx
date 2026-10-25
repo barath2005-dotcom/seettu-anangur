@@ -414,8 +414,8 @@ export const ChitCalendar: React.FC<ChitCalendarProps> = ({ lang, onOpenMonthlyR
 
       {/* Selected Day Details Modal */}
       {selectedDayInfo && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#1E293B] rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 dark:border-slate-800 space-y-4">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white dark:bg-[#1E293B] rounded-t-3xl sm:rounded-2xl p-6 w-full sm:max-w-sm max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-100 dark:border-slate-800 space-y-4 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
             <div className="flex items-center justify-between">
               <span className="text-2xl font-black text-slate-800 dark:text-white">
                 {selectedDayInfo.dateStr}

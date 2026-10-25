@@ -13,10 +13,10 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ payment, onClose, la
   const t = translations[lang];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-200">
+    <div className="fixed inset-0 z-50 flex flex-col sm:items-center sm:justify-center bg-black/60 sm:p-4 backdrop-blur-sm overflow-hidden">
+      <div className="bg-white w-full sm:max-w-lg h-full sm:h-auto sm:max-h-[92vh] sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden border-0 sm:border border-slate-200">
         {/* Modal Action Bar */}
-        <div className="bg-slate-50 px-6 py-3 border-b border-slate-200 flex items-center justify-between no-print">
+        <div className="bg-slate-50 px-4 sm:px-6 py-3 border-b border-slate-200 flex items-center justify-between shrink-0 no-print">
           <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t.officialReceipt}</span>
           <div className="flex items-center gap-2">
             <button
@@ -24,19 +24,20 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({ payment, onClose, la
               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2F7BFF] hover:bg-blue-600 text-white rounded-lg text-xs font-medium transition-colors shadow-sm"
             >
               <Printer className="w-3.5 h-3.5" />
-              {t.printReceipt}
+              <span className="hidden xs:inline">{t.printReceipt}</span>
             </button>
             <button
               onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
+              className="p-1.5 text-slate-500 hover:text-slate-700 rounded-lg hover:bg-slate-200 transition-colors"
+              aria-label="Close"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5 sm:w-4 sm:h-4" />
             </button>
           </div>
         </div>
 
-        {/* Printable Area */}
-        <div className="p-8 printable-receipt bg-white text-slate-800">
+        {/* Printable & Scrollable Area */}
+        <div className="p-4 sm:p-8 printable-receipt bg-white text-slate-800 overflow-y-auto flex-1">
           {/* Header */}
           <div className="flex items-start justify-between border-b border-slate-200 pb-5">
             <div>
