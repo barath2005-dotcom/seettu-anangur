@@ -385,7 +385,7 @@ export function App() {
     { id: 'notifications', label: t.notifications, icon: Bell, roles: ['ADMIN', 'STAFF', 'MEMBER'], badge: unreadCount },
     { id: 'staff', label: t.staff, icon: ShieldCheck, roles: ['ADMIN'] },
     { id: 'audit', label: t.audit, icon: History, roles: ['ADMIN'] },
-    { id: 'settings', label: t.settings, icon: SettingsIcon, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
+    { id: 'settings', label: t.settings, icon: SettingsIcon, roles: ['ADMIN', 'STAFF'] },
   ].filter((item) => item.roles.includes(user.role));
 
   return (
@@ -553,12 +553,6 @@ export function App() {
                 <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full ring-2 ring-white"></span>
               )}
             </button>
-
-            {/* Role indicator pill */}
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-600">
-              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <span>{t.liveDbConnected}</span>
-            </div>
           </div>
         </header>
 
@@ -626,7 +620,7 @@ export function App() {
           {activeTab === 'audit' && (
             <AuditScreen user={user} lang={lang} />
           )}
-          {activeTab === 'settings' && (
+          {activeTab === 'settings' && user.role !== 'MEMBER' && (
             <SettingsScreen
               user={user}
               lang={lang}
