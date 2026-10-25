@@ -12,7 +12,7 @@
     "dev:mobile": "npm --workspace=@seettu/mobile run dev",
     "dev": "concurrently \"npm:dev:backend\" \"npm:dev:web\"",
     "build:shared": "npm --workspace=@seettu/shared run build",
-    "build:backend": "npm --workspace=@seettu/backend run build",
+    "build:backend": "npm --workspace=@seettu/backend run prisma:generate && npm --workspace=@seettu/backend run build",
     "build:web": "npm --workspace=@seettu/web run build",
     "build": "npm run build:shared && npm run build:backend && npm run build:web",
     "test": "npm --workspace=@seettu/backend run test",
