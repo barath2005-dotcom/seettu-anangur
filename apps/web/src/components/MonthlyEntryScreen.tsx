@@ -129,8 +129,254 @@ export function MonthlyEntryScreen({
     }
   };
 
-  const handlePrint = () => {
-    window.print();
+  // 1. Export as CSV (with UTF-8 BOM for Tamil Unicode compatibility)
+  const exportCSV = () => {
+    const headers = [
+      'S.no',
+      'Sheet',
+      'Member Number',
+      'Member Name (Tamil)',
+      'Member Name (English)',
+      'Amount (INR)',
+      'Commission (INR)',
+      'Net Amount (INR)',
+      'Payment Mode',
+      'Status',
+      'Date',
+      'Chit No',
+    ];
+
+    const rows = entries.map((e) => {
+      const parts = (e.memberName || '').split('/');
+      const tamilName = (parts[0] || '').trim();
+      const englishName = (parts[1] || '').trim();
+      const net = (Number(e.amount) || 0) - (Number(e.commission) || 0);
+
+      return [
+        e.sno,
+        `Sheet ${e.sheetNumber}`,
+        `"${e.memberNumber || ''}"`,
+        `"${tamilName.replace(/"/g, '""')}"`,
+        `"${englishName.replace(/"/g, '""')}"`,
+        e.amount,
+        e.commission,
+        net,
+        `"${e.paymentMethod}"`,
+        `"${e.status}"`,
+        `"${date}"`,
+        `"${chitNo}"`,
+      ];
+    });
+
+    const csvContent =
+      '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `seettu-chit-${chitNo}-${date.replace(/\./g, '-')}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast(lang === 'ta' ? 'CSV அறிக்கை வெற்றிகரமாக பதிவிறக்கப்பட்டது!' : 'CSV Report downloaded successfully!');
+  };
+
+  // 2. Export as PDF (Exact 6 Sheets layout identical to the official Chit 08 PDF)
+  const exportPDF = () => {
+    const sheetsToExport = selectedSheet === 'ALL' ? [1, 2, 3, 4, 5, 6] : [Number(selectedSheet)];
+
+    const grandTotalAmount = entries.reduce((s, e) => s + (Number(e.amount) || 0), 0);
+    const grandTotalCommission = entries.reduce((s, e) => s + (Number(e.commission) || 0), 0);
+    const grandNet = grandTotalAmount - grandTotalCommission;
+
+    const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>சீட்டு எண்: ${chitNo} - தேதி: ${date}</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 15mm 15mm;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Tamil", Arial, sans-serif;
+      color: #000;
+      margin: 0;
+      padding: 0;
+      background: #fff;
+    }
+    .sheet-page {
+      page-break-after: always;
+      break-after: page;
+      padding: 10px 0 20px 0;
+      min-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .sheet-page:last-child {
+      page-break-after: auto;
+      break-after: auto;
+    }
+    .header-table {
+      width: 100%;
+      margin-bottom: 18px;
+      border: none;
+    }
+    .header-table td {
+      border: none;
+      padding: 4px 0;
+      font-size: 15px;
+      font-weight: 800;
+    }
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 12px;
+    }
+    table.data-table th, table.data-table td {
+      border: 1.5px solid #000;
+      padding: 11px 14px;
+      font-size: 14px;
+    }
+    table.data-table th {
+      font-weight: 800;
+      background-color: #fff;
+      text-align: center;
+    }
+    .sno-cell {
+      width: 10%;
+      text-align: center;
+      font-weight: bold;
+      font-family: monospace;
+      font-size: 14.5px;
+    }
+    .name-cell {
+      width: 52%;
+      font-weight: 700;
+      padding-left: 14px;
+      font-size: 14px;
+    }
+    .amount-cell {
+      width: 19%;
+      text-align: center;
+      font-family: monospace;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    .commission-cell {
+      width: 19%;
+      text-align: center;
+      font-family: monospace;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    .subtotal-row td {
+      background-color: #fafafa;
+      font-weight: 800;
+    }
+    .sheet-footer {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11.5px;
+      color: #555;
+      margin-top: 10px;
+      border-top: 1px dashed #ccc;
+      padding-top: 8px;
+    }
+    @media print {
+      body { background: transparent; }
+    }
+  </style>
+</head>
+<body>
+  ${sheetsToExport
+    .map((sNum) => {
+      const sheetEntries = entries.filter((e) => e.sheetNumber === sNum);
+      const sheetAmount = sheetEntries.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+      const sheetCommission = sheetEntries.reduce((sum, e) => sum + (Number(e.commission) || 0), 0);
+
+      return `
+      <div class="sheet-page">
+        <div>
+          <table class="header-table">
+            <tr>
+              <td style="text-align: left; width: 33%;">தேதி : <span style="font-family: monospace;">${date}</span></td>
+              <td style="text-align: center; width: 34%; font-size: 13px; font-weight: 700; color: #333;">
+                ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர் சீட்டு குழு
+              </td>
+              <td style="text-align: right; width: 33%;">சீட்டு எண் : <span style="font-family: monospace;">${chitNo}</span></td>
+            </tr>
+          </table>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th class="sno-cell">S.no</th>
+                <th class="name-cell" style="text-align: left;">Sheet ${sNum}</th>
+                <th class="amount-cell" style="text-align: center;">Amount</th>
+                <th class="commission-cell" style="text-align: center;">Commission</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sheetEntries
+                .map((e, idx) => {
+                  const sheetSno = idx + 1;
+                  const tamilName = (e.memberName || '').split('/')[0].trim();
+                  return `
+                <tr>
+                  <td class="sno-cell">${sheetSno}</td>
+                  <td class="name-cell">${tamilName}</td>
+                  <td class="amount-cell">${e.amount ? Number(e.amount).toLocaleString('en-IN') : '10000'}</td>
+                  <td class="commission-cell">${e.commission ? Number(e.commission).toLocaleString('en-IN') : ''}</td>
+                </tr>
+              `;
+                })
+                .join('')}
+              <tr class="subtotal-row">
+                <td class="sno-cell"></td>
+                <td class="name-cell" style="text-align: right; text-transform: uppercase;">Sheet ${sNum} Total:</td>
+                <td class="amount-cell">₹${sheetAmount.toLocaleString('en-IN')}</td>
+                <td class="commission-cell">${sheetCommission > 0 ? `₹${sheetCommission.toLocaleString('en-IN')}` : '-'}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="sheet-footer">
+          <div>Sheet ${sNum} of 6 • ${sheetEntries.length} Members</div>
+          <div>Subtotal: ₹${sheetAmount.toLocaleString('en-IN')} | Commission: ₹${sheetCommission.toLocaleString('en-IN')} | Net: ₹${(sheetAmount - sheetCommission).toLocaleString('en-IN')}</div>
+        </div>
+      </div>
+      `;
+    })
+    .join('')}
+
+  <script>
+    window.onload = function() {
+      setTimeout(function() {
+        window.print();
+      }, 400);
+    };
+  </script>
+</body>
+</html>`;
+
+    const printWin = window.open('', '_blank');
+    if (printWin) {
+      printWin.document.open();
+      printWin.document.write(htmlContent);
+      printWin.document.close();
+      showToast(lang === 'ta' ? 'PDF அச்சிடும் திரை திறக்கப்பட்டது! (Save as PDF தேர்வுசெய்க)' : 'PDF print preview opened! Choose "Save as PDF".');
+    } else {
+      window.print();
+    }
   };
 
   // Filter entries by Sheet
@@ -169,8 +415,8 @@ export function MonthlyEntryScreen({
           </p>
         </div>
 
-        {/* Date & Chit No Inputs */}
-        <div className="flex flex-wrap items-center gap-3">
+        {/* Date, Chit No & Export / Save Action Buttons */}
+        <div className="flex flex-wrap items-center gap-2.5">
           <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
             <span className="text-xs font-bold text-slate-600 font-mono uppercase">
               {lang === 'ta' ? 'சீட்டு எண்:' : 'Chit No:'}
@@ -200,28 +446,41 @@ export function MonthlyEntryScreen({
 
           <button
             onClick={() => loadReport(chitNo, date)}
-            className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1"
+            className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1"
+            title="Reload report"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>{lang === 'ta' ? 'புதுப்பி' : 'Load'}</span>
           </button>
 
+          {/* Export CSV Button */}
+          <button
+            onClick={exportCSV}
+            className="px-3 py-2 border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm"
+            title="Download CSV Spreadsheet"
+          >
+            <Download className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Export CSV</span>
+          </button>
+
+          {/* Export PDF Button */}
+          <button
+            onClick={exportPDF}
+            className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm"
+            title="Export official 6-sheet PDF"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>Export PDF</span>
+          </button>
+
+          {/* Save Report Button */}
           <button
             onClick={handleSave}
             disabled={saving}
             className="px-4 py-2 bg-[#2F7BFF] hover:bg-blue-600 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-colors shadow-sm flex items-center gap-1.5"
           >
             <Save className="w-4 h-4" />
-            <span>{saving ? (lang === 'ta' ? 'சேமிக்கப்படுகிறது...' : 'Saving...') : (lang === 'ta' ? 'அறிக்கையைச் சேமிக்க' : 'Save Report')}</span>
-          </button>
-
-          <button
-            onClick={handlePrint}
-            className="px-3 py-2 border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors flex items-center gap-1"
-            title="Print Official Sheet"
-          >
-            <Printer className="w-4 h-4 text-slate-600" />
-            <span className="hidden sm:inline">{lang === 'ta' ? 'அச்சிடு' : 'Print'}</span>
+            <span>{saving ? (lang === 'ta' ? 'சேமிக்கப்படுகிறது...' : 'Saving...') : (lang === 'ta' ? 'சேமிக்க' : 'Save Report')}</span>
           </button>
         </div>
       </div>
@@ -504,11 +763,21 @@ export function MonthlyEntryScreen({
 
         <div className="flex items-center gap-2">
           <button
-            onClick={handlePrint}
-            className="px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
+            onClick={exportCSV}
+            className="px-3.5 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
+            title="Download CSV Spreadsheet"
           >
-            <Printer className="w-4 h-4" />
-            <span>{lang === 'ta' ? 'அச்சிடு / PDF' : 'Print / PDF'}</span>
+            <Download className="w-4 h-4 text-emerald-600" />
+            <span>Export CSV</span>
+          </button>
+
+          <button
+            onClick={exportPDF}
+            className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm"
+            title="Export official 6-sheet PDF"
+          >
+            <FileText className="w-4 h-4" />
+            <span>Export PDF</span>
           </button>
 
           <button
