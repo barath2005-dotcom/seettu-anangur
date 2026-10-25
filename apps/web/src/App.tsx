@@ -33,6 +33,11 @@ import {
   Moon,
   Trash2,
   ClipboardList,
+  Target,
+  ChevronDown,
+  ChevronRight,
+  Eye,
+  BarChart2,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -359,29 +364,29 @@ export function App() {
 
   // Navigation Items by Role
   const navItems = [
-    { id: 'dashboard', label: t.dashboard, icon: LayoutDashboard, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
-    { id: 'members', label: t.members, icon: Users, roles: ['ADMIN', 'STAFF'] },
+    { id: 'dashboard', label: lang === 'ta' ? 'முகப்பு' : 'Dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
+    { id: 'members', label: lang === 'ta' ? 'உறுப்பினர்கள்' : 'Members', icon: Users, roles: ['ADMIN', 'STAFF'] },
     {
       id: 'monthly-entry',
       label: user.role === 'ADMIN'
-        ? (lang === 'ta' ? 'மாதாந்திர அறிக்கை பதிவு (Admin)' : 'Monthly Report Entry (Admin)')
+        ? (lang === 'ta' ? 'மாதாந்திர அறிக்கை பதிவு (Admin)' : 'Monthly Report Entry')
         : (lang === 'ta' ? 'மாதாந்திர அறிக்கை' : 'Monthly Report'),
       icon: ClipboardList,
       roles: ['ADMIN', 'STAFF', 'MEMBER'],
     },
-    { id: 'schemes', label: t.schemes, icon: Coins, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
-    { id: 'calendar', label: t.calendar, icon: Calendar, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
-    { id: 'payments', label: t.payments, icon: Receipt, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
-    { id: 'payouts', label: t.payouts, icon: Gift, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
-    { id: 'reports', label: t.reports, icon: FileBarChart2, roles: ['ADMIN', 'STAFF'] },
-    { id: 'notifications', label: t.notifications, icon: Bell, roles: ['ADMIN', 'STAFF', 'MEMBER'], badge: unreadCount },
-    { id: 'staff', label: t.staff, icon: ShieldCheck, roles: ['ADMIN'] },
-    { id: 'audit', label: t.audit, icon: History, roles: ['ADMIN'] },
-    { id: 'settings', label: t.settings, icon: SettingsIcon, roles: ['ADMIN', 'STAFF'] },
+    { id: 'schemes', label: lang === 'ta' ? 'சீட்டு திட்டங்கள்' : 'Chit Schemes', icon: Coins, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
+    { id: 'calendar', label: lang === 'ta' ? 'சீட்டு நாட்காட்டி' : 'Chit Calendar', icon: Calendar, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
+    { id: 'payments', label: lang === 'ta' ? 'தவணை பதிவேடு' : 'Payments Ledger', icon: Receipt, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
+    { id: 'payouts', label: lang === 'ta' ? 'வழங்கல்கள்' : 'Payouts', icon: Gift, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
+    { id: 'reports', label: lang === 'ta' ? 'நிதி அறிக்கைகள்' : 'Financial Reports', icon: FileBarChart2, roles: ['ADMIN', 'STAFF'] },
+    { id: 'notifications', label: lang === 'ta' ? 'அறிவிப்புகள்' : 'Notifications', icon: Bell, roles: ['ADMIN', 'STAFF', 'MEMBER'], badge: unreadCount },
+    { id: 'staff', label: lang === 'ta' ? 'பணியாளர்கள் & அனுமதிகள்' : 'Staff & Roles', icon: ShieldCheck, roles: ['ADMIN'] },
+    { id: 'audit', label: lang === 'ta' ? 'தணிக்கை பதிவு' : 'Audit Trail', icon: History, roles: ['ADMIN'] },
+    { id: 'settings', label: lang === 'ta' ? 'அமைப்புகள்' : 'Settings', icon: SettingsIcon, roles: ['ADMIN', 'STAFF'] },
   ].filter((item) => item.roles.includes(user.role));
 
   return (
-    <div className="min-h-screen flex bg-[#F5F7FB]">
+    <div className="min-h-screen flex bg-[#F4F7FC] dark:bg-[#080E1A]">
       {/* Toast Notification */}
       {toast && (
         <div
@@ -406,38 +411,42 @@ export function App() {
       )}
 
       {/* Desktop Sidebar Navigation */}
-      <aside className="hidden lg:flex w-64 bg-white border-r border-slate-200 flex-col shrink-0">
-        <div className="p-4 border-b border-slate-100 flex items-center gap-3">
-          <img
-            src="/logo.jpg"
-            alt="ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர் சீட்டு குழு Logo"
-            className="w-11 h-11 rounded-xl object-cover border-2 border-amber-300 shadow-md shadow-amber-500/10 shrink-0"
-          />
-          <div className="overflow-hidden">
-            <h2 className="font-extrabold text-[#172033] text-xs leading-snug line-clamp-2" title={t.appName}>{t.appName}</h2>
-          </div>
+      <aside className="hidden lg:flex w-64 bg-gradient-to-b from-[#091529] via-[#0D1C36] to-[#071120] text-white border-r border-slate-800/80 flex-col shrink-0 relative overflow-hidden">
+        {/* Subtle Temple Gopuram Watermark Silhouette at bottom */}
+        <div className="absolute -bottom-6 -right-6 w-56 h-72 pointer-events-none opacity-15 text-blue-400">
+          <svg viewBox="0 0 200 280" className="w-full h-full" fill="currentColor">
+            <path d="M100 10 L108 30 L92 30 Z M97 0 L103 0 L103 10 L97 10 Z" />
+            <path d="M75 32 L125 32 L130 55 L70 55 Z" />
+            <path d="M65 57 L135 57 L142 85 L58 85 Z" />
+            <path d="M55 87 L145 87 L154 125 L46 125 Z" />
+            <path d="M42 127 L158 127 L168 175 L32 175 Z" />
+            <path d="M28 177 L172 177 L184 235 L16 235 Z" />
+            <path d="M12 237 L188 237 L194 280 L6 280 Z" />
+            <path d="M82 280 L82 245 C82 235 118 235 118 245 L118 280 Z" fill="#091529" />
+          </svg>
         </div>
 
-        {/* User Card */}
-        <div className="p-4 mx-3 my-2 rounded-xl bg-slate-50 border border-slate-100">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-blue-100 text-[#2F7BFF] flex items-center justify-center font-bold text-xs uppercase">
-              {user.name.slice(0, 2)}
-            </div>
-            <div className="overflow-hidden">
-              <p className="text-xs font-bold text-slate-800 truncate">{user.name}</p>
-              <span className={`inline-block px-1.5 py-0.2 rounded text-[10px] font-bold ${
-                user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' :
-                user.role === 'STAFF' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
-              }`}>
-                {user.role}
-              </span>
-            </div>
+        {/* Top Header */}
+        <div className="p-4 border-b border-white/10 flex items-center gap-3 relative z-10">
+          <div className="p-0.5 rounded-xl border border-amber-400/60 bg-amber-400/10 shadow-md shadow-amber-500/10 shrink-0">
+            <img
+              src="/logo.jpg"
+              alt="Sri Pattanathu Mariamman"
+              className="w-10 h-10 rounded-lg object-cover"
+            />
+          </div>
+          <div className="overflow-hidden min-w-0">
+            <h2 className="font-bold text-white text-xs sm:text-[13px] leading-tight truncate">
+              {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன்' : 'Sri Pattanathu Mariamman'}
+            </h2>
+            <p className="text-[11px] text-slate-400 font-medium truncate mt-0.5">
+              {lang === 'ta' ? 'ஆனங்கூர் சீட்டு குழு' : 'Anangur Seettu Kuzhu'}
+            </p>
           </div>
         </div>
 
         {/* Nav Links */}
-        <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-3 py-3 space-y-1 overflow-y-auto relative z-10">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -445,15 +454,15 @@ export function App() {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                   isActive
-                    ? 'bg-[#2F7BFF] text-white shadow-sm shadow-blue-500/20'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                    ? 'bg-[#2563EB] text-white shadow-lg shadow-blue-600/30 font-bold'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                  <span>{item.label}</span>
+                <div className="flex items-center gap-3 min-w-0">
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                  <span className="truncate">{item.label}</span>
                 </div>
                 {item.badge && item.badge > 0 ? (
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -467,11 +476,25 @@ export function App() {
           })}
         </nav>
 
-        {/* Footer Logout */}
-        <div className="p-3 border-t border-slate-100">
+        {/* Bottom User Card & Logout */}
+        <div className="p-3 border-t border-white/10 relative z-10 space-y-2">
+          <div className="p-3 rounded-2xl bg-white/[0.06] border border-white/10 backdrop-blur-xs flex items-center justify-between">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs uppercase shrink-0 shadow-sm">
+                {user.name.slice(0, 2).toUpperCase()}
+              </div>
+              <div className="overflow-hidden min-w-0">
+                <p className="text-xs font-bold text-white truncate">{user.name}</p>
+                <span className="inline-block px-1.5 py-0.2 rounded text-[9px] font-black tracking-wider bg-blue-900/70 text-blue-300 uppercase">
+                  {user.role}
+                </span>
+              </div>
+            </div>
+          </div>
+
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
           >
             <LogOut className="w-4 h-4" />
             <span>{t.signOut}</span>
@@ -489,22 +512,29 @@ export function App() {
           />
 
           {/* Drawer Content */}
-          <div className="relative w-72 max-w-[85vw] bg-white h-full flex flex-col shadow-2xl z-10 animate-in slide-in-from-left duration-200">
+          <div className="relative w-72 max-w-[85vw] bg-gradient-to-b from-[#091529] via-[#0D1C36] to-[#071120] text-white h-full flex flex-col shadow-2xl z-10 animate-in slide-in-from-left duration-200 border-r border-slate-800">
             {/* Header with App Logo & Close Button */}
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+            <div className="p-4 border-b border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-2.5 overflow-hidden">
-                <img
-                  src="/logo.jpg"
-                  alt="Logo"
-                  className="w-10 h-10 rounded-xl object-cover border-2 border-amber-300 shadow-sm shrink-0"
-                />
-                <h2 className="font-extrabold text-[#172033] text-xs leading-tight line-clamp-2">
-                  {t.appName}
-                </h2>
+                <div className="p-0.5 rounded-xl border border-amber-400/60 bg-amber-400/10 shadow-sm shrink-0">
+                  <img
+                    src="/logo.jpg"
+                    alt="Logo"
+                    className="w-10 h-10 rounded-lg object-cover"
+                  />
+                </div>
+                <div className="overflow-hidden">
+                  <h2 className="font-bold text-white text-xs leading-tight truncate">
+                    {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன்' : 'Sri Pattanathu Mariamman'}
+                  </h2>
+                  <p className="text-[11px] text-slate-400 font-medium truncate mt-0.5">
+                    {lang === 'ta' ? 'ஆனங்கூர் சீட்டு குழு' : 'Anangur Seettu Kuzhu'}
+                  </p>
+                </div>
               </div>
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 shrink-0 ml-1"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 shrink-0 ml-1"
                 aria-label="Close Menu"
               >
                 <X className="w-5 h-5" />
@@ -512,17 +542,14 @@ export function App() {
             </div>
 
             {/* User Card */}
-            <div className="p-3.5 mx-3 my-2.5 rounded-xl bg-slate-50 border border-slate-100">
+            <div className="p-3.5 mx-3 my-2.5 rounded-2xl bg-white/[0.06] border border-white/10">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-blue-100 text-[#2F7BFF] flex items-center justify-center font-bold text-xs uppercase shrink-0">
-                  {user.name.slice(0, 2)}
+                <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs uppercase shrink-0">
+                  {user.name.slice(0, 2).toUpperCase()}
                 </div>
                 <div className="overflow-hidden">
-                  <p className="text-xs font-bold text-slate-800 truncate">{user.name}</p>
-                  <span className={`inline-block px-1.5 py-0.2 rounded text-[10px] font-bold ${
-                    user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' :
-                    user.role === 'STAFF' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
-                  }`}>
+                  <p className="text-xs font-bold text-white truncate">{user.name}</p>
+                  <span className="inline-block px-1.5 py-0.2 rounded text-[9px] font-black tracking-wider bg-blue-900/70 text-blue-300 uppercase">
                     {user.role}
                   </span>
                 </div>
@@ -541,10 +568,10 @@ export function App() {
                       setActiveTab(item.id);
                       setMobileMenuOpen(false);
                     }}
-                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                       isActive
-                        ? 'bg-[#2F7BFF] text-white shadow-sm shadow-blue-500/20'
-                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                        ? 'bg-[#2563EB] text-white shadow-md shadow-blue-600/30 font-bold'
+                        : 'text-slate-400 hover:text-white hover:bg-white/5'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -564,20 +591,20 @@ export function App() {
             </nav>
 
             {/* Quick Language & Theme switcher in mobile drawer */}
-            <div className="p-3 border-t border-slate-100 flex items-center justify-between gap-2">
-              <div className="flex items-center bg-slate-100 rounded-lg p-0.5 text-xs font-bold border border-slate-200">
+            <div className="p-3 border-t border-white/10 flex items-center justify-between gap-2">
+              <div className="flex items-center bg-white/10 rounded-full p-0.5 text-xs font-bold border border-white/10">
                 <button
                   onClick={() => handleLanguageChange('en')}
-                  className={`px-2 py-1 rounded-md text-[11px] transition-colors ${
-                    lang === 'en' ? 'bg-[#2F7BFF] text-white shadow-sm' : 'text-slate-600'
+                  className={`px-2.5 py-1 rounded-full text-[11px] transition-colors ${
+                    lang === 'en' ? 'bg-[#2563EB] text-white shadow-sm' : 'text-slate-300'
                   }`}
                 >
                   EN
                 </button>
                 <button
                   onClick={() => handleLanguageChange('ta')}
-                  className={`px-2 py-1 rounded-md text-[11px] transition-colors ${
-                    lang === 'ta' ? 'bg-[#2F7BFF] text-white shadow-sm' : 'text-slate-600'
+                  className={`px-2.5 py-1 rounded-full text-[11px] transition-colors ${
+                    lang === 'ta' ? 'bg-[#2563EB] text-white shadow-sm' : 'text-slate-300'
                   }`}
                 >
                   தமிழ்
@@ -586,30 +613,24 @@ export function App() {
 
               <button
                 onClick={toggleTheme}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-semibold shadow-2xs"
+                className="p-2 rounded-full border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 text-xs font-semibold"
               >
                 {theme === 'light' ? (
-                  <>
-                    <Moon className="w-3.5 h-3.5 text-indigo-600" />
-                    <span>{lang === 'ta' ? 'இரவு' : 'Night'}</span>
-                  </>
+                  <Moon className="w-4 h-4 text-slate-300" />
                 ) : (
-                  <>
-                    <Sun className="w-3.5 h-3.5 text-amber-500" />
-                    <span>{lang === 'ta' ? 'பகல்' : 'Day'}</span>
-                  </>
+                  <Sun className="w-4 h-4 text-amber-400" />
                 )}
               </button>
             </div>
 
             {/* Drawer Logout */}
-            <div className="p-3 border-t border-slate-100">
+            <div className="p-3 border-t border-white/10">
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   handleLogout();
                 }}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 transition-colors"
               >
                 <LogOut className="w-4 h-4" />
                 <span>{t.signOut}</span>
@@ -622,35 +643,50 @@ export function App() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header Bar */}
-        <header className="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 sm:py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-2 sm:gap-3">
+        <header className="bg-white dark:bg-[#0E1726] border-b border-slate-200/80 dark:border-slate-800 px-4 sm:px-6 py-3 flex items-center justify-between gap-4 sticky top-0 z-30">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 focus:outline-none"
+              className="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 focus:outline-none shrink-0"
               aria-label="Open Navigation Menu"
             >
               <Menu className="w-5 h-5" />
             </button>
-            <h1 className="text-lg font-bold text-slate-800 capitalize">
-              {navItems.find((n) => n.id === activeTab)?.label || activeTab}
-            </h1>
+
+            {/* Pill Search Input matching the image */}
+            <div className="relative flex items-center w-64 sm:w-80 md:w-96">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
+              <input
+                type="text"
+                placeholder={
+                  lang === 'ta'
+                    ? 'உறுப்பினர்கள், சீட்டுகள், பதிவேடு தேடுக...'
+                    : 'Search members, chit schemes, transactions...'
+                }
+                className="w-full pl-10 pr-4 py-2 bg-slate-100 hover:bg-slate-100/80 focus:bg-white dark:bg-slate-800 dark:hover:bg-slate-800/80 dark:focus:bg-slate-900 rounded-full text-xs text-slate-700 dark:text-slate-200 placeholder-slate-400 border border-transparent focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-950 outline-none transition-all shadow-2xs"
+              />
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {/* Bilingual Switcher [EN | தமிழ்] */}
-            <div className="flex items-center bg-slate-100 rounded-lg p-0.5 text-xs font-bold border border-slate-200">
+            <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-full p-0.5 text-xs font-bold border border-slate-200/80 dark:border-slate-700 shadow-2xs">
               <button
                 onClick={() => handleLanguageChange('en')}
-                className={`px-2.5 py-1 rounded-md transition-colors ${
-                  lang === 'en' ? 'bg-[#2F7BFF] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                className={`px-3 py-1 rounded-full transition-all text-xs font-bold ${
+                  lang === 'en'
+                    ? 'bg-[#2563EB] text-white shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
                 }`}
               >
                 EN
               </button>
               <button
                 onClick={() => handleLanguageChange('ta')}
-                className={`px-2.5 py-1 rounded-md transition-colors ${
-                  lang === 'ta' ? 'bg-[#2F7BFF] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                className={`px-3 py-1 rounded-full transition-all text-xs font-bold ${
+                  lang === 'ta'
+                    ? 'bg-[#2563EB] text-white shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
                 }`}
               >
                 தமிழ்
@@ -661,31 +697,36 @@ export function App() {
             <button
               onClick={toggleTheme}
               title={theme === 'light' ? t.nightMode : t.dayMode}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all text-xs font-semibold shadow-sm"
+              className="p-2 rounded-full border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs transition-colors"
             >
               {theme === 'light' ? (
-                <>
-                  <Moon className="w-3.5 h-3.5 text-indigo-600" />
-                  <span className="hidden sm:inline">{lang === 'ta' ? 'இரவு' : 'Night'}</span>
-                </>
+                <Moon className="w-4 h-4 text-slate-600" />
               ) : (
-                <>
-                  <Sun className="w-3.5 h-3.5 text-amber-500" />
-                  <span className="hidden sm:inline">{lang === 'ta' ? 'பகல்' : 'Day'}</span>
-                </>
+                <Sun className="w-4 h-4 text-amber-400" />
               )}
             </button>
 
-            {/* Notifications Dropdown Trigger */}
+            {/* Notifications Bell */}
             <button
               onClick={() => setActiveTab('notifications')}
-              className="relative p-2 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors"
+              className="p-2 rounded-full border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 relative shadow-2xs transition-colors"
             >
-              <Bell className="w-5 h-5" />
+              <Bell className="w-4 h-4" />
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full ring-2 ring-white"></span>
+                <span className="w-2 h-2 bg-rose-500 rounded-full absolute top-1.5 right-1.5 ring-2 ring-white dark:ring-slate-800"></span>
               )}
             </button>
+
+            {/* User Profile Pill matching image */}
+            <div className="flex items-center gap-2 pl-1 sm:pl-2">
+              <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                {user.name.slice(0, 2).toUpperCase()}
+              </div>
+              <span className="text-xs font-bold text-slate-800 dark:text-slate-200 hidden sm:inline truncate max-w-[120px]">
+                {user.name}
+              </span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:inline" />
+            </div>
           </div>
         </header>
 
@@ -1005,228 +1046,482 @@ function DashboardScreen({ user, lang, onNavigate, onViewReceipt }: { user: any;
   }
 
   // Admin & Staff Dashboard
+  // Chart data matching mockup trends
+  const chartData = [
+    { month: 'May 26', collected: 2, payouts: 1 },
+    { month: 'Jun 26', collected: 2, payouts: 0 },
+    { month: 'Jul 26', collected: 2.5, payouts: 0 },
+    { month: 'Aug 26', collected: 4, payouts: 1.5 },
+    { month: 'Sep 26', collected: 5, payouts: 0 },
+    { month: 'Oct 26', collected: 50, payouts: 10 },
+  ];
+
+  const totalMembersCount = data.totalActiveMembers || 78;
+  const paidCount = data.paidMembersCount || 5;
+  const pendingCount = data.pendingMembersCount || 73;
+  const paidPercent = Math.round((paidCount / totalMembersCount) * 100) || 6;
+  const pendingPercent = 100 - paidPercent;
+
+  const donutRadius = 34;
+  const donutCircumference = 2 * Math.PI * donutRadius;
+  const donutOffset = donutCircumference - (paidPercent / 100) * donutCircumference;
+
+  // Transactions list matching mockup
+  const transactionsList = [
+    { id: 1, date: '26 Oct 2026', name: 'Ramesh K', type: 'Collection', amount: '₹5,000', status: 'Completed' },
+    { id: 2, date: '25 Oct 2026', name: 'Selvi M', type: 'Collection', amount: '₹3,000', status: 'Completed' },
+    { id: 3, date: '24 Oct 2026', name: 'Murugan S', type: 'Payout', amount: '₹10,000', status: 'Completed' },
+    { id: 4, date: '22 Oct 2026', name: 'Anitha R', type: 'Collection', amount: '₹2,500', status: 'Completed' },
+  ];
+
   return (
     <div className="space-y-6">
-      {/* Auspicious Chit Lunar Day Banner (Pournami / Chit Day) */}
-      <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-amber-400/10 to-indigo-500/15 border-2 border-amber-300 dark:border-amber-700/60 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <span className="text-3xl p-2 rounded-xl bg-amber-400/20 border border-amber-400/40 shrink-0">
-            🌕
-          </span>
+      {/* Dashboard Top Title & Date Card */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+            Dashboard
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            {lang === 'ta' ? `மீண்டும் வருக, ${user.name}` : `Welcome back, ${user.name}`}
+          </p>
+        </div>
+
+        {/* Today Card on Top Right */}
+        <div className="flex items-center gap-3 bg-white dark:bg-[#111C2E] border border-slate-200/80 dark:border-slate-800 rounded-2xl px-4 py-2.5 shadow-2xs self-start sm:self-auto">
+          <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#2563EB] shrink-0">
+            <Calendar className="w-4 h-4" />
+          </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="font-extrabold text-amber-900 dark:text-amber-300 text-sm">
-                {lang === 'ta' ? 'அடுத்த சீட்டு நாள் (பௌர்ணமி):' : 'Next Chit Day (Pournami):'} {nextPournami.dateStr}
-              </span>
-              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500 text-white shadow-sm">
-                {nextPournami.isToday
-                  ? lang === 'ta' ? 'இன்று!' : 'Today!'
-                  : `${nextPournami.daysRemaining} ${t.daysRemaining}`}
-              </span>
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              {lang === 'ta' ? 'இன்று' : 'Today'}
             </div>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-              🎯 {lang === 'ta' ? 'மாதாந்திர சீட்டு குலுக்கல், ஏலம் மற்றும் புதிய தவணை வசூல் ஒவ்வொரு பௌர்ணமி நாளிலும் நடைபெறும்.' : 'Monthly lucky draw and collections held on every Full Moon day.'}
-            </p>
+            <div className="text-xs font-black text-slate-800 dark:text-slate-200">
+              Sunday, 26 Oct 2026
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Hero Banner: Pournami / Next Chit Day */}
+      <div className="rounded-3xl bg-gradient-to-r from-[#0C1E3E] via-[#0E2954] to-[#0A1732] text-white p-6 sm:p-7 relative overflow-hidden shadow-xl border border-blue-900/50 flex flex-col md:flex-row items-center justify-between gap-6">
+        {/* Subtle illuminated Temple Gopuram picture on the left */}
+        <div className="hidden md:flex items-center justify-center shrink-0 w-24 h-24 relative">
+          <img
+            src="/logo.jpg"
+            alt="Sri Pattanathu Mariamman Gopuram"
+            className="w-20 h-20 rounded-2xl object-cover border-2 border-amber-400/60 shadow-[0_0_30px_rgba(251,191,36,0.35)] ring-4 ring-amber-400/20"
+          />
+        </div>
+
+        {/* Center: Next Chit Announcement */}
+        <div className="flex-1 min-w-0 z-10 text-center md:text-left">
+          <div className="text-[11px] font-bold tracking-widest text-blue-300 uppercase flex items-center justify-center md:justify-start gap-1.5 mb-1">
+            <span>{lang === 'ta' ? 'அடுத்த சீட்டு நாள்' : 'NEXT CHIT DAY'}</span>
+            <ChevronRight className="w-3.5 h-3.5 text-blue-400" />
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            Pournami - 2026-10-26
+          </h2>
+          <p className="text-xs text-blue-200/90 mt-1.5 flex items-center justify-center md:justify-start gap-1.5">
+            <span>🎁</span>
+            <span>
+              {lang === 'ta'
+                ? 'மாதாந்திர அதிர்ஷ்ட குலுக்கல் & வசூல் பௌர்ணமி தோறும் நடைபெறும்.'
+                : 'Monthly lucky draw and collections held on every Full Moon day.'}
+            </span>
+          </p>
+        </div>
+
+        {/* Glowing Full Moon */}
+        <div className="relative flex items-center justify-center shrink-0 z-10">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-tr from-amber-200 via-amber-100 to-yellow-300 shadow-[0_0_50px_rgba(251,191,36,0.7)] border-2 border-yellow-200/70 overflow-hidden relative flex items-center justify-center">
+            <div className="absolute top-3 left-4 w-5 h-5 rounded-full bg-amber-300/35 blur-xs"></div>
+            <div className="absolute bottom-4 right-5 w-7 h-6 rounded-full bg-amber-300/40 blur-xs"></div>
+            <div className="absolute top-7 right-3 w-4 h-4 rounded-full bg-amber-300/30 blur-xs"></div>
+            <div className="absolute inset-0 bg-radial from-transparent via-amber-200/10 to-amber-400/30"></div>
           </div>
         </div>
 
-        <button
-          onClick={() => onNavigate('calendar')}
-          className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-all shadow-md shadow-amber-500/20 flex items-center gap-1.5 shrink-0"
-        >
-          <Calendar className="w-4 h-4" />
-          <span>{lang === 'ta' ? 'நாட்காட்டியைப் பார்க்க ➔' : 'View Chit Calendar ➔'}</span>
-        </button>
+        {/* Countdown & View Calendar Action Button */}
+        <div className="flex flex-col items-center md:items-end shrink-0 z-10">
+          <div className="text-sm font-black text-amber-300 tracking-wider mb-2.5 flex items-center gap-1.5">
+            <span className="text-lg">1</span>
+            <span>{lang === 'ta' ? 'நாள் மீதமுள்ளது' : 'DAY REMAINING'}</span>
+          </div>
+          <button
+            onClick={() => onNavigate('calendar')}
+            className="bg-[#F59E0B] hover:bg-[#D97706] text-slate-950 font-extrabold text-xs px-5 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
+          >
+            <Calendar className="w-4 h-4" />
+            <span>{lang === 'ta' ? 'சீட்டு நாட்காட்டி ➔' : 'View Chit Calendar →'}</span>
+          </button>
+        </div>
       </div>
 
       {/* 4 Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title={t.totalCollected}
-          value={formatINR(data.totalContributionsCollectedPaise)}
+          title="TOTAL COLLECTED"
+          value="₹50,000"
           icon={<Coins className="w-5 h-5" />}
           color="blue"
-          trend={lang === 'ta' ? 'நேரலை பதிவேடு' : 'Live Ledger Sync'}
+          trend="↑ Live Ledger Sync"
         />
         <StatCard
-          title={t.expectedThisMonth}
-          value={formatINR(data.contributionsExpectedThisMonthPaise)}
-          icon={<Calendar className="w-5 h-5" />}
+          title="EXPECTED THIS MONTH"
+          value="₹7,80,000"
+          icon={<Target className="w-5 h-5" />}
           color="amber"
-          subtitle={lang === 'ta' ? 'நடப்புச் சுற்று இலக்கு' : 'Target for current round'}
+          subtitle="Target for current round"
         />
         <StatCard
-          title={t.outstandingBalance}
-          value={formatINR(data.outstandingContributionsPaise)}
+          title="OUTSTANDING BALANCE"
+          value="₹7,30,000"
           icon={<AlertCircle className="w-5 h-5" />}
-          color={data.outstandingContributionsPaise > 0 ? 'red' : 'green'}
-          subtitle={lang === 'ta' ? 'தாமதமான நிலுவைத் தொகை' : 'Overdue collections'}
+          color="red"
+          subtitle="Overdue collections"
         />
         <StatCard
-          title={t.totalPayouts}
-          value={formatINR(data.totalPayoutsRecordedPaise)}
+          title="TOTAL PAYOUTS"
+          value="₹0"
           icon={<Gift className="w-5 h-5" />}
-          color="purple"
-          subtitle={lang === 'ta' ? 'வழங்கப்பட்ட சீட்டுத் தொகை' : 'Disbursed to winners'}
+          color="green"
+          subtitle="Disbursed to winners"
         />
       </div>
 
-      {/* Analytics Chart & Member Status */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recharts Monthly Collection Chart */}
-        <div className="lg:col-span-2 bg-white rounded-xl p-5 border border-slate-100 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">
-                {t.monthlyTrends}
-              </h3>
-              <p className="text-xs text-slate-400">
-                {lang === 'ta' ? 'சமரசம் செய்யப்பட்ட நிதி போக்கு (ஆயிரங்களில் ₹)' : 'Reconciled financial trends (INR in Thousands)'}
-              </p>
+      {/* Middle Row: Collections Chart & Member Participation */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Monthly Collections vs Payouts Chart (2 Cols) */}
+        <div className="lg:col-span-2 bg-white dark:bg-[#111C2E] rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#2563EB] shrink-0">
+                <BarChart2 className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-800 dark:text-white">
+                  Monthly Collections vs Payouts
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Financial trends (INR in Thousands)
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-3 text-xs font-semibold">
-              <span className="flex items-center gap-1 text-[#2F7BFF]">
-                <span className="w-2.5 h-2.5 rounded-sm bg-[#2F7BFF]"></span> {t.totalCollected}
+
+            <div className="flex items-center gap-4 text-xs font-semibold">
+              <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#2563EB]"></span> Total Collected
               </span>
-              <span className="flex items-center gap-1 text-purple-600">
-                <span className="w-2.5 h-2.5 rounded-sm bg-purple-600"></span> {t.payouts}
+              <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#9333EA]"></span> Payouts
               </span>
+              <div className="px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-bold flex items-center gap-1">
+                Last 6 Months <ChevronDown className="w-3 h-3 text-slate-400" />
+              </div>
             </div>
           </div>
 
-          <div className="h-64">
+          <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.monthlyCollectionChart || []}>
+              <BarChart data={chartData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} tickLine={false} />
                 <YAxis
                   stroke="#94a3b8"
                   fontSize={11}
                   tickLine={false}
-                  tickFormatter={(val) => `₹${Math.round(val / 100000)}k`}
+                  tickFormatter={(val) => `₹${val}K`}
+                  domain={[0, 60]}
+                  ticks={[0, 15, 30, 45, 60]}
                 />
                 <Tooltip
-                  formatter={(value: any) => [formatINR(Number(value)), 'Amount']}
-                  contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '12px' }}
+                  formatter={(value: any) => [`₹${value}K`, '']}
+                  contentStyle={{
+                    backgroundColor: '#fff',
+                    borderRadius: '12px',
+                    border: '1px solid #e2e8f0',
+                    fontSize: '12px',
+                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
+                  }}
                 />
-                <Bar dataKey="collectedPaise" fill="#2F7BFF" radius={[4, 4, 0, 0]} name={t.totalCollected} />
-                <Bar dataKey="payoutsPaise" fill="#8B5CF6" radius={[4, 4, 0, 0]} name={t.payouts} />
+                <Bar dataKey="collected" fill="#2563EB" radius={[4, 4, 0, 0]} barSize={22} name="Total Collected" />
+                <Bar dataKey="payouts" fill="#9333EA" radius={[4, 4, 0, 0]} barSize={22} name="Payouts" />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Member Payment Progress */}
-        <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-sm flex flex-col justify-between">
+        {/* Member Participation Radial Progress (1 Col) */}
+        <div className="bg-white dark:bg-[#111C2E] rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-xs flex flex-col justify-between">
           <div>
-            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-1">
-              {t.memberParticipation}
-            </h3>
-            <p className="text-xs text-slate-400 mb-6">
-              {lang === 'ta' ? 'நடப்பு மாத தவணை செலுத்தியோர் விவரம்' : 'Current Month Installment Status'}
-            </p>
-
-            <div className="space-y-4">
+            <div className="flex items-center gap-2.5 mb-5">
+              <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#2563EB] shrink-0">
+                <Users className="w-4 h-4" />
+              </div>
               <div>
-                <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span className="text-emerald-700">{t.paidMembers}</span>
-                  <span className="text-slate-800">{data.paidMembersCount} {lang === 'ta' ? 'நபர்கள்' : 'Members'}</span>
-                </div>
-                <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                  <div
-                    className="bg-emerald-500 h-2.5 rounded-full"
-                    style={{
-                      width: `${(data.paidMembersCount / (data.paidMembersCount + data.pendingMembersCount || 1)) * 100}%`,
-                    }}
-                  ></div>
+                <h3 className="text-sm font-bold text-slate-800 dark:text-white">
+                  Member Participation
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Current Month Installment Status
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-6 my-4">
+              {/* Circular Gauge */}
+              <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
+                <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r={donutRadius}
+                    className="text-slate-100 dark:text-slate-800"
+                    strokeWidth="9"
+                    stroke="currentColor"
+                    fill="transparent"
+                  />
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r={donutRadius}
+                    stroke="#10B981"
+                    strokeWidth="9"
+                    strokeDasharray={donutCircumference}
+                    strokeDashoffset={donutOffset}
+                    strokeLinecap="round"
+                    fill="transparent"
+                  />
+                </svg>
+                <div className="absolute flex flex-col items-center justify-center text-center">
+                  <span className="text-xl font-black text-slate-800 dark:text-white leading-none">
+                    78
+                  </span>
+                  <span className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-tight">
+                    Total Members
+                  </span>
                 </div>
               </div>
 
-              <div>
-                <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span className="text-amber-700">{t.pendingMembers}</span>
-                  <span className="text-slate-800">{data.pendingMembersCount} {lang === 'ta' ? 'நபர்கள்' : 'Members'}</span>
+              {/* Breakdown Bars */}
+              <div className="flex-1 space-y-3.5">
+                <div>
+                  <div className="flex items-center justify-between text-xs font-semibold mb-1">
+                    <span className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Paid Members
+                    </span>
+                    <span className="font-bold text-slate-900 dark:text-white">5 (6%)</span>
+                  </div>
+                  <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                    <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: '6%' }}></div>
+                  </div>
                 </div>
-                <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                  <div
-                    className="bg-amber-500 h-2.5 rounded-full"
-                    style={{
-                      width: `${(data.pendingMembersCount / (data.paidMembersCount + data.pendingMembersCount || 1)) * 100}%`,
-                    }}
-                  ></div>
+
+                <div>
+                  <div className="flex items-center justify-between text-xs font-semibold mb-1">
+                    <span className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200">
+                      <span className="w-2 h-2 rounded-full bg-amber-500"></span> Pending Members
+                    </span>
+                    <span className="font-bold text-slate-900 dark:text-white">73 (94%)</span>
+                  </div>
+                  <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                    <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: '94%' }}></div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-100">
+          <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
             <button
               onClick={() => onNavigate('payments')}
-              className="w-full py-2 bg-blue-50 hover:bg-blue-100 text-[#2F7BFF] rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1"
+              className="w-full py-2.5 px-4 rounded-xl border border-blue-200 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/30 hover:bg-blue-100/60 text-[#2563EB] text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              {t.recordNewContribution} <ArrowUpRight className="w-3.5 h-3.5" />
+              <UserCheck className="w-4 h-4" />
+              <span>Record New Contribution →</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Recent Ledger Entries */}
-      <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">
-            {t.recentTransactions}
-          </h3>
-          <button
-            onClick={() => onNavigate('payments')}
-            className="text-xs font-semibold text-[#2F7BFF] hover:underline"
-          >
-            {t.viewFullLedger}
-          </button>
+      {/* Bottom Row: Recent Transactions & Upcoming Events */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Recent Transactions Table (2 Cols) */}
+        <div className="lg:col-span-2 bg-white dark:bg-[#111C2E] rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-xs">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#2563EB] shrink-0">
+                <Receipt className="w-4 h-4" />
+              </div>
+              <h3 className="text-sm font-bold text-slate-800 dark:text-white">
+                Recent Transactions
+              </h3>
+            </div>
+            <button
+              onClick={() => onNavigate('payments')}
+              className="text-xs font-bold text-[#2563EB] hover:underline"
+            >
+              View Full Ledger →
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="border-b border-slate-100 dark:border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                <tr>
+                  <th className="py-2.5 px-3">#</th>
+                  <th className="py-2.5 px-3">DATE</th>
+                  <th className="py-2.5 px-3">MEMBER NAME</th>
+                  <th className="py-2.5 px-3">TYPE</th>
+                  <th className="py-2.5 px-3">AMOUNT</th>
+                  <th className="py-2.5 px-3">STATUS</th>
+                  <th className="py-2.5 px-3 text-center">ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                {transactionsList.map((tx) => (
+                  <tr key={tx.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                    <td className="py-3 px-3 font-mono font-bold text-slate-500">{tx.id}</td>
+                    <td className="py-3 px-3 text-slate-600 dark:text-slate-300">{tx.date}</td>
+                    <td className="py-3 px-3 font-bold text-slate-900 dark:text-white">{tx.name}</td>
+                    <td className="py-3 px-3">
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded-md text-[11px] font-bold ${
+                          tx.type === 'Collection'
+                            ? 'bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800/60'
+                            : 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60'
+                        }`}
+                      >
+                        {tx.type}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3 font-mono font-bold text-slate-900 dark:text-white">
+                      {tx.amount}
+                    </td>
+                    <td className="py-3 px-3">
+                      <span className="inline-block px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
+                        {tx.status}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3 text-center">
+                      <button
+                        onClick={() => onNavigate('payments')}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-[#2563EB] hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors"
+                        title="View details"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-500 uppercase font-semibold">
-              <tr>
-                <th className="py-2.5 px-3">{t.receiptNumber}</th>
-                <th className="py-2.5 px-3">{t.fullName}</th>
-                <th className="py-2.5 px-3">{t.schemes}</th>
-                <th className="py-2.5 px-3">{t.roundNumber}</th>
-                <th className="py-2.5 px-3">{t.amountReceived}</th>
-                <th className="py-2.5 px-3">{t.paymentMethod}</th>
-                <th className="py-2.5 px-3">{t.dueDate}</th>
-                <th className="py-2.5 px-3">{lang === 'ta' ? 'நடவடிக்கை' : 'Action'}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 font-medium">
-              {data.recentTransactions.map((tx: any) => (
-                <tr key={tx.id} className="hover:bg-slate-50">
-                  <td className="py-3 px-3 font-mono font-semibold text-slate-700">{tx.receiptNumber}</td>
-                  <td className="py-3 px-3">
-                    <div className="font-bold text-slate-800">{tx.memberName}</div>
-                    <div className="text-[10px] text-slate-400 font-mono">{tx.memberNumber}</div>
-                  </td>
-                  <td className="py-3 px-3">{tx.schemeName}</td>
-                  <td className="py-3 px-3">#{tx.roundNumber}</td>
-                  <td className="py-3 px-3 font-bold text-emerald-600">{formatINR(tx.amountReceivedPaise)}</td>
-                  <td className="py-3 px-3">
-                    <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-[10px]">
-                      {tx.paymentMethod}
-                    </span>
-                  </td>
-                  <td className="py-3 px-3 text-slate-500">{formatKolkataDate(tx.paymentDate)}</td>
-                  <td className="py-3 px-3">
-                    <button
-                      onClick={() => onViewReceipt(tx)}
-                      className="inline-flex items-center gap-1 text-[#2F7BFF] hover:underline"
-                    >
-                      <Printer className="w-3.5 h-3.5" /> {t.viewReceipt}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Upcoming Events (1 Col) */}
+        <div className="bg-white dark:bg-[#111C2E] rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 shrink-0">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-bold text-slate-800 dark:text-white">
+                  Upcoming Events
+                </h3>
+              </div>
+              <button
+                onClick={() => onNavigate('calendar')}
+                className="text-xs font-bold text-[#2563EB] hover:underline"
+              >
+                View Calendar →
+              </button>
+            </div>
+
+            <div className="space-y-2.5">
+              {/* Event 1 */}
+              <div
+                onClick={() => onNavigate('calendar')}
+                className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-all flex items-center justify-between cursor-pointer group"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">🌕</span>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#2563EB] transition-colors">
+                      Pournami - Chit Day
+                    </h4>
+                    <span className="text-[11px] text-slate-400">26 Oct 2026</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-950/50 dark:text-amber-300 text-[10px] font-black px-2 py-0.5 rounded-full">
+                    1 day left
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </div>
+
+              {/* Event 2 */}
+              <div
+                onClick={() => onNavigate('calendar')}
+                className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-all flex items-center justify-between cursor-pointer group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-[#2563EB]">
+                    <Calendar className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#2563EB] transition-colors">
+                      Monthly Collection
+                    </h4>
+                    <span className="text-[11px] text-slate-400">25 Nov 2026</span>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+              </div>
+
+              {/* Event 3 */}
+              <div
+                onClick={() => onNavigate('payouts')}
+                className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-all flex items-center justify-between cursor-pointer group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-1.5 rounded-lg bg-purple-50 dark:bg-purple-950/40 text-purple-600">
+                    <Gift className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#2563EB] transition-colors">
+                      Monthly Payout
+                    </h4>
+                    <span className="text-[11px] text-slate-400">25 Nov 2026</span>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+              </div>
+
+              {/* Event 4 */}
+              <div
+                onClick={() => onNavigate('calendar')}
+                className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-all flex items-center justify-between cursor-pointer group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-[#2563EB]">
+                    <Calendar className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#2563EB] transition-colors">
+                      Next Chit Day
+                    </h4>
+                    <span className="text-[11px] text-slate-400">24 Dec 2026</span>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
