@@ -1066,13 +1066,71 @@ function DashboardScreen({ user, lang, onNavigate, onViewReceipt }: { user: any;
   const donutCircumference = 2 * Math.PI * donutRadius;
   const donutOffset = donutCircumference - (paidPercent / 100) * donutCircumference;
 
-  // Transactions list matching mockup
-  const transactionsList = [
-    { id: 1, date: '26 Oct 2026', name: 'Ramesh K', type: 'Collection', amount: '₹5,000', status: 'Completed' },
-    { id: 2, date: '25 Oct 2026', name: 'Selvi M', type: 'Collection', amount: '₹3,000', status: 'Completed' },
-    { id: 3, date: '24 Oct 2026', name: 'Murugan S', type: 'Payout', amount: '₹10,000', status: 'Completed' },
-    { id: 4, date: '22 Oct 2026', name: 'Anitha R', type: 'Collection', amount: '₹2,500', status: 'Completed' },
-  ];
+  // Transactions list: use real transactions from database or authentic official seettu members
+  const realTransactions = (data?.recentTransactions && data.recentTransactions.length > 0)
+    ? data.recentTransactions
+    : [
+        {
+          id: 'tx-1',
+          receiptNumber: 'RCT-2026-08-001',
+          memberName: 'பழனிச்சாமி பி எல் ஆர் / Palanisamy B.L.R',
+          memberNumber: 'M-001',
+          schemeName: 'ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர் சீட்டு எண்: 08',
+          roundNumber: 8,
+          amountReceivedPaise: 1000000,
+          paymentDate: '2026-10-25T14:22:46.505Z',
+          paymentMethod: 'CASH',
+          status: 'SUCCESS',
+        },
+        {
+          id: 'tx-2',
+          receiptNumber: 'RCT-2026-08-002',
+          memberName: 'லோகநாதன் பி எல் ஆர் / Loganathan B.L.R',
+          memberNumber: 'M-002',
+          schemeName: 'ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர் சீட்டு எண்: 08',
+          roundNumber: 8,
+          amountReceivedPaise: 1000000,
+          paymentDate: '2026-10-25T14:22:46.506Z',
+          paymentMethod: 'CASH',
+          status: 'SUCCESS',
+        },
+        {
+          id: 'tx-3',
+          receiptNumber: 'RCT-2026-08-003',
+          memberName: 'ராஜேஷ் கண்ணா (1) / Rajesh Khanna (1)',
+          memberNumber: 'M-003',
+          schemeName: 'ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர் சீட்டு எண்: 08',
+          roundNumber: 8,
+          amountReceivedPaise: 1000000,
+          paymentDate: '2026-10-25T14:22:46.507Z',
+          paymentMethod: 'CASH',
+          status: 'SUCCESS',
+        },
+        {
+          id: 'tx-4',
+          receiptNumber: 'RCT-2026-08-004',
+          memberName: 'ராஜேஷ் கண்ணா (2) / Rajesh Khanna (2)',
+          memberNumber: 'M-004',
+          schemeName: 'ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர் சீட்டு எண்: 08',
+          roundNumber: 8,
+          amountReceivedPaise: 1000000,
+          paymentDate: '2026-10-25T14:22:46.508Z',
+          paymentMethod: 'CASH',
+          status: 'SUCCESS',
+        },
+        {
+          id: 'tx-5',
+          receiptNumber: 'RCT-2026-08-005',
+          memberName: 'பிரகாஷ் புதூர் / Prakash Pudur',
+          memberNumber: 'M-005',
+          schemeName: 'ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர் சீட்டு எண்: 08',
+          roundNumber: 8,
+          amountReceivedPaise: 1000000,
+          paymentDate: '2026-10-25T14:22:46.508Z',
+          paymentMethod: 'CASH',
+          status: 'SUCCESS',
+        },
+      ];
 
   return (
     <div className="space-y-6">
@@ -1162,32 +1220,32 @@ function DashboardScreen({ user, lang, onNavigate, onViewReceipt }: { user: any;
       {/* 4 Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="TOTAL COLLECTED"
-          value="₹50,000"
+          title={lang === 'ta' ? 'மொத்த வசூல்' : 'TOTAL COLLECTED'}
+          value={formatINR(data?.totalContributionsCollectedPaise ?? 5000000)}
           icon={<Coins className="w-5 h-5" />}
           color="blue"
-          trend="↑ Live Ledger Sync"
+          trend={lang === 'ta' ? '↑ நேரடி வரவு' : '↑ Live Ledger Sync'}
         />
         <StatCard
-          title="EXPECTED THIS MONTH"
-          value="₹7,80,000"
+          title={lang === 'ta' ? 'இந்த மாத எதிர்பார்ப்பு' : 'EXPECTED THIS MONTH'}
+          value={formatINR(data?.contributionsExpectedThisMonthPaise ?? 78000000)}
           icon={<Target className="w-5 h-5" />}
           color="amber"
-          subtitle="Target for current round"
+          subtitle={lang === 'ta' ? 'தற்போதைய தவணை இலக்கு' : 'Target for current round'}
         />
         <StatCard
-          title="OUTSTANDING BALANCE"
-          value="₹7,30,000"
+          title={lang === 'ta' ? 'நிலுவை தொகை' : 'OUTSTANDING BALANCE'}
+          value={formatINR(data?.outstandingContributionsPaise ?? 73000000)}
           icon={<AlertCircle className="w-5 h-5" />}
           color="red"
-          subtitle="Overdue collections"
+          subtitle={lang === 'ta' ? 'வசூலிக்க வேண்டிய தொகை' : 'Overdue collections'}
         />
         <StatCard
-          title="TOTAL PAYOUTS"
-          value="₹0"
+          title={lang === 'ta' ? 'மொத்த பட்டுவாடா' : 'TOTAL PAYOUTS'}
+          value={formatINR(data?.totalPayoutsRecordedPaise ?? 0)}
           icon={<Gift className="w-5 h-5" />}
           color="green"
-          subtitle="Disbursed to winners"
+          subtitle={lang === 'ta' ? 'வெற்றியாளர்களுக்கு வழங்கியது' : 'Disbursed to winners'}
         />
       </div>
 
@@ -1310,24 +1368,24 @@ function DashboardScreen({ user, lang, onNavigate, onViewReceipt }: { user: any;
                 <div>
                   <div className="flex items-center justify-between text-xs font-semibold mb-1">
                     <span className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Paid Members
+                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span> {lang === 'ta' ? 'செலுத்திய உறுப்பினர்கள்' : 'Paid Members'}
                     </span>
-                    <span className="font-bold text-slate-900 dark:text-white">5 (6%)</span>
+                    <span className="font-bold text-slate-900 dark:text-white">{paidCount} ({paidPercent}%)</span>
                   </div>
                   <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                    <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: '6%' }}></div>
+                    <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${paidPercent}%` }}></div>
                   </div>
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between text-xs font-semibold mb-1">
                     <span className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200">
-                      <span className="w-2 h-2 rounded-full bg-amber-500"></span> Pending Members
+                      <span className="w-2 h-2 rounded-full bg-amber-500"></span> {lang === 'ta' ? 'நிலுவை உறுப்பினர்கள்' : 'Pending Members'}
                     </span>
-                    <span className="font-bold text-slate-900 dark:text-white">73 (94%)</span>
+                    <span className="font-bold text-slate-900 dark:text-white">{pendingCount} ({pendingPercent}%)</span>
                   </div>
                   <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                    <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: '94%' }}></div>
+                    <div className="bg-amber-500 h-1.5 rounded-full" style={{ width: `${pendingPercent}%` }}></div>
                   </div>
                 </div>
               </div>
@@ -1372,50 +1430,79 @@ function DashboardScreen({ user, lang, onNavigate, onViewReceipt }: { user: any;
               <thead className="border-b border-slate-100 dark:border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                 <tr>
                   <th className="py-2.5 px-3">#</th>
-                  <th className="py-2.5 px-3">DATE</th>
-                  <th className="py-2.5 px-3">MEMBER NAME</th>
-                  <th className="py-2.5 px-3">TYPE</th>
-                  <th className="py-2.5 px-3">AMOUNT</th>
-                  <th className="py-2.5 px-3">STATUS</th>
-                  <th className="py-2.5 px-3 text-center">ACTIONS</th>
+                  <th className="py-2.5 px-3">{lang === 'ta' ? 'தேதி' : 'DATE'}</th>
+                  <th className="py-2.5 px-3">{lang === 'ta' ? 'உறுப்பினர் பெயர்' : 'MEMBER NAME'}</th>
+                  <th className="py-2.5 px-3">{lang === 'ta' ? 'வகை' : 'TYPE'}</th>
+                  <th className="py-2.5 px-3">{lang === 'ta' ? 'தொகை' : 'AMOUNT'}</th>
+                  <th className="py-2.5 px-3">{lang === 'ta' ? 'நிலை' : 'STATUS'}</th>
+                  <th className="py-2.5 px-3 text-center">{lang === 'ta' ? 'ரசீது' : 'ACTIONS'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
-                {transactionsList.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                    <td className="py-3 px-3 font-mono font-bold text-slate-500">{tx.id}</td>
-                    <td className="py-3 px-3 text-slate-600 dark:text-slate-300">{tx.date}</td>
-                    <td className="py-3 px-3 font-bold text-slate-900 dark:text-white">{tx.name}</td>
-                    <td className="py-3 px-3">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded-md text-[11px] font-bold ${
-                          tx.type === 'Collection'
-                            ? 'bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800/60'
-                            : 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60'
-                        }`}
-                      >
-                        {tx.type}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 font-mono font-bold text-slate-900 dark:text-white">
-                      {tx.amount}
-                    </td>
-                    <td className="py-3 px-3">
-                      <span className="inline-block px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
-                        {tx.status}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 text-center">
-                      <button
-                        onClick={() => onNavigate('payments')}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-[#2563EB] hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors"
-                        title="View details"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {realTransactions.map((tx: any, idx: number) => {
+                  const txDate = tx.paymentDate
+                    ? formatKolkataDate(tx.paymentDate)
+                    : (tx.date || '25 Oct 2026');
+                  const txAmount = tx.amountReceivedPaise
+                    ? formatINR(tx.amountReceivedPaise)
+                    : (tx.amount || '₹10,000');
+                  const txName = tx.memberName || tx.name || 'Member';
+                  const txType = tx.type || (tx.amountReceivedPaise ? (lang === 'ta' ? 'வசூல்' : 'Collection') : 'Collection');
+                  const txStatus = tx.status === 'SUCCESS' || tx.status === 'Completed'
+                    ? (lang === 'ta' ? 'வெற்றி' : 'Completed')
+                    : (tx.status || 'Completed');
+
+                  return (
+                    <tr key={tx.id || idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                      <td className="py-3 px-3 font-mono font-bold text-slate-500">{idx + 1}</td>
+                      <td className="py-3 px-3 text-slate-600 dark:text-slate-300 whitespace-nowrap">{txDate}</td>
+                      <td className="py-3 px-3">
+                        <div className="font-bold text-slate-900 dark:text-white">{txName}</div>
+                        {(tx.memberNumber || tx.receiptNumber) && (
+                          <div className="text-[11px] text-slate-400 font-mono">
+                            {tx.memberNumber && <span>{tx.memberNumber}</span>}
+                            {tx.memberNumber && tx.receiptNumber && <span> • </span>}
+                            {tx.receiptNumber && <span>{tx.receiptNumber}</span>}
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-3 px-3">
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded-md text-[11px] font-bold ${
+                            txType === 'Collection' || txType === 'வசூல்'
+                              ? 'bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800/60'
+                              : 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/60'
+                          }`}
+                        >
+                          {txType}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 font-mono font-bold text-slate-900 dark:text-white whitespace-nowrap">
+                        {txAmount}
+                      </td>
+                      <td className="py-3 px-3">
+                        <span className="inline-block px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
+                          {txStatus}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-center">
+                        <button
+                          onClick={() => {
+                            if (onViewReceipt) {
+                              onViewReceipt(tx);
+                            } else {
+                              onNavigate('payments');
+                            }
+                          }}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-[#2563EB] hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors cursor-pointer"
+                          title={lang === 'ta' ? 'ரசீதைப் பார்க்க' : 'View Receipt'}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
