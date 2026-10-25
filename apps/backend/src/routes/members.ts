@@ -365,4 +365,100 @@ router.post('/import', authenticate, requireRole('ADMIN'), async (req: Request, 
   }
 });
 
+// DELETE /api/members/:id - Delete single member (Admin & Staff)
+router.delete('/:id', authenticate, requireRole('ADMIN', 'STAFF'), async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+
+    const member = await prisma.member.findUnique({
+      where: { id },
+    });
+
+    if (!member) {
+      res.status(404).json({ success: false, error: 'Member not found' });
+      return;
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.user.deleteMany({ where: { memberId: id } });
+      await tx.receipt.deleteMany({ where: { memberId: id } });
+      await tx.payment.deleteMany({ where: { memberId: id } });
+      await tx.payout.deleteMany({ where: { recipientMemberId: id } });
+      await tx.schemeMembership.deleteMany({ where: { memberId: id } });
+      await tx.member.delete({ where: { id } });
+
+      await tx.auditLog.create({
+        data: {
+          userId: req.user!.id,
+          action: 'DELETE_MEMBER',
+          entityType: 'Member',
+          entityId: id,
+          details: JSON.stringify({ memberNumber: member.memberNumber, fullName: member.fullName }),
+          ipAddress: req.ip || req.socket.remoteAddress,
+        },
+      });
+    });
+
+    res.json({
+      success: true,
+      message: `Member ${member.memberNumber} (${member.fullName}) deleted successfully`,
+    });
+  } catch (err: any) {
+    console.error('Delete member error:', err);
+    res.status(500).json({ success: false, error: err.message || 'Failed to delete member' });
+  }
+});
+
+// POST /api/members/batch-delete - Delete multiple members (Admin & Staff)
+router.post('/batch-delete', authenticate, requireRole('ADMIN', 'STAFF'), async (req: Request, res: Response) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      res.status(400).json({ success: false, error: 'No member IDs provided' });
+      return;
+    }
+
+    let deletedCount = 0;
+    for (const memberId of ids as string[]) {
+      try {
+        const member = await prisma.member.findUnique({
+          where: { id: memberId },
+        });
+        if (member) {
+          await prisma.$transaction(async (tx) => {
+            await tx.user.deleteMany({ where: { memberId } });
+            await tx.receipt.deleteMany({ where: { memberId } });
+            await tx.payment.deleteMany({ where: { memberId } });
+            await tx.payout.deleteMany({ where: { recipientMemberId: memberId } });
+            await tx.schemeMembership.deleteMany({ where: { memberId } });
+            await tx.member.delete({ where: { id: memberId } });
+          });
+          deletedCount++;
+        }
+      } catch (e) {
+        console.error(`Error deleting member ${memberId}:`, e);
+      }
+    }
+
+    await prisma.auditLog.create({
+      data: {
+        userId: req.user!.id,
+        action: 'BATCH_DELETE_MEMBERS',
+        entityType: 'Member',
+        details: JSON.stringify({ requested: ids.length, deleted: deletedCount }),
+        ipAddress: req.ip || req.socket.remoteAddress,
+      },
+    });
+
+    res.json({
+      success: true,
+      message: `Successfully deleted ${deletedCount} member(s)`,
+      data: { deletedCount },
+    });
+  } catch (err: any) {
+    console.error('Batch delete error:', err);
+    res.status(500).json({ success: false, error: err.message || 'Failed to delete members' });
+  }
+});
+
 export default router;

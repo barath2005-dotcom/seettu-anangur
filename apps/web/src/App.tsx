@@ -31,6 +31,7 @@ import {
   Languages,
   Sun,
   Moon,
+  Trash2,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -952,9 +953,19 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(100); // Defaults to 100 so all 78 members show
+  const [pageSize, setPageSize] = useState(15); // Default to 15 members per page as requested
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+
+  // Selection & Delete States
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showSelectDeleteModal, setShowSelectDeleteModal] = useState(false);
+  const [memberToDelete, setMemberToDelete] = useState<any>(null);
+  const [dropdownSelectedId, setDropdownSelectedId] = useState<string>('');
+  const [allMembersList, setAllMembersList] = useState<any[]>([]);
+  const [loadingAllMembers, setLoadingAllMembers] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [newMember, setNewMember] = useState({
     memberNumber: '',
@@ -983,13 +994,92 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
 
   useEffect(() => {
     setCurrentPage(1);
+    setSelectedIds([]);
     loadMembers(1, pageSize);
   }, [search, statusFilter, pageSize]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > totalPages) return;
     setCurrentPage(newPage);
+    setSelectedIds([]);
     loadMembers(newPage, pageSize);
+  };
+
+  const toggleSelectAll = () => {
+    if (members.length > 0 && selectedIds.length === members.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(members.map((m) => m.id));
+    }
+  };
+
+  const toggleSelectOne = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const openSelectDeleteModal = async () => {
+    setShowSelectDeleteModal(true);
+    setLoadingAllMembers(true);
+    try {
+      const res = await api.getMembers({ limit: 500 });
+      if (res.success && res.data) {
+        setAllMembersList(res.data);
+        if (res.data.length > 0 && !dropdownSelectedId) {
+          setDropdownSelectedId(res.data[0].id);
+        }
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Failed to fetch members list', 'error');
+    } finally {
+      setLoadingAllMembers(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      if (memberToDelete) {
+        const res = await api.deleteMember(memberToDelete.id);
+        if (res.success) {
+          showToast(
+            lang === 'ta'
+              ? `${memberToDelete.fullName} வெற்றிகரமாக நீக்கப்பட்டார்`
+              : res.message
+          );
+          setShowDeleteModal(false);
+          setMemberToDelete(null);
+          setSelectedIds((prev) => prev.filter((id) => id !== memberToDelete.id));
+          loadMembers(currentPage, pageSize);
+        }
+      } else if (selectedIds.length > 0) {
+        const res = await api.batchDeleteMembers(selectedIds);
+        if (res.success) {
+          showToast(
+            lang === 'ta'
+              ? `${res.data.deletedCount} உறுப்பினர்கள் வெற்றிகரமாக நீக்கப்பட்டனர்`
+              : res.message
+          );
+          setShowDeleteModal(false);
+          setSelectedIds([]);
+          loadMembers(currentPage, pageSize);
+        }
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Failed to delete member', 'error');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDropdownSelectDelete = () => {
+    if (!dropdownSelectedId) return;
+    const target = allMembersList.find((m) => m.id === dropdownSelectedId);
+    if (!target) return;
+    setMemberToDelete(target);
+    setShowSelectDeleteModal(false);
+    setShowDeleteModal(true);
   };
 
   const handleCreateMember = async (e: React.FormEvent) => {
@@ -1042,10 +1132,39 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
           </select>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 font-bold text-xs">
             {totalCount} {lang === 'ta' ? 'உறுப்பினர்கள்' : 'Members'}
           </span>
+
+          {/* Delete Option in Top Bar */}
+          {selectedIds.length > 0 ? (
+            <button
+              onClick={() => {
+                setMemberToDelete(null);
+                setShowDeleteModal(true);
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm"
+              title={lang === 'ta' ? 'தேர்ந்தெடுக்கப்பட்ட உறுப்பினர்களை நீக்கு' : 'Delete selected members'}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>
+                {lang === 'ta'
+                  ? `நீக்கு (${selectedIds.length})`
+                  : `Delete (${selectedIds.length})`}
+              </span>
+            </button>
+          ) : (
+            <button
+              onClick={openSelectDeleteModal}
+              className="inline-flex items-center gap-1.5 px-3 py-2 border border-rose-200 text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg text-xs font-bold transition-colors"
+              title={lang === 'ta' ? 'உறுப்பினரைத் தேர்ந்தெடுத்து நீக்கு' : 'Select a member to delete'}
+            >
+              <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+              <span>{lang === 'ta' ? 'உறுப்பினரை நீக்கு' : 'Delete Member'}</span>
+            </button>
+          )}
+
           <a
             href="/api/members/export/csv"
             download="seettu-members.csv"
@@ -1063,99 +1182,157 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
       </div>
 
       <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
-        <table className="w-full text-left text-xs">
-          <thead className="bg-slate-50 text-slate-500 uppercase font-semibold border-b border-slate-100">
-            <tr>
-              <th className="py-3 px-4">{t.memberId}</th>
-              <th className="py-3 px-4">{t.fullName}</th>
-              <th className="py-3 px-4">{t.contact}</th>
-              <th className="py-3 px-4">{t.status}</th>
-              <th className="py-3 px-4">{t.enrolledSchemes}</th>
-              <th className="py-3 px-4">{t.totalContributed}</th>
-              <th className="py-3 px-4 text-right">{lang === 'ta' ? 'செயல்கள்' : 'Actions'}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 font-medium">
-            {loading ? (
-              <tr><td colSpan={7} className="text-center py-8 text-slate-400">...</td></tr>
-            ) : members.length === 0 ? (
-              <tr><td colSpan={7} className="text-center py-8 text-slate-400">{t.noMembersFound}</td></tr>
-            ) : (
-              members.map((m) => (
-                <tr key={m.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="py-3.5 px-4 font-mono font-bold text-slate-800">{m.memberNumber}</td>
-                  <td className="py-3.5 px-4">
-                    <span className="font-bold text-slate-900">{m.fullName}</span>
-                    {m.address && <p className="text-[11px] text-slate-400 truncate max-w-xs">{m.address}</p>}
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <div>{m.phone}</div>
-                    <div className="text-slate-400 text-[11px]">{m.email || '-'}</div>
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      m.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
-                    }`}>
-                      {m.status === 'ACTIVE' ? t.active : t.inactive}
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-4 font-bold text-slate-700">{m.activeSchemesCount || 0}</td>
-                  <td className="py-3.5 px-4 font-extrabold text-emerald-600">
-                    {formatINR(m.totalContributedPaise || 0)}
-                  </td>
-                  <td className="py-3.5 px-4 text-right">
-                    <button
-                      onClick={() => handleViewProfile(m.id)}
-                      className="px-2.5 py-1 text-xs font-semibold text-[#2F7BFF] bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-                    >
-                      {t.profileAndLedger}
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-50 text-slate-500 uppercase font-semibold border-b border-slate-100">
+              <tr>
+                <th className="py-3 px-3 w-10 text-center">
+                  <input
+                    type="checkbox"
+                    aria-label="Select all members on this page"
+                    checked={members.length > 0 && selectedIds.length === members.length}
+                    onChange={toggleSelectAll}
+                    className="rounded border-slate-300 text-[#2F7BFF] focus:ring-[#2F7BFF] h-4 w-4 cursor-pointer"
+                  />
+                </th>
+                <th className="py-3 px-4">{t.memberId}</th>
+                <th className="py-3 px-4">{t.fullName}</th>
+                <th className="py-3 px-4">{t.contact}</th>
+                <th className="py-3 px-4">{t.status}</th>
+                <th className="py-3 px-4">{t.enrolledSchemes}</th>
+                <th className="py-3 px-4">{t.totalContributed}</th>
+                <th className="py-3 px-4 text-right">{lang === 'ta' ? 'செயல்கள்' : 'Actions'}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 font-medium">
+              {loading ? (
+                <tr><td colSpan={8} className="text-center py-8 text-slate-400">...</td></tr>
+              ) : members.length === 0 ? (
+                <tr><td colSpan={8} className="text-center py-8 text-slate-400">{t.noMembersFound}</td></tr>
+              ) : (
+                members.map((m) => (
+                  <tr
+                    key={m.id}
+                    className={`hover:bg-slate-50 transition-colors ${
+                      selectedIds.includes(m.id) ? 'bg-blue-50/50' : ''
+                    }`}
+                  >
+                    <td className="py-3.5 px-3 text-center">
+                      <input
+                        type="checkbox"
+                        aria-label={`Select ${m.fullName}`}
+                        checked={selectedIds.includes(m.id)}
+                        onChange={() => toggleSelectOne(m.id)}
+                        className="rounded border-slate-300 text-[#2F7BFF] focus:ring-[#2F7BFF] h-4 w-4 cursor-pointer"
+                      />
+                    </td>
+                    <td className="py-3.5 px-4 font-mono font-bold text-slate-800">{m.memberNumber}</td>
+                    <td className="py-3.5 px-4">
+                      <span className="font-bold text-slate-900">{m.fullName}</span>
+                      {m.address && <p className="text-[11px] text-slate-400 truncate max-w-xs">{m.address}</p>}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <div>{m.phone}</div>
+                      <div className="text-slate-400 text-[11px]">{m.email || '-'}</div>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        m.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
+                      }`}>
+                        {m.status === 'ACTIVE' ? t.active : t.inactive}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 font-bold text-slate-700">{m.activeSchemesCount || 0}</td>
+                    <td className="py-3.5 px-4 font-extrabold text-emerald-600">
+                      {formatINR(m.totalContributedPaise || 0)}
+                    </td>
+                    <td className="py-3.5 px-4 text-right">
+                      <div className="inline-flex items-center gap-1.5 justify-end">
+                        <button
+                          onClick={() => handleViewProfile(m.id)}
+                          className="px-2.5 py-1 text-xs font-semibold text-[#2F7BFF] bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                        >
+                          {t.profileAndLedger}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setMemberToDelete(m);
+                            setShowDeleteModal(true);
+                          }}
+                          className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors"
+                          title={lang === 'ta' ? 'உறுப்பினரை நீக்கு' : 'Delete Member'}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
-        {/* Pagination & Count Footer */}
+        {/* Pagination & Count Footer (15 per page default) */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 bg-slate-50 border-t border-slate-100 text-xs text-slate-600">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="font-semibold text-slate-700">
               {lang === 'ta'
-                ? `மொத்தம் ${totalCount} உறுப்பினர்களில் ${members.length} காட்டப்படுகிறது`
-                : `Showing ${members.length} of ${totalCount} members`}
+                ? `மொத்தம் ${totalCount} உறுப்பினர்களில் ${Math.min((currentPage - 1) * pageSize + 1, totalCount)} - ${Math.min(currentPage * pageSize, totalCount)} காட்டப்படுகிறது (பக்கம் ${currentPage} / ${totalPages})`
+                : `Showing ${Math.min((currentPage - 1) * pageSize + 1, totalCount)} to ${Math.min(currentPage * pageSize, totalCount)} of ${totalCount} members (Page ${currentPage} of ${totalPages})`}
             </span>
             <span className="text-slate-300">|</span>
             <label className="flex items-center gap-1.5">
               <span className="text-slate-500">{lang === 'ta' ? 'பக்கம் ஒன்றிற்கு:' : 'Per page:'}</span>
               <select
                 value={pageSize}
-                onChange={(e) => setPageSize(Number(e.target.value))}
+                onChange={(e) => {
+                  const newSize = Number(e.target.value);
+                  setPageSize(newSize);
+                  setCurrentPage(1);
+                  loadMembers(1, newSize);
+                }}
                 className="py-1 px-2 rounded border border-slate-200 bg-white text-xs font-bold focus:ring-1 focus:ring-[#2F7BFF]"
               >
-                <option value={20}>20</option>
+                <option value={15}>15 ({lang === 'ta' ? 'பரிந்துரைக்கப்பட்டது' : 'Standard'})</option>
+                <option value={30}>30</option>
                 <option value={50}>50</option>
-                <option value={100}>100 ({lang === 'ta' ? 'அனைத்து உறுப்பினர்கள்' : 'All Members'})</option>
+                <option value={100}>100 ({lang === 'ta' ? 'அனைத்து 78' : 'All 78'})</option>
               </select>
             </label>
           </div>
 
           {totalPages > 1 && (
-            <div className="flex items-center gap-1.5 font-semibold">
+            <div className="flex items-center gap-1 font-semibold">
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="px-2.5 py-1 rounded border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-medium"
+                className="px-2.5 py-1 rounded border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-medium text-xs"
               >
                 {lang === 'ta' ? '◀ முந்தைய' : '◀ Prev'}
               </button>
-              <span className="px-3 py-1 bg-white border border-slate-200 rounded font-mono font-bold text-slate-800">
-                {currentPage} / {totalPages}
-              </span>
+
+              {/* Numbered Page Buttons for direct jumping */}
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                  <button
+                    key={pageNum}
+                    onClick={() => handlePageChange(pageNum)}
+                    className={`w-7 h-7 rounded text-xs font-bold transition-all ${
+                      currentPage === pageNum
+                        ? 'bg-[#2F7BFF] text-white shadow-sm'
+                        : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
+              </div>
+
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="px-2.5 py-1 rounded border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-medium"
+                className="px-2.5 py-1 rounded border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-medium text-xs"
               >
                 {lang === 'ta' ? 'அடுத்தது ▶' : 'Next ▶'}
               </button>
@@ -1337,6 +1514,164 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Select Member to Delete Modal (Opened from Top Bar "Delete Member") */}
+      {showSelectDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 border border-slate-100">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+              <div className="flex items-center gap-2 text-rose-600">
+                <Trash2 className="w-5 h-5" />
+                <h3 className="text-base font-bold text-slate-900">
+                  {lang === 'ta' ? 'நீக்க வேண்டிய உறுப்பினரைத் தேர்வுசெய்க' : 'Select Member to Delete'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowSelectDeleteModal(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {loadingAllMembers ? (
+              <div className="py-8 text-center text-slate-400 text-xs">
+                {lang === 'ta' ? 'உறுப்பினர்கள் பட்டியல் ஏற்றப்படுகிறது...' : 'Loading members list...'}
+              </div>
+            ) : (
+              <div className="space-y-4 text-xs">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                    {lang === 'ta' ? 'உறுப்பினர் பெயர் & எண்' : 'Select Member'}
+                  </label>
+                  <select
+                    value={dropdownSelectedId}
+                    onChange={(e) => setDropdownSelectedId(e.target.value)}
+                    className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-xs font-medium focus:ring-2 focus:ring-rose-500 focus:outline-none"
+                  >
+                    {allMembersList.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.memberNumber} - {m.fullName} ({m.phone})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {dropdownSelectedId && (() => {
+                  const target = allMembersList.find((m) => m.id === dropdownSelectedId);
+                  if (!target) return null;
+                  return (
+                    <div className="p-3 rounded-xl bg-rose-50 border border-rose-100 space-y-1 text-slate-700">
+                      <div className="font-bold text-rose-900 text-sm">{target.fullName}</div>
+                      <div className="font-mono text-slate-600">{t.memberId}: {target.memberNumber}</div>
+                      <div className="text-slate-600">{t.phoneNumber}: {target.phone}</div>
+                      {target.address && <div className="text-slate-500 text-[11px] truncate">{target.address}</div>}
+                    </div>
+                  );
+                })()}
+
+                <div className="pt-2 flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowSelectDeleteModal(false)}
+                    className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                  >
+                    {t.cancel}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDropdownSelectDelete}
+                    disabled={!dropdownSelectedId}
+                    className="px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1.5 shadow-sm"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>{lang === 'ta' ? 'அடுத்து நீக்கு' : 'Proceed to Delete'}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl p-6 border border-slate-100">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">
+                  {lang === 'ta' ? 'உறுப்பினரை நீக்க உறுதிப்படுத்தவும்' : 'Confirm Deletion'}
+                </h3>
+                <p className="text-xs text-slate-500">
+                  {lang === 'ta' ? 'இந்த செயல் நிரந்தரமானது, மாற்ற முடியாது.' : 'This action is permanent and cannot be undone.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 mb-5">
+              {memberToDelete ? (
+                <div>
+                  <p className="font-semibold text-slate-800 mb-1">
+                    {lang === 'ta' ? 'நீங்கள் நீக்க விரும்பும் உறுப்பினர்:' : 'Member to be deleted:'}
+                  </p>
+                  <p className="font-bold text-rose-600 text-sm">
+                    {memberToDelete.memberNumber} - {memberToDelete.fullName}
+                  </p>
+                  <p className="text-slate-500 text-[11px] mt-1 font-mono">
+                    {t.phoneNumber}: {memberToDelete.phone}
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <p className="font-semibold text-slate-800 mb-1">
+                    {lang === 'ta'
+                      ? `தேர்ந்தெடுக்கப்பட்ட ${selectedIds.length} உறுப்பினர்களை நீக்க விரும்புகிறீர்களா?`
+                      : `Are you sure you want to delete these ${selectedIds.length} selected member(s)?`}
+                  </p>
+                  <p className="text-slate-500 text-[11px] mt-1">
+                    {lang === 'ta'
+                      ? 'இவர்களுடைய அனைத்து சீட்டுப் பதிவுகள் மற்றும் கணக்குகளும் நீக்கப்படும்.'
+                      : 'All associated memberships and ledger history will be removed.'}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setMemberToDelete(null);
+                }}
+                className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+              >
+                {t.cancel}
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1.5 shadow-sm"
+              >
+                {isDeleting ? (
+                  <span>{lang === 'ta' ? 'நீக்கப்படுகிறது...' : 'Deleting...'}</span>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    <span>{lang === 'ta' ? 'உறுதியாக நீக்கு' : 'Yes, Delete Permanently'}</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>

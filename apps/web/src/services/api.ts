@@ -110,6 +110,15 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
+  deleteMember: (id: string) =>
+    apiFetch<{ success: boolean; message: string }>(`/members/${id}`, {
+      method: 'DELETE',
+    }),
+  batchDeleteMembers: (ids: string[]) =>
+    apiFetch<{ success: boolean; message: string; data: { deletedCount: number } }>('/members/batch-delete', {
+      method: 'POST',
+      body: JSON.stringify({ ids }),
+    }),
   importMembers: (members: any[]) =>
     apiFetch<{ success: boolean; data: any; message: string }>('/members/import', {
       method: 'POST',
