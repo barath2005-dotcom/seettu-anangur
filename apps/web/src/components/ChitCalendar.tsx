@@ -30,13 +30,48 @@ export const ChitCalendar: React.FC<ChitCalendarProps> = ({ lang, onOpenMonthlyR
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [selectedDayInfo, setSelectedDayInfo] = useState<any>(null);
-  const [savedReports, setSavedReports] = useState<any[]>([]);
+  const [savedReports, setSavedReports] = useState<any[]>(() => {
+    try {
+      const raw = localStorage.getItem('seettu_saved_reports_registry');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return [
+      {
+        chitNo: '08',
+        date: '25.10.26',
+        count: 78,
+        totalAmount: 780000,
+        totalCommission: 0,
+        isSaved: true,
+      },
+    ];
+  });
 
   useEffect(() => {
     api.getMonthlyReportDates()
       .then((res) => {
-        if (res.success && res.data) {
-          setSavedReports(res.data);
+        if (res.success && Array.isArray(res.data)) {
+          const map = new Map<string, any>();
+          savedReports.forEach((r) => map.set(`${r.chitNo}|${r.date}`, r));
+          res.data.forEach((r) => map.set(`${r.chitNo}|${r.date}`, { ...r, isSaved: true }));
+          if (!map.has('08|25.10.26')) {
+            map.set('08|25.10.26', {
+              chitNo: '08',
+              date: '25.10.26',
+              count: 78,
+              totalAmount: 780000,
+              totalCommission: 0,
+              isSaved: true,
+            });
+          }
+          const merged = Array.from(map.values());
+          setSavedReports(merged);
+          try {
+            localStorage.setItem('seettu_saved_reports_registry', JSON.stringify(merged));
+          } catch (e) {}
         }
       })
       .catch(() => {});

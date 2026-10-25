@@ -83,12 +83,31 @@ export function App() {
   // Auth state
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [reportTarget, setReportTarget] = useState<{ chitNo: string; date: string } | null>(null);
+  const [activeTab, setActiveTabState] = useState<string>(() => {
+    return localStorage.getItem('seettu_active_tab') || 'dashboard';
+  });
+
+  const setActiveTab = (tab: string) => {
+    try {
+      localStorage.setItem('seettu_active_tab', tab);
+    } catch (e) {}
+    setActiveTabState(tab);
+  };
+
+  const [reportTarget, setReportTarget] = useState<{ chitNo: string; date: string } | null>(() => {
+    try {
+      const last = localStorage.getItem('seettu_last_active_chit');
+      if (last) return JSON.parse(last);
+    } catch (e) {}
+    return null;
+  });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleOpenMonthlyReport = (chitNo: string, date: string) => {
     setReportTarget({ chitNo, date });
+    try {
+      localStorage.setItem('seettu_last_active_chit', JSON.stringify({ chitNo, date }));
+    } catch (e) {}
     setActiveTab('monthly-entry');
   };
 
@@ -163,6 +182,11 @@ export function App() {
   const handleLogout = () => {
     clearAuthTokens();
     setUser(null);
+    try {
+      localStorage.removeItem('seettu_active_tab');
+      localStorage.removeItem('seettu_last_active_chit');
+    } catch (e) {}
+    setActiveTabState('dashboard');
     showToast(lang === 'ta' ? 'வெற்றிகரமாக வெளியேற்றப்பட்டீர்கள்' : 'Logged out successfully');
   };
 

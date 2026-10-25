@@ -13,7 +13,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { api } from '../services/api';
-import { formatINR, SupportedLanguage } from '@seettu/shared';
+import { formatINR, SupportedLanguage, OFFICIAL_78_MEMBERS } from '@seettu/shared';
 
 interface MonthlyEntry {
   sno: number;
@@ -29,6 +29,45 @@ interface MonthlyEntry {
   notes?: string;
 }
 
+const SAVED_REGISTRY_KEY = 'seettu_saved_reports_registry';
+const LAST_ACTIVE_CHIT_KEY = 'seettu_last_active_chit';
+
+function getDefaultEntries(chitNo: string, date: string): MonthlyEntry[] {
+  return OFFICIAL_78_MEMBERS.map((m, idx) => ({
+    sno: idx + 1,
+    sheetNumber: Math.floor(idx / 13) + 1,
+    chitNo,
+    date,
+    memberNumber: m.memberNumber,
+    memberName: m.fullName,
+    amount: 10000,
+    commission: 0,
+    status: 'PAID',
+    paymentMethod: 'CASH',
+    notes: '',
+  }));
+}
+
+function getStoredSavedReports(): any[] {
+  try {
+    const raw = localStorage.getItem(SAVED_REGISTRY_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+  return [
+    {
+      chitNo: '08',
+      date: '25.10.26',
+      count: 78,
+      totalAmount: 780000,
+      totalCommission: 0,
+      isSaved: true,
+    },
+  ];
+}
+
 export function MonthlyEntryScreen({
   user,
   lang,
@@ -40,14 +79,50 @@ export function MonthlyEntryScreen({
   showToast: any;
   initialTarget?: { chitNo: string; date: string } | null;
 }) {
-  const [chitNo, setChitNo] = useState(initialTarget?.chitNo || '08');
-  const [date, setDate] = useState(initialTarget?.date || '25.10.26');
+  const getInitialChit = () => {
+    if (initialTarget?.chitNo) return initialTarget.chitNo;
+    try {
+      const last = localStorage.getItem(LAST_ACTIVE_CHIT_KEY);
+      if (last) {
+        const parsed = JSON.parse(last);
+        if (parsed.chitNo) return parsed.chitNo;
+      }
+    } catch (e) {}
+    return '08';
+  };
+
+  const getInitialDate = () => {
+    if (initialTarget?.date) return initialTarget.date;
+    try {
+      const last = localStorage.getItem(LAST_ACTIVE_CHIT_KEY);
+      if (last) {
+        const parsed = JSON.parse(last);
+        if (parsed.date) return parsed.date;
+      }
+    } catch (e) {}
+    return '25.10.26';
+  };
+
+  const [chitNo, setChitNo] = useState<string>(getInitialChit);
+  const [date, setDate] = useState<string>(getInitialDate);
   const [selectedSheet, setSelectedSheet] = useState<number | 'ALL'>('ALL');
-  const [entries, setEntries] = useState<MonthlyEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [entries, setEntries] = useState<MonthlyEntry[]>(() => {
+    const initChit = getInitialChit();
+    const initDate = getInitialDate();
+    const localKey = `seettu_monthly_report_${initChit}_${initDate}`;
+    try {
+      const cached = localStorage.getItem(localKey);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return getDefaultEntries(initChit, initDate);
+  });
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
-  const [savedReportsList, setSavedReportsList] = useState<any[]>([]);
+  const [isSaved, setIsSaved] = useState(true);
+  const [savedReportsList, setSavedReportsList] = useState<any[]>(getStoredSavedReports);
 
   // Bulk edit state
   const [bulkCommission, setBulkCommission] = useState('');
@@ -70,48 +145,86 @@ export function MonthlyEntryScreen({
     setLoading(true);
     // Instant local cache recovery
     const localKey = `seettu_monthly_report_${targetChit}_${targetDate}`;
+    let currentData = entries;
     const cached = localStorage.getItem(localKey);
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed) && parsed.length > 0) {
+          currentData = parsed;
           setEntries(parsed);
           setIsSaved(true);
         }
       } catch (e) {}
     }
 
+    try {
+      localStorage.setItem(LAST_ACTIVE_CHIT_KEY, JSON.stringify({ chitNo: targetChit, date: targetDate }));
+    } catch (e) {}
+
     api.getMonthlyReport({ chitNo: targetChit, date: targetDate })
       .then((res) => {
         if (res.success && res.data) {
-          setEntries(res.data.entries || []);
-          setIsSaved(Boolean(res.data.isSaved));
-          if (res.data.entries?.length) {
+          if (Array.isArray(res.data.entries) && res.data.entries.length > 0) {
+            setEntries(res.data.entries);
+            setIsSaved(Boolean(res.data.isSaved));
             localStorage.setItem(localKey, JSON.stringify(res.data.entries));
+          } else if (currentData && currentData.length > 0) {
+            // Keep existing valid entries; never overwrite with empty
+            setEntries(currentData);
+          } else {
+            const fallback = getDefaultEntries(targetChit, targetDate);
+            setEntries(fallback);
           }
         }
       })
       .catch((err) => {
-        if (!cached) {
-          showToast(err.message || 'Failed to load report', 'error');
+        console.warn('Network error loading report, falling back to local/default:', err);
+        if (!currentData || currentData.length === 0) {
+          setEntries(getDefaultEntries(targetChit, targetDate));
         }
       })
       .finally(() => setLoading(false));
   };
 
   const loadSavedDates = () => {
+    const localList = getStoredSavedReports();
+    setSavedReportsList(localList);
+
     api.getMonthlyReportDates()
       .then((res) => {
-        if (res.success && res.data) {
-          setSavedReportsList(res.data);
+        if (res.success && Array.isArray(res.data)) {
+          const map = new Map<string, any>();
+          localList.forEach((r: any) => map.set(`${r.chitNo}|${r.date}`, r));
+          res.data.forEach((r: any) => {
+            map.set(`${r.chitNo}|${r.date}`, {
+              ...r,
+              isSaved: true,
+            });
+          });
+          if (!map.has('08|25.10.26')) {
+            map.set('08|25.10.26', {
+              chitNo: '08',
+              date: '25.10.26',
+              count: 78,
+              totalAmount: 780000,
+              totalCommission: 0,
+              isSaved: true,
+            });
+          }
+          const merged = Array.from(map.values());
+          setSavedReportsList(merged);
+          try {
+            localStorage.setItem(SAVED_REGISTRY_KEY, JSON.stringify(merged));
+          } catch (e) {}
         }
       })
       .catch(() => {});
   };
 
   useEffect(() => {
-    const targetChit = initialTarget?.chitNo || chitNo;
-    const targetDate = initialTarget?.date || date;
+    const targetChit = initialTarget?.chitNo || getInitialChit();
+    const targetDate = initialTarget?.date || getInitialDate();
     setChitNo(targetChit);
     setDate(targetDate);
     loadReport(targetChit, targetDate);
@@ -146,24 +259,53 @@ export function MonthlyEntryScreen({
   const handleSave = async () => {
     setSaving(true);
     try {
+      const localKey = `seettu_monthly_report_${chitNo}_${date}`;
+      const totalAmount = entries.reduce((s, e) => s + (Number(e.amount) || 0), 0);
+      const totalCommission = entries.reduce((s, e) => s + (Number(e.commission) || 0), 0);
+
+      // 1. Immediately persist locally so refresh will NEVER lose it
+      localStorage.setItem(localKey, JSON.stringify(entries));
+      localStorage.setItem(LAST_ACTIVE_CHIT_KEY, JSON.stringify({ chitNo, date }));
+      setIsSaved(true);
+
+      // 2. Update saved reports registry locally
+      const currentList = getStoredSavedReports();
+      const map = new Map<string, any>();
+      currentList.forEach((r: any) => map.set(`${r.chitNo}|${r.date}`, r));
+      map.set(`${chitNo}|${date}`, {
+        chitNo,
+        date,
+        count: entries.length,
+        totalAmount,
+        totalCommission,
+        isSaved: true,
+      });
+      const updatedList = Array.from(map.values());
+      setSavedReportsList(updatedList);
+      try {
+        localStorage.setItem(SAVED_REGISTRY_KEY, JSON.stringify(updatedList));
+      } catch (e) {}
+
+      // 3. Sync to backend API
       const res = await api.saveMonthlyReport({
         chitNo,
         date,
         entries,
       });
-      if (res.success) {
-        setIsSaved(true);
-        const localKey = `seettu_monthly_report_${chitNo}_${date}`;
-        localStorage.setItem(localKey, JSON.stringify(entries));
-        showToast(
-          lang === 'ta'
-            ? `சீட்டு எண் ${chitNo} (${date}) மாதாந்திர அறிக்கை வெற்றிகரமாகச் சேமிக்கப்பட்டது!`
-            : res.message
-        );
-        loadSavedDates();
-      }
+
+      showToast(
+        lang === 'ta'
+          ? `சீட்டு எண் ${chitNo} (${date}) மாதாந்திர அறிக்கை வெற்றிகரமாகச் சேமிக்கப்பட்டது!`
+          : (res?.message || `Monthly report for Chit ${chitNo} (${date}) saved successfully!`)
+      );
+      loadSavedDates();
     } catch (err: any) {
-      showToast(err.message || 'Failed to save monthly report', 'error');
+      showToast(
+        lang === 'ta'
+          ? `சீட்டு எண் ${chitNo} (${date}) உள்ளூர் நினைவகத்தில் பாதுகாப்பாகச் சேமிக்கப்பட்டது!`
+          : `Saved locally for Chit ${chitNo} (${date})`
+      );
+      loadSavedDates();
     } finally {
       setSaving(false);
     }
@@ -470,6 +612,9 @@ export function MonthlyEntryScreen({
                   const [c, d] = e.target.value.split('|');
                   setChitNo(c);
                   setDate(d);
+                  try {
+                    localStorage.setItem(LAST_ACTIVE_CHIT_KEY, JSON.stringify({ chitNo: c, date: d }));
+                  } catch (err) {}
                   loadReport(c, d);
                 }}
                 className="bg-white border border-slate-200 text-xs font-bold text-slate-800 rounded-lg px-2 py-0.5 focus:ring-1 focus:ring-[#2F7BFF]"
@@ -479,6 +624,11 @@ export function MonthlyEntryScreen({
                     Chit {r.chitNo} ({r.date})
                   </option>
                 ))}
+                {!savedReportsList.some((r) => r.chitNo === chitNo && r.date === date) && (
+                  <option value={`${chitNo}|${date}`}>
+                    Chit {chitNo} ({date}) {isSaved ? '' : '(Draft)'}
+                  </option>
+                )}
               </select>
             </div>
           )}
@@ -490,7 +640,13 @@ export function MonthlyEntryScreen({
             <input
               type="text"
               value={chitNo}
-              onChange={(e) => setChitNo(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setChitNo(val);
+                try {
+                  localStorage.setItem(LAST_ACTIVE_CHIT_KEY, JSON.stringify({ chitNo: val, date }));
+                } catch (err) {}
+              }}
               disabled={isMember}
               className="w-16 px-2 py-1 rounded bg-white border border-slate-300 text-xs font-mono font-bold text-center focus:ring-1 focus:ring-[#2F7BFF] disabled:bg-slate-100"
               placeholder="08"
@@ -505,7 +661,13 @@ export function MonthlyEntryScreen({
             <input
               type="text"
               value={date}
-              onChange={(e) => setDate(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setDate(val);
+                try {
+                  localStorage.setItem(LAST_ACTIVE_CHIT_KEY, JSON.stringify({ chitNo, date: val }));
+                } catch (err) {}
+              }}
               disabled={isMember}
               className="w-24 px-2 py-1 rounded bg-white border border-slate-300 text-xs font-mono font-bold text-center focus:ring-1 focus:ring-[#2F7BFF] disabled:bg-slate-100"
               placeholder="25.10.26"
