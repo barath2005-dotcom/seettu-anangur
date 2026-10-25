@@ -33,6 +33,7 @@ interface MonthlyEntry {
   memberName: string;
   amount: number;
   commission: number;
+  moneyOffered?: number;
   status: string;
   paymentMethod: string;
   notes?: string;
@@ -65,6 +66,7 @@ function getDefaultEntries(chitNo: string, date: string): MonthlyEntry[] {
     memberName: m.fullName,
     amount: 10000,
     commission: 0,
+    moneyOffered: 10000,
     status: 'PAID',
     paymentMethod: 'CASH',
     notes: '',
@@ -372,7 +374,17 @@ export function MonthlyEntryScreen({
   const handleFieldChange = (index: number, field: keyof MonthlyEntry, value: any) => {
     setEntries((prev) => {
       const updated = [...prev];
-      updated[index] = { ...updated[index], [field]: value };
+      const entry = { ...updated[index], [field]: value };
+      if (field === 'amount') {
+        const amt = Number(value) || 0;
+        const comm = Number(entry.commission) || 0;
+        entry.moneyOffered = amt - comm;
+      } else if (field === 'commission') {
+        const amt = Number(entry.amount) || 10000;
+        const comm = Number(value) || 0;
+        entry.moneyOffered = amt - comm;
+      }
+      updated[index] = entry;
       return updated;
     });
   };
@@ -382,7 +394,8 @@ export function MonthlyEntryScreen({
     setEntries((prev) =>
       prev.map((e) => {
         if (selectedSheet === 'ALL' || e.sheetNumber === selectedSheet) {
-          return { ...e, commission: val };
+          const amt = Number(e.amount) || 10000;
+          return { ...e, commission: val, moneyOffered: amt - val };
         }
         return e;
       })
@@ -459,7 +472,7 @@ export function MonthlyEntryScreen({
       'Member Name (English)',
       'Amount (INR)',
       'Commission (INR)',
-      'Net Amount (INR)',
+      'Money Offered (INR)',
       'Payment Mode',
       'Status',
       'Date',
@@ -470,7 +483,9 @@ export function MonthlyEntryScreen({
       const parts = (e.memberName || '').split('/');
       const tamilName = (parts[0] || '').trim();
       const englishName = (parts[1] || '').trim();
-      const net = (Number(e.amount) || 0) - (Number(e.commission) || 0);
+      const offered = e.moneyOffered !== undefined && e.moneyOffered !== null
+        ? Number(e.moneyOffered)
+        : ((Number(e.amount) || 0) - (Number(e.commission) || 0));
 
       return [
         e.sno,
@@ -480,7 +495,7 @@ export function MonthlyEntryScreen({
         `"${englishName.replace(/"/g, '""')}"`,
         e.amount,
         e.commission,
-        net,
+        offered,
         `"${e.paymentMethod}"`,
         `"${e.status}"`,
         `"${date}"`,
@@ -571,27 +586,34 @@ export function MonthlyEntryScreen({
       text-align: center;
     }
     .sno-cell {
-      width: 10%;
+      width: 8%;
       text-align: center;
       font-weight: bold;
       font-family: monospace;
       font-size: 14.5px;
     }
     .name-cell {
-      width: 52%;
+      width: 44%;
       font-weight: 700;
       padding-left: 14px;
       font-size: 14px;
     }
     .amount-cell {
-      width: 19%;
+      width: 16%;
       text-align: center;
       font-family: monospace;
       font-weight: bold;
       font-size: 14px;
     }
     .commission-cell {
-      width: 19%;
+      width: 16%;
+      text-align: center;
+      font-family: monospace;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    .offered-cell {
+      width: 16%;
       text-align: center;
       font-family: monospace;
       font-weight: bold;
@@ -621,6 +643,7 @@ export function MonthlyEntryScreen({
       const sheetEntries = entries.filter((e) => e.sheetNumber === sNum);
       const sheetAmount = sheetEntries.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
       const sheetCommission = sheetEntries.reduce((sum, e) => sum + (Number(e.commission) || 0), 0);
+      const sheetOffered = sheetAmount - sheetCommission;
 
       return `
       <div class="sheet-page">
@@ -642,6 +665,7 @@ export function MonthlyEntryScreen({
                 <th class="name-cell" style="text-align: left;">Sheet ${sNum}</th>
                 <th class="amount-cell" style="text-align: center;">Amount</th>
                 <th class="commission-cell" style="text-align: center;">Commission</th>
+                <th class="offered-cell" style="text-align: center;">Money Offered</th>
               </tr>
             </thead>
             <tbody>
@@ -649,12 +673,16 @@ export function MonthlyEntryScreen({
                 .map((e, idx) => {
                   const sheetSno = idx + 1;
                   const tamilName = (e.memberName || '').split('/')[0].trim();
+                  const rowOffered = e.moneyOffered !== undefined && e.moneyOffered !== null
+                    ? Number(e.moneyOffered)
+                    : ((Number(e.amount) || 10000) - (Number(e.commission) || 0));
                   return `
                 <tr>
                   <td class="sno-cell">${sheetSno}</td>
                   <td class="name-cell">${tamilName}</td>
                   <td class="amount-cell">${e.amount ? Number(e.amount).toLocaleString('en-IN') : '10000'}</td>
                   <td class="commission-cell">${e.commission ? Number(e.commission).toLocaleString('en-IN') : ''}</td>
+                  <td class="offered-cell">${rowOffered.toLocaleString('en-IN')}</td>
                 </tr>
               `;
                 })
@@ -664,6 +692,7 @@ export function MonthlyEntryScreen({
                 <td class="name-cell" style="text-align: right; text-transform: uppercase;">Sheet ${sNum} Total:</td>
                 <td class="amount-cell">₹${sheetAmount.toLocaleString('en-IN')}</td>
                 <td class="commission-cell">${sheetCommission > 0 ? `₹${sheetCommission.toLocaleString('en-IN')}` : '-'}</td>
+                <td class="offered-cell">₹${sheetOffered.toLocaleString('en-IN')}</td>
               </tr>
             </tbody>
           </table>
@@ -671,7 +700,7 @@ export function MonthlyEntryScreen({
 
         <div class="sheet-footer">
           <div>Sheet ${sNum} of 6 • ${sheetEntries.length} Members</div>
-          <div>Subtotal: ₹${sheetAmount.toLocaleString('en-IN')} | Commission: ₹${sheetCommission.toLocaleString('en-IN')} | Net: ₹${(sheetAmount - sheetCommission).toLocaleString('en-IN')}</div>
+          <div>Subtotal: ₹${sheetAmount.toLocaleString('en-IN')} | Commission: ₹${sheetCommission.toLocaleString('en-IN')} | Offered: ₹${sheetOffered.toLocaleString('en-IN')}</div>
         </div>
       </div>
       `;
@@ -1023,6 +1052,15 @@ export function MonthlyEntryScreen({
                 <span className="text-sm font-bold text-purple-700 font-mono">₹{Number(myEntry.commission).toLocaleString('en-IN')}</span>
               </div>
               <div className="border-l border-slate-200 dark:border-slate-700 pl-3">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">{lang === 'ta' ? 'வழங்கப்பட்ட தொகை' : 'Money Offered'}</span>
+                <span className="text-base font-black text-emerald-700 font-mono">
+                  ₹{(myEntry.moneyOffered !== undefined && myEntry.moneyOffered !== null
+                    ? Number(myEntry.moneyOffered)
+                    : ((Number(myEntry.amount) || 10000) - (Number(myEntry.commission) || 0))
+                  ).toLocaleString('en-IN')}
+                </span>
+              </div>
+              <div className="border-l border-slate-200 dark:border-slate-700 pl-3">
                 <span className="text-[10px] uppercase font-bold text-slate-400 block">{lang === 'ta' ? 'நிலை' : 'Status'}</span>
                 <span className="inline-flex items-center gap-1 text-xs font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
@@ -1165,8 +1203,11 @@ export function MonthlyEntryScreen({
                 <th className="py-3 px-4 border-r border-slate-200">
                   {selectedSheet === 'ALL' ? 'Sheet / Name' : `Sheet ${selectedSheet}`}
                 </th>
-                <th className="py-3 px-4 w-36 text-center border-r border-slate-200">Amount</th>
-                <th className="py-3 px-4 w-36 text-center border-r border-slate-200">Commission</th>
+                <th className="py-3 px-4 w-32 text-center border-r border-slate-200">Amount</th>
+                <th className="py-3 px-4 w-32 text-center border-r border-slate-200">Commission</th>
+                <th className="py-3 px-4 w-36 text-center border-r border-slate-200 bg-emerald-50/70 text-emerald-950 font-bold">
+                  {lang === 'ta' ? 'Money Offered (வழங்கப்பட்டது)' : 'Money Offered'}
+                </th>
                 <th className="py-3 px-4 w-32 text-center border-r border-slate-200">Payment Mode</th>
                 <th className="py-3 px-4 w-28 text-center">Status</th>
               </tr>
@@ -1174,13 +1215,13 @@ export function MonthlyEntryScreen({
             <tbody className="divide-y divide-slate-200 font-medium">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-12 text-slate-400">
+                  <td colSpan={7} className="text-center py-12 text-slate-400">
                     {lang === 'ta' ? 'மாதாந்திர விவரங்கள் ஏற்றப்படுகின்றன...' : 'Loading monthly report entries...'}
                   </td>
                 </tr>
               ) : displayedEntries.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-12 text-slate-400">
+                  <td colSpan={7} className="text-center py-12 text-slate-400">
                     {lang === 'ta' ? 'பதிவுகள் எதுவும் இல்லை' : 'No records found'}
                   </td>
                 </tr>
@@ -1253,6 +1294,32 @@ export function MonthlyEntryScreen({
                             }
                             placeholder="0"
                             className="w-full text-center font-mono font-bold text-purple-700 px-2 py-1.5 rounded border border-purple-200 bg-white focus:ring-2 focus:ring-purple-400 focus:border-transparent text-xs"
+                          />
+                        )}
+                      </td>
+
+                      {/* Money Offered */}
+                      <td className="py-2.5 px-3 text-center border-r border-slate-200 bg-emerald-50/30">
+                        {isMember ? (
+                          <span className="font-mono font-bold text-emerald-800 text-xs">
+                            ₹{(e.moneyOffered !== undefined && e.moneyOffered !== null
+                              ? Number(e.moneyOffered)
+                              : ((Number(e.amount) || 10000) - (Number(e.commission) || 0))
+                            ).toLocaleString('en-IN')}
+                          </span>
+                        ) : (
+                          <input
+                            type="number"
+                            value={
+                              e.moneyOffered !== undefined && e.moneyOffered !== null
+                                ? e.moneyOffered
+                                : ((Number(e.amount) || 10000) - (Number(e.commission) || 0))
+                            }
+                            onChange={(ev) =>
+                              handleFieldChange(globalIndex, 'moneyOffered', Number(ev.target.value))
+                            }
+                            placeholder="10000"
+                            className="w-full text-center font-mono font-bold text-emerald-700 px-2 py-1.5 rounded border border-emerald-300 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-xs"
                           />
                         )}
                       </td>

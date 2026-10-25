@@ -57,6 +57,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       memberName: m.fullName,
       amount: 10000,
       commission: 0,
+      moneyOffered: 10000,
       status: 'PAID',
       paymentMethod: 'CASH',
       notes: '',
@@ -107,6 +108,9 @@ router.post('/', authenticate, requireRole('ADMIN', 'STAFF'), async (req: Reques
         const sno = Number(item.sno);
         const amount = Number(item.amount) || 10000;
         const commission = Number(item.commission) || 0;
+        const moneyOffered = item.moneyOffered !== undefined && item.moneyOffered !== null
+          ? Number(item.moneyOffered)
+          : (amount - commission);
         const sheetNumber = item.sheetNumber || Math.floor((sno - 1) / 13) + 1;
 
         totalAmount += amount;
@@ -123,6 +127,7 @@ router.post('/', authenticate, requireRole('ADMIN', 'STAFF'), async (req: Reques
           update: {
             amount,
             commission,
+            moneyOffered,
             status: item.status || 'PAID',
             paymentMethod: item.paymentMethod || 'CASH',
             notes: item.notes || null,
@@ -136,6 +141,7 @@ router.post('/', authenticate, requireRole('ADMIN', 'STAFF'), async (req: Reques
             memberName: item.memberName || `Member ${sno}`,
             amount,
             commission,
+            moneyOffered,
             status: item.status || 'PAID',
             paymentMethod: item.paymentMethod || 'CASH',
             notes: item.notes || null,
