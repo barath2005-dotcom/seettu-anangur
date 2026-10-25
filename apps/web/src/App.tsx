@@ -111,9 +111,10 @@ export function App() {
     setActiveTab('monthly-entry');
   };
 
-  // Login form state
-  const [loginEmail, setLoginEmail] = useState('admin@seettu.com');
-  const [loginPassword, setLoginPassword] = useState('admin123');
+  // Login form state (Only 2 logins: Member and Admin)
+  const [loginRole, setLoginRole] = useState<'MEMBER' | 'ADMIN'>('MEMBER');
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
   // Notifications
@@ -190,11 +191,6 @@ export function App() {
     showToast(lang === 'ta' ? 'வெற்றிகரமாக வெளியேற்றப்பட்டீர்கள்' : 'Logged out successfully');
   };
 
-  const quickLoginAs = (email: string, pass: string) => {
-    setLoginEmail(email);
-    setLoginPassword(pass);
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F5F7FB]">
@@ -254,16 +250,59 @@ export function App() {
         </div>
 
         <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-8">
-          <div className="flex flex-col items-center mb-6">
+          {/* Centralized App Logo & Title */}
+          <div className="flex flex-col items-center mb-6 text-center">
             <div className="relative mb-3">
               <img
                 src="/logo.jpg"
                 alt="ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர் சீட்டு குழு Logo"
-                className="w-20 h-20 rounded-2xl object-cover shadow-lg border-2 border-amber-300 ring-4 ring-blue-50"
+                className="w-20 h-20 rounded-2xl object-cover shadow-lg border-2 border-amber-300 ring-4 ring-blue-50 mx-auto"
               />
             </div>
-            <h1 className="text-2xl font-extrabold text-[#172033] tracking-tight">{t.appName}</h1>
-            <p className="text-xs text-slate-500 mt-1">{t.tagline}</p>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[#172033] tracking-tight text-center leading-snug">
+              {t.appName}
+            </h1>
+            <p className="text-xs text-slate-500 mt-1 text-center font-medium">
+              {t.tagline}
+            </p>
+          </div>
+
+          {/* 2 Logins: Member & Admin Only */}
+          <div className="flex p-1 bg-slate-100 rounded-xl mb-6 border border-slate-200/80">
+            <button
+              type="button"
+              onClick={() => {
+                setLoginRole('MEMBER');
+                setLoginEmail('');
+                setLoginPassword('');
+                setLoginError('');
+              }}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                loginRole === 'MEMBER'
+                  ? 'bg-white text-[#2F7BFF] shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <UserCheck className="w-4 h-4" />
+              <span>{lang === 'ta' ? 'உறுப்பினர்' : 'Member'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setLoginRole('ADMIN');
+                setLoginEmail('admin@seettu.com');
+                setLoginPassword('admin123');
+                setLoginError('');
+              }}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                loginRole === 'ADMIN'
+                  ? 'bg-white text-[#2F7BFF] shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>{lang === 'ta' ? 'நிர்வாகி (Admin)' : 'Admin'}</span>
+            </button>
           </div>
 
           {loginError && (
@@ -273,117 +312,46 @@ export function App() {
             </div>
           )}
 
-          {/* Member Login Guidance */}
-          <div className="mb-4 p-3 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/80 text-blue-900 text-xs flex items-start gap-2.5 shadow-sm">
-            <span className="text-base shrink-0">💡</span>
-            <div>
-              <p className="font-bold text-blue-900">
-                {lang === 'ta' ? 'உறுப்பினர்கள் உள்நுழைவு:' : 'Member Login:'}
-              </p>
-              <p className="text-[11px] text-blue-800 mt-0.5">
-                {lang === 'ta'
-                  ? 'உறுப்பினர்கள் தங்களின் பெயரையே (தமிழ் அல்லது ஆங்கிலம்) பயனர் பெயராகவும் கடவுச்சொல்லாகவும் பயன்படுத்தலாம்!'
-                  : 'All members can log in using their Name as both Username and Password (in Tamil or English)!'}
-              </p>
-            </div>
-          </div>
-
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                {lang === 'ta' ? 'உறுப்பினர் பெயர் / ஐடி / மின்னஞ்சல்' : 'Member Name, ID, or Email'}
+              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                {loginRole === 'ADMIN'
+                  ? (lang === 'ta' ? 'நிர்வாகி மின்னஞ்சல் / பயனர் பெயர்' : 'Admin Username / Email')
+                  : (lang === 'ta' ? 'உறுப்பினர் பெயர்' : 'Member Name')}
               </label>
               <input
                 type="text"
                 required
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F7BFF] focus:border-transparent font-medium"
-                placeholder={lang === 'ta' ? 'எ.கா: பழனிச்சாமி அல்லது Palanisamy அல்லது M-001' : 'e.g. Palanisamy B.L.R or பழனிச்சாமி or M-001'}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F7BFF] focus:border-transparent font-medium"
+                placeholder={loginRole === 'ADMIN' ? 'admin@seettu.com' : (lang === 'ta' ? 'உங்கள் பெயர்' : 'Your Name')}
               />
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-semibold text-slate-700 uppercase">
-                  {lang === 'ta' ? 'கடவுச்சொல் (உறுப்பினரின் பெயர்)' : 'Password (Member Name)'}
-                </label>
-                <span className="text-[10px] text-slate-400 font-medium">
-                  {lang === 'ta' ? 'பெயரையே உள்ளிடவும்' : 'Same as your name'}
-                </span>
-              </div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                {lang === 'ta' ? 'கடவுச்சொல்' : 'Password'}
+              </label>
               <input
                 type="password"
                 required
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F7BFF] focus:border-transparent"
-                placeholder={lang === 'ta' ? 'உங்கள் பெயர் / கடவுச்சொல்' : 'Your name / password'}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F7BFF] focus:border-transparent"
+                placeholder={loginRole === 'ADMIN' ? 'admin123' : (lang === 'ta' ? 'உங்கள் கடவுச்சொல்' : 'Your Password')}
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-2.5 px-4 bg-[#2F7BFF] hover:bg-blue-600 text-white rounded-lg text-sm font-semibold transition-colors shadow-md shadow-blue-500/10 flex items-center justify-center gap-2"
+              className="w-full py-2.5 px-4 bg-[#2F7BFF] hover:bg-blue-600 text-white rounded-xl text-sm font-bold transition-all shadow-md shadow-blue-500/10 flex items-center justify-center gap-2 cursor-pointer mt-2"
             >
-              {t.signInButton}
+              {loginRole === 'ADMIN'
+                ? (lang === 'ta' ? 'நிர்வாகியாக உள்நுழைக' : 'Sign In as Admin')
+                : (lang === 'ta' ? 'உறுப்பினராக உள்நுழைக' : 'Sign In as Member')}
             </button>
           </form>
-
-          {/* Quick Demo Switcher */}
-          <div className="mt-6 pt-5 border-t border-slate-100">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2 text-center">
-              {t.quickDemoRoles}
-            </span>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => quickLoginAs('admin@seettu.com', 'admin123')}
-                className="py-1.5 px-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold border border-blue-200 transition-colors truncate"
-              >
-                👑 {t.adminRole}
-              </button>
-              <button
-                type="button"
-                onClick={() => quickLoginAs('staff@seettu.com', 'staff123')}
-                className="py-1.5 px-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg text-xs font-semibold border border-amber-200 transition-colors truncate"
-              >
-                💼 {t.staffRole}
-              </button>
-              <button
-                type="button"
-                onClick={() => quickLoginAs('Palanisamy B.L.R', 'Palanisamy B.L.R')}
-                className="py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-semibold border border-emerald-200 transition-colors truncate"
-                title="M-001 Palanisamy (Name as password)"
-              >
-                👤 பழனிச்சாமி
-              </button>
-              <button
-                type="button"
-                onClick={() => quickLoginAs('Loganathan B.L.R', 'Loganathan B.L.R')}
-                className="py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-semibold border border-emerald-200 transition-colors truncate"
-                title="M-002 Loganathan (Name as password)"
-              >
-                👤 லோகநாதன்
-              </button>
-              <button
-                type="button"
-                onClick={() => quickLoginAs('ராஜேஷ் கண்ணா', 'ராஜேஷ் கண்ணா')}
-                className="py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-semibold border border-emerald-200 transition-colors truncate"
-                title="M-003 Rajesh Khanna (Name as password)"
-              >
-                👤 ராஜேஷ் கண்ணா
-              </button>
-              <button
-                type="button"
-                onClick={() => quickLoginAs('சுகுமார் புனிதா', 'சுகுமார் புனிதா')}
-                className="py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-semibold border border-emerald-200 transition-colors truncate"
-                title="M-013 Sukumar Punitha (Name as password)"
-              >
-                👤 சுகுமார்
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     );
