@@ -951,6 +951,10 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(100); // Defaults to 100 so all 78 members show
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   const [newMember, setNewMember] = useState({
     memberNumber: '',
@@ -962,18 +966,31 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
     notes: '',
   });
 
-  const loadMembers = () => {
+  const loadMembers = (page = currentPage, limit = pageSize) => {
     setLoading(true);
-    api.getMembers({ search, status: statusFilter })
+    api.getMembers({ search, status: statusFilter, page, limit })
       .then((res) => {
-        if (res.success) setMembers(res.data);
+        if (res.success) {
+          setMembers(res.data);
+          if (res.pagination) {
+            setTotalCount(res.pagination.total);
+            setTotalPages(res.pagination.totalPages || 1);
+          }
+        }
       })
       .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    loadMembers();
-  }, [search, statusFilter]);
+    setCurrentPage(1);
+    loadMembers(1, pageSize);
+  }, [search, statusFilter, pageSize]);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    setCurrentPage(newPage);
+    loadMembers(newPage, pageSize);
+  };
 
   const handleCreateMember = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1026,6 +1043,9 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
         </div>
 
         <div className="flex items-center gap-2">
+          <span className="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 font-bold text-xs">
+            {totalCount} {lang === 'ta' ? 'உறுப்பினர்கள்' : 'Members'}
+          </span>
           <a
             href="/api/members/export/csv"
             download="seettu-members.csv"
@@ -1096,6 +1116,52 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
             )}
           </tbody>
         </table>
+
+        {/* Pagination & Count Footer */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 bg-slate-50 border-t border-slate-100 text-xs text-slate-600">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-slate-700">
+              {lang === 'ta'
+                ? `மொத்தம் ${totalCount} உறுப்பினர்களில் ${members.length} காட்டப்படுகிறது`
+                : `Showing ${members.length} of ${totalCount} members`}
+            </span>
+            <span className="text-slate-300">|</span>
+            <label className="flex items-center gap-1.5">
+              <span className="text-slate-500">{lang === 'ta' ? 'பக்கம் ஒன்றிற்கு:' : 'Per page:'}</span>
+              <select
+                value={pageSize}
+                onChange={(e) => setPageSize(Number(e.target.value))}
+                className="py-1 px-2 rounded border border-slate-200 bg-white text-xs font-bold focus:ring-1 focus:ring-[#2F7BFF]"
+              >
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100 ({lang === 'ta' ? 'அனைத்து உறுப்பினர்கள்' : 'All Members'})</option>
+              </select>
+            </label>
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1.5 font-semibold">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-2.5 py-1 rounded border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-medium"
+              >
+                {lang === 'ta' ? '◀ முந்தைய' : '◀ Prev'}
+              </button>
+              <span className="px-3 py-1 bg-white border border-slate-200 rounded font-mono font-bold text-slate-800">
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-2.5 py-1 rounded border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-medium"
+              >
+                {lang === 'ta' ? 'அடுத்தது ▶' : 'Next ▶'}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Add Member Modal */}
