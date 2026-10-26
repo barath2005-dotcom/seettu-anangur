@@ -37,8 +37,7 @@ jobs:
           npm --workspace=@seettu/web run build
 
       - name: Sync Capacitor Android
-        working-directory: apps/web
-        run: npx cap sync android
+        run: npm --workspace=@seettu/web run cap:sync:android
 
       - name: Build Android APK (Debug)
         working-directory: apps/web/android
@@ -53,16 +52,15 @@ jobs:
           path: apps/web/android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
-      - name: Publish GitHub Release with APK
-        continue-on-error: true
+      - name: Create or Update GitHub Release with APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: mobile-v1.0.0
+          name: "Sri Pattanathu Mariamman Mobile App v1.0.0"
+          body: "Official Android APK for Sri Pattanathu Mariamman Anangur Seettu Kuzhu. Direct APK download for members and admins."
+          files: apps/web/android/app/build/outputs/apk/debug/app-debug.apk
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release delete mobile-v1.0.0 --yes || true
-          git tag -d mobile-v1.0.0 || true
-          gh release create mobile-v1.0.0 apps/web/android/app/build/outputs/apk/debug/app-debug.apk \
-            --title "Sri Pattanathu Mariamman Mobile App v1.0.0 (APK)" \
-            --notes "Official Android APK build for Sri Pattanathu Mariamman Anangur Seettu Kuzhu. Direct APK download for members and admins."
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-ios:
     name: Prepare & Verify iOS Project
@@ -86,8 +84,7 @@ jobs:
           npm --workspace=@seettu/web run build
 
       - name: Sync Capacitor iOS
-        working-directory: apps/web
-        run: npx cap sync ios
+        run: npm --workspace=@seettu/web run cap:sync:ios
 
       - name: Upload iOS Xcode Project Artifact
         uses: actions/upload-artifact@v4

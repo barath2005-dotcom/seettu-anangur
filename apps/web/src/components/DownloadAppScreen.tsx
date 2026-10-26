@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Download,
   Smartphone,
@@ -11,6 +11,7 @@ import {
   Sparkles,
   ArrowRight,
   Info,
+  Zap,
 } from 'lucide-react';
 import { SupportedLanguage } from '@seettu/shared';
 
@@ -22,11 +23,22 @@ interface DownloadAppScreenProps {
 export function DownloadAppScreen({ lang, showToast }: DownloadAppScreenProps) {
   const [copied, setCopied] = useState(false);
   const [showIosGuide, setShowIosGuide] = useState(false);
-  const [activePlatform, setActivePlatform] = useState<'all' | 'android' | 'ios'>('all');
+  const [showAndroidGuide, setShowAndroidGuide] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
 
   const directApkUrl = 'https://github.com/barath2005-dotcom/seettu-anangur/releases/download/mobile-v1.0.0/app-debug.apk';
+  const githubReleasesUrl = 'https://github.com/barath2005-dotcom/seettu-anangur/releases';
   const githubActionsUrl = 'https://github.com/barath2005-dotcom/seettu-anangur/actions';
   const appWebUrl = typeof window !== 'undefined' ? window.location.origin : 'https://seettu-anangur.vercel.app';
+
+  useEffect(() => {
+    const handleBeforeInstall = (e: any) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+  }, []);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(appWebUrl);
@@ -39,9 +51,22 @@ export function DownloadAppScreen({ lang, showToast }: DownloadAppScreenProps) {
 
   const handleDownloadApk = () => {
     if (showToast) {
-      showToast(lang === 'ta' ? 'Android APK பதிவிறக்கம் தொடங்குகிறது...' : 'Starting Android APK download...', 'success');
+      showToast(lang === 'ta' ? 'Android APK பதிவிறக்கம் தொடங்குகிறது...' : 'Opening Android APK download...', 'success');
     }
     window.open(directApkUrl, '_blank');
+  };
+
+  const handleOneTapInstall = async () => {
+    if (installPrompt) {
+      installPrompt.prompt();
+      const { outcome } = await installPrompt.userChoice;
+      if (outcome === 'accepted' && showToast) {
+        showToast(lang === 'ta' ? 'செயலி வெற்றிகரமாக நிறுவப்பட்டது!' : 'App installed successfully!', 'success');
+      }
+      setInstallPrompt(null);
+    } else {
+      setShowAndroidGuide(true);
+    }
   };
 
   return (
@@ -94,6 +119,31 @@ export function DownloadAppScreen({ lang, showToast }: DownloadAppScreenProps) {
               </span>
             </div>
           </button>
+        </div>
+
+        {/* 1-Tap Instant Install Alternative Bar */}
+        <div className="mt-3.5 flex flex-wrap items-center justify-center gap-2">
+          <button
+            onClick={handleOneTapInstall}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs font-bold transition-all cursor-pointer"
+          >
+            <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+            <span>
+              {lang === 'ta'
+                ? '⚡ 1-Tap உடனடி நிறுவல் (No APK download required)'
+                : '⚡ 1-Tap Instant Install (No APK download required)'}
+            </span>
+          </button>
+
+          <a
+            href={githubReleasesUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all"
+          >
+            <span>{lang === 'ta' ? 'GitHub Releases பதிவுகள்' : 'View on GitHub Releases'}</span>
+            <ExternalLink className="w-3 h-3 text-slate-400" />
+          </a>
         </div>
       </div>
 
@@ -247,13 +297,21 @@ export function DownloadAppScreen({ lang, showToast }: DownloadAppScreenProps) {
             </ol>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
             <button
               onClick={handleDownloadApk}
-              className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+              className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
             >
               <Download className="w-4 h-4" />
               <span>{lang === 'ta' ? 'APK பதிவிறக்குக (Download APK)' : 'Download APK Now'}</span>
+            </button>
+            <button
+              onClick={handleOneTapInstall}
+              className="py-2.5 px-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+              title="Install directly in Chrome without APK"
+            >
+              <Zap className="w-4 h-4" />
+              <span>{lang === 'ta' ? 'உடனடி நிறுவல்' : 'Instant 1-Tap'}</span>
             </button>
           </div>
         </div>
@@ -428,6 +486,79 @@ export function DownloadAppScreen({ lang, showToast }: DownloadAppScreenProps) {
             <button
               onClick={() => setShowIosGuide(false)}
               className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition-all shadow-md cursor-pointer"
+            >
+              {lang === 'ta' ? 'புரிந்தது, மூடுக' : 'Got it, Close'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Android Modal Guide */}
+      {showAndroidGuide && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#0E1726] rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 dark:border-slate-800 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <span className="text-2xl">🤖</span>
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
+                  {lang === 'ta' ? 'Chrome மூலம் உடனடி நிறுவல்' : 'Instant Install via Chrome'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowAndroidGuide(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 rounded-lg text-sm font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="py-4 space-y-4 text-xs text-slate-600 dark:text-slate-300">
+              <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 flex items-start gap-3">
+                <span className="text-xl">1️⃣</span>
+                <div>
+                  <h4 className="font-bold text-slate-900 dark:text-white">
+                    {lang === 'ta' ? 'Chrome உலாவியின் மேல் வலது மெனு (⋮)' : 'Open Chrome 3-Dots Menu (⋮)'}
+                  </h4>
+                  <p className="mt-0.5">
+                    {lang === 'ta'
+                      ? 'Chrome-ன் மேல் வலது மூலையில் உள்ள 3 புள்ளிகளைத் தட்டவும்.'
+                      : 'Tap the 3 dots in the top-right corner of Chrome.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 flex items-start gap-3">
+                <span className="text-xl">2️⃣</span>
+                <div>
+                  <h4 className="font-bold text-slate-900 dark:text-white">
+                    {lang === 'ta' ? '"Install app" அல்லது "Add to Home screen" அழுத்தவும்' : 'Tap "Install app" or "Add to Home screen"'}
+                  </h4>
+                  <p className="mt-0.5">
+                    {lang === 'ta'
+                      ? 'மெனுவில் உள்ள "Install app" என்பதைத் தேர்ந்தெடுத்து Install அழுத்தவும்.'
+                      : 'Choose "Install app" (or "Add to Home screen") and tap Install.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 flex items-start gap-3">
+                <span className="text-xl">3️⃣</span>
+                <div>
+                  <h4 className="font-bold text-slate-900 dark:text-white">
+                    {lang === 'ta' ? 'செயலி தயாராகிவிட்டது!' : 'App Ready!'}
+                  </h4>
+                  <p className="mt-0.5">
+                    {lang === 'ta'
+                      ? 'உங்கள் போன் திரையில் கோவில் சின்னத்துடன் செயலி உடனடியாக நிறுவப்பட்டுவிடும்!'
+                      : 'The official app icon is added to your phone screen and opens full-screen!'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowAndroidGuide(false)}
+              className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all shadow-md cursor-pointer"
             >
               {lang === 'ta' ? 'புரிந்தது, மூடுக' : 'Got it, Close'}
             </button>

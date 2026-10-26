@@ -23,6 +23,7 @@
     "prisma:seed": "npm --workspace=@seettu/backend run prisma:seed"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.3",
     "concurrently": "^9.1.2",
     "typescript": "^5.7.3"
   }
