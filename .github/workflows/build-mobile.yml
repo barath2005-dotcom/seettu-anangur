@@ -5,6 +5,9 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-android-apk:
     name: Build Android APK
@@ -18,9 +21,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
 
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
@@ -46,12 +46,23 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
 
-      - name: Upload Android APK
+      - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Sri-Pattanathu-Mariamman-Android-APK
           path: apps/web/android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
+
+      - name: Publish GitHub Release with APK
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete mobile-v1.0.0 --yes || true
+          git tag -d mobile-v1.0.0 || true
+          gh release create mobile-v1.0.0 apps/web/android/app/build/outputs/apk/debug/app-debug.apk \
+            --title "Sri Pattanathu Mariamman Mobile App v1.0.0 (APK)" \
+            --notes "Official Android APK build for Sri Pattanathu Mariamman Anangur Seettu Kuzhu. Direct APK download for members and admins."
 
   build-ios:
     name: Prepare & Verify iOS Project

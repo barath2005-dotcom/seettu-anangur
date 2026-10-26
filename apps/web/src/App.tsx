@@ -38,6 +38,7 @@ import {
   ChevronRight,
   Eye,
   BarChart2,
+  Smartphone,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -54,6 +55,7 @@ import { StatCard } from './components/StatCard';
 import { ReceiptModal } from './components/ReceiptModal';
 import { ChitCalendar } from './components/ChitCalendar';
 import { MonthlyEntryScreen } from './components/MonthlyEntryScreen';
+import { DownloadAppScreen } from './components/DownloadAppScreen';
 
 export function App() {
   // Language State
@@ -132,6 +134,15 @@ export function App() {
   // Toast / Status Message
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
+  // Public Mobile Download Page toggle (accessible before login)
+  const [showPublicDownload, setShowPublicDownload] = useState<boolean>(() => {
+    try {
+      return new URLSearchParams(window.location.search).get('tab') === 'download';
+    } catch (e) {
+      return false;
+    }
+  });
+
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
@@ -204,6 +215,39 @@ export function App() {
           <p className="text-sm font-medium text-slate-600">
             {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர் சீட்டு குழு ஏற்றப்படுகிறது...' : 'Loading Sri Pattanathu Mariamman Anangur Seettu Kuzhu...'}
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Public Download Page (Accessible without login)
+  if (showPublicDownload) {
+    return (
+      <div className="min-h-screen bg-[#F5F7FB] dark:bg-[#080E1A] p-4 sm:p-6 flex flex-col">
+        <div className="max-w-5xl w-full mx-auto flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-6">
+          <button
+            onClick={() => setShowPublicDownload(false)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-xs hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer"
+          >
+            ← {lang === 'ta' ? 'உள்நுழைவுக்குத் திரும்பு' : 'Back to Login'}
+          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleLanguageChange(lang === 'ta' ? 'en' : 'ta')}
+              className="px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-xs font-bold border border-blue-200 dark:border-blue-900 cursor-pointer"
+            >
+              {lang === 'ta' ? 'English' : 'தமிழ்'}
+            </button>
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 cursor-pointer"
+            >
+              {theme === 'light' ? <Moon className="w-4 h-4 text-slate-600" /> : <Sun className="w-4 h-4 text-amber-400" />}
+            </button>
+          </div>
+        </div>
+        <div className="flex-1 max-w-5xl w-full mx-auto">
+          <DownloadAppScreen lang={lang} showToast={showToast} />
         </div>
       </div>
     );
@@ -357,6 +401,18 @@ export function App() {
                 : (lang === 'ta' ? 'உறுப்பினராக உள்நுழைக' : 'Sign In as Member')}
             </button>
           </form>
+
+          {/* Public Mobile App Download Link on Login */}
+          <div className="mt-5 text-center pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setShowPublicDownload(true)}
+              className="text-xs text-[#2F7BFF] hover:underline font-bold inline-flex items-center gap-1.5 cursor-pointer"
+            >
+              <Smartphone className="w-4 h-4" />
+              <span>{lang === 'ta' ? '📱 மொபைல் ஆப் பதிவிறக்கம் (Android & iOS)' : '📱 Download Mobile App (Android APK & iOS)'}</span>
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -382,6 +438,7 @@ export function App() {
     { id: 'notifications', label: lang === 'ta' ? 'அறிவிப்புகள்' : 'Notifications', icon: Bell, roles: ['ADMIN', 'STAFF', 'MEMBER'], badge: unreadCount },
     { id: 'staff', label: lang === 'ta' ? 'பணியாளர்கள் & அனுமதிகள்' : 'Staff & Roles', icon: ShieldCheck, roles: ['ADMIN'] },
     { id: 'audit', label: lang === 'ta' ? 'தணிக்கை பதிவு' : 'Audit Trail', icon: History, roles: ['ADMIN'] },
+    { id: 'download', label: lang === 'ta' ? 'மொபைல் ஆப்' : 'Download Mobile App', icon: Smartphone, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
     { id: 'settings', label: lang === 'ta' ? 'அமைப்புகள்' : 'Settings', icon: SettingsIcon, roles: ['ADMIN', 'STAFF'] },
   ].filter((item) => item.roles.includes(user.role));
 
@@ -680,6 +737,20 @@ export function App() {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Download Mobile App Button */}
+            <button
+              onClick={() => setActiveTab('download')}
+              title={lang === 'ta' ? 'மொபைல் ஆப் பதிவிறக்கம் (Android & iOS)' : 'Download Mobile App (Android & iOS)'}
+              className={`px-3 py-1.5 rounded-full border text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer ${
+                activeTab === 'download'
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                  : 'border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'
+              }`}
+            >
+              <Smartphone className="w-3.5 h-3.5 text-blue-500" />
+              <span className="hidden sm:inline">{lang === 'ta' ? 'ஆப் பதிவிறக்கு' : 'Download App'}</span>
+            </button>
+
             {/* Bilingual Switcher [EN | தமிழ்] */}
             <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-full p-0.5 text-xs font-bold border border-slate-200/80 dark:border-slate-700 shadow-2xs">
               <button
@@ -809,6 +880,9 @@ export function App() {
           )}
           {activeTab === 'audit' && (
             <AuditScreen user={user} lang={lang} />
+          )}
+          {activeTab === 'download' && (
+            <DownloadAppScreen lang={lang} showToast={showToast} />
           )}
           {activeTab === 'settings' && user.role !== 'MEMBER' && (
             <SettingsScreen
