@@ -61,6 +61,19 @@ jobs:
             exit 1
           }
 
+      - name: Locate & Prepare APK for Release
+        run: |
+          APK_FILE=$(find apps/web/android -name "*.apk" | head -n 1)
+          echo "Found compiled APK: $APK_FILE"
+          if [ -z "$APK_FILE" ]; then
+            echo "::error::No APK file found in build outputs!"
+            find apps/web/android/app/build -maxdepth 4 2>/dev/null || true
+            exit 1
+          fi
+          cp "$APK_FILE" ./app-debug.apk
+          cp "$APK_FILE" ./Sri-Pattanathu-Mariamman.apk
+          ls -lh ./app-debug.apk
+
       - name: Upload Build Log on Failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -72,7 +85,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Sri-Pattanathu-Mariamman-Android-APK
-          path: apps/web/android/app/build/outputs/apk/debug/app-debug.apk
+          path: ./app-debug.apk
           retention-days: 30
 
       - name: Create or Update GitHub Release with APK
@@ -82,9 +95,11 @@ jobs:
           name: "Sri Pattanathu Mariamman Mobile App v1.0.0"
           body: |
             Official Mobile App for Sri Pattanathu Mariamman Anangur Seettu Kuzhu.
-            - Direct Android APK attached below (`app-debug.apk`).
+            - Direct Android APK attached below (`app-debug.apk` and `Sri-Pattanathu-Mariamman.apk`).
             - iOS users can install via Safari -> Add to Home Screen from https://seettu-anangur.vercel.app.
-          files: apps/web/android/app/build/outputs/apk/debug/app-debug.apk
+          files: |
+            ./app-debug.apk
+            ./Sri-Pattanathu-Mariamman.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
