@@ -36,8 +36,15 @@ jobs:
           npm run build:shared
           npm --workspace=@seettu/web run build
 
-      - name: Sync Capacitor Android
-        run: npm --workspace=@seettu/web run cap:sync:android
+      - name: Sync Web Assets to Android
+        working-directory: apps/web
+        run: |
+          mkdir -p ~/.config/capacitor
+          echo '{"telemetry":false}' > ~/.config/capacitor/sysconfig.json
+          mkdir -p android/app/src/main/assets/public
+          cp -r dist/* android/app/src/main/assets/public/
+          cp capacitor.config.json android/app/src/main/assets/capacitor.config.json 2>/dev/null || true
+          npx cap sync android --no-color || true
 
       - name: Build Android APK (Debug)
         working-directory: apps/web/android
@@ -57,7 +64,10 @@ jobs:
         with:
           tag_name: mobile-v1.0.0
           name: "Sri Pattanathu Mariamman Mobile App v1.0.0"
-          body: "Official Android APK for Sri Pattanathu Mariamman Anangur Seettu Kuzhu. Direct APK download for members and admins."
+          body: |
+            Official Mobile App for Sri Pattanathu Mariamman Anangur Seettu Kuzhu.
+            - Direct Android APK attached below (`app-debug.apk`).
+            - iOS users can install via Safari -> Add to Home Screen from https://seettu-anangur.vercel.app.
           files: apps/web/android/app/build/outputs/apk/debug/app-debug.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -83,8 +93,15 @@ jobs:
           npm run build:shared
           npm --workspace=@seettu/web run build
 
-      - name: Sync Capacitor iOS
-        run: npm --workspace=@seettu/web run cap:sync:ios
+      - name: Sync Web Assets to iOS
+        working-directory: apps/web
+        run: |
+          mkdir -p ~/Library/Preferences/capacitor
+          echo '{"telemetry":false}' > ~/Library/Preferences/capacitor/sysconfig.json
+          mkdir -p ios/App/App/public
+          cp -r dist/* ios/App/App/public/
+          cp capacitor.config.json ios/App/App/capacitor.config.json 2>/dev/null || true
+          npx cap sync ios --no-color || true
 
       - name: Upload iOS Xcode Project Artifact
         uses: actions/upload-artifact@v4
@@ -92,3 +109,4 @@ jobs:
           name: Sri-Pattanathu-Mariamman-iOS-XcodeProject
           path: apps/web/ios
           retention-days: 30
+

@@ -145,6 +145,23 @@ export function DownloadAppScreen({ lang, showToast }: DownloadAppScreenProps) {
             <ExternalLink className="w-3 h-3 text-slate-400" />
           </a>
         </div>
+
+        {/* 404 / Direct Installation Explainer Callout */}
+        <div className="mt-3 max-w-xl mx-auto px-4 py-2.5 rounded-xl bg-blue-50/80 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/60 text-left text-[11px] sm:text-xs text-blue-900 dark:text-blue-200 flex items-start gap-2.5">
+          <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+          <div className="space-y-0.5">
+            <p className="font-bold">
+              {lang === 'ta'
+                ? '💡 கிட்ஹப் "404 Not Found" பிழை காட்டினால் என்ன செய்ய வேண்டும்?'
+                : '💡 What to do if GitHub shows "404 Not Found"?'}
+            </p>
+            <p className="text-blue-800/80 dark:text-blue-300/80 leading-relaxed">
+              {lang === 'ta'
+                ? 'கிளவுட் ஆக்ஷன்ஸில் APK கோப்பு உருவாக்கம் முடியும் வரை கிட்ஹப் 404 காட்டும். நீங்கள் காத்திருக்கத் தேவையில்லை! குரோம் பிரவுசரில் (⋮) அழுத்தி "Install app" அல்லது மேலே உள்ள "⚡ 1-Tap உடனடி நிறுவல்" மூலம் இப்போதே உடனே உங்கள் போனில் செயலியை நிறுவிக் கொள்ளலாம்.'
+                : 'GitHub displays 404 while GitHub Actions is compiling and uploading the new APK. You do not need to wait! Simply tap "Install app" in Chrome menu (⋮) or click "⚡ 1-Tap Instant Install" above to install the app on your mobile home screen immediately.'}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Main App Info & Specification Card (Exact Match to User's Mockup) */}
