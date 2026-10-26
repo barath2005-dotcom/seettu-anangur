@@ -1,4 +1,14 @@
-const API_BASE = (import.meta as any).env?.VITE_API_BASE || '/api';
+// In native mobile apps (Capacitor/Cordova/file/localhost origins), use the live backend URL directly.
+const isMobileNative = typeof window !== 'undefined' && (
+  window.location.protocol === 'capacitor:' ||
+  window.location.protocol === 'file:' ||
+  window.location.hostname === 'localhost' ||
+  !window.location.origin.includes('vercel.app')
+);
+
+export const PRODUCTION_API_URL = 'https://seettu-anangur.vercel.app/api';
+
+const API_BASE = (import.meta as any).env?.VITE_API_BASE || (isMobileNative ? PRODUCTION_API_URL : '/api');
 
 export function getAuthToken(): string | null {
   return localStorage.getItem('seettu_access_token');

@@ -379,16 +379,23 @@ export function App() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                {lang === 'ta' ? 'கடவுச்சொல்' : 'Password'}
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 uppercase">
+                  {lang === 'ta' ? 'கடவுச்சொல்' : 'Password'}
+                </label>
+                {loginRole === 'MEMBER' && (
+                  <span className="text-[11px] text-blue-600 font-medium">
+                    {lang === 'ta' ? '(உங்கள் பெயரே கடவுச்சொல்)' : '(Your Name or member123)'}
+                  </span>
+                )}
+              </div>
               <input
                 type="password"
                 required
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F7BFF] focus:border-transparent"
-                placeholder={loginRole === 'ADMIN' ? 'admin123' : (lang === 'ta' ? 'உங்கள் கடவுச்சொல்' : 'Your Password')}
+                placeholder={loginRole === 'ADMIN' ? 'admin123' : (lang === 'ta' ? 'உங்கள் பெயர் அல்லது member123' : 'Your Name or member123')}
               />
             </div>
 
