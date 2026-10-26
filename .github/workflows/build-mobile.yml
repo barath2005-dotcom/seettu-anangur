@@ -53,6 +53,7 @@ jobs:
         working-directory: apps/web/android
         run: |
           chmod +x gradlew
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
           ./gradlew :app:assembleDebug --no-daemon --stacktrace 2>&1 | tee gradle-build.log || {
             echo "### ❌ Gradle Build Error Details" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
