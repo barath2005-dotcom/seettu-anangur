@@ -26,7 +26,8 @@ export function DownloadAppScreen({ lang, showToast }: DownloadAppScreenProps) {
   const [showAndroidGuide, setShowAndroidGuide] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
 
-  const directApkUrl = 'https://github.com/barath2005-dotcom/seettu-anangur/releases/download/mobile-v1.0.0/app-debug.apk';
+  const vercelDirectApkUrl = '/downloads/Sri-Pattanathu-Mariamman.apk';
+  const githubDirectApkUrl = 'https://github.com/barath2005-dotcom/seettu-anangur/releases/download/mobile-v1.0.0/Sri-Pattanathu-Mariamman.apk';
   const githubReleasesUrl = 'https://github.com/barath2005-dotcom/seettu-anangur/releases';
   const githubActionsUrl = 'https://github.com/barath2005-dotcom/seettu-anangur/actions';
   const appWebUrl = typeof window !== 'undefined' ? window.location.origin : 'https://seettu-anangur.vercel.app';
@@ -51,9 +52,15 @@ export function DownloadAppScreen({ lang, showToast }: DownloadAppScreenProps) {
 
   const handleDownloadApk = () => {
     if (showToast) {
-      showToast(lang === 'ta' ? 'Android APK பதிவிறக்கம் தொடங்குகிறது...' : 'Opening Android APK download...', 'success');
+      showToast(lang === 'ta' ? 'Android APK நேரடி பதிவிறக்கம் தொடங்குகிறது...' : 'Starting direct APK download...', 'success');
     }
-    window.open(directApkUrl, '_blank');
+    // Create an explicit download anchor tag to force clean native saving
+    const a = document.createElement('a');
+    a.href = vercelDirectApkUrl;
+    a.download = 'Sri-Pattanathu-Mariamman.apk';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   const handleOneTapInstall = async () => {
