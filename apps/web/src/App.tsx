@@ -410,38 +410,36 @@ export function App() {
         />
       )}
 
-      {/* Desktop Sidebar Navigation (Image 1 style) */}
-      <aside className="hidden lg:flex w-[276px] h-full bg-gradient-to-b from-[#0B1E40] via-[#081730] to-[#050D1C] text-white border-r border-blue-950/60 flex-col justify-between shrink-0 relative overflow-hidden select-none">
-        {/* Authentic Dravidian Temple Gopuram & Glowing Waves (Image 1 style) */}
-        <div className="absolute bottom-20 right-0 w-[172px] pointer-events-none select-none z-0">
-          <img
-            src="/sidebar-temple.png"
-            alt="Sri Pattanathu Mariamman Temple Tower"
-            className="w-full h-auto object-contain opacity-95 drop-shadow-[0_0_20px_rgba(37,99,235,0.25)]"
-          />
-        </div>
+      {/* Desktop Sidebar Navigation (Exact Match to Reference Mockup) */}
+      <aside className="hidden lg:flex w-[295px] h-full bg-[#07142A] text-white border-r border-blue-950/60 flex-col justify-between shrink-0 relative overflow-hidden select-none">
+        {/* Full Authentic Background with Gopuram & Waves (Image 1 reference) */}
+        <img
+          src="/sidebar-bg.png"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none z-0"
+        />
 
-        {/* Top Header */}
-        <div className="p-4 border-b border-white/10 flex items-center gap-3 relative z-10 shrink-0">
-          <div className="p-1 rounded-2xl border-2 border-amber-400/60 bg-gradient-to-b from-amber-400/20 to-amber-600/10 shadow-[0_0_15px_rgba(251,191,36,0.25)] shrink-0">
+        {/* Top Header: Stacked Squircle Logo, Full Title, and Subtitle without dividing border */}
+        <div className="pt-6 px-6 pb-2 relative z-10 shrink-0">
+          <div className="w-[74px] h-[74px] rounded-[22px] border-2 border-amber-400/80 bg-gradient-to-b from-amber-400/25 to-amber-600/10 shadow-[0_0_24px_rgba(251,191,36,0.35)] ring-2 ring-amber-400/20 p-1 flex items-center justify-center">
             <img
               src="/logo.jpg"
               alt="Sri Pattanathu Mariamman"
-              className="w-11 h-11 rounded-xl object-cover"
+              className="w-full h-full rounded-[18px] object-cover"
             />
           </div>
-          <div className="overflow-hidden min-w-0 flex-1">
-            <h2 className="font-extrabold text-white text-[13.5px] leading-snug tracking-tight">
+          <div className="mt-3.5">
+            <h2 className="font-extrabold text-white text-[15px] leading-snug tracking-tight">
               {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன்' : 'Sri Pattanathu Mariamman'}
             </h2>
-            <p className="text-[11.5px] text-blue-300/80 font-medium tracking-tight mt-0.5">
+            <p className="text-[12px] text-blue-200/70 font-medium tracking-tight mt-0.5">
               {lang === 'ta' ? 'ஆனங்கூர் சீட்டு குழு' : 'Anangur Seettu Kuzhu'}
             </p>
           </div>
         </div>
 
-        {/* Nav Links */}
-        <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto relative z-10 scrollbar-none">
+        {/* Nav Links: Spaced comfortably for both Member (7 items) and Admin (12 items) */}
+        <nav className={`flex-1 px-3.5 ${user.role === 'MEMBER' ? 'py-3 space-y-2' : 'py-2 space-y-1.5'} overflow-y-auto relative z-10 scrollbar-none`}>
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -449,13 +447,13 @@ export function App() {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-[13px] transition-all cursor-pointer ${
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-[13.5px] transition-all cursor-pointer group ${
                   isActive
                     ? 'bg-[#1D68FE] text-white shadow-[0_4px_24px_rgba(29,104,254,0.45)] font-bold'
                     : 'text-slate-300 hover:text-white hover:bg-white/5 font-semibold'
                 }`}
               >
-                <div className="flex items-center gap-3 min-w-0">
+                <div className="flex items-center gap-3.5 min-w-0">
                   <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} />
                   <span className="truncate">{item.label}</span>
                 </div>
@@ -471,19 +469,21 @@ export function App() {
           })}
         </nav>
 
-        {/* Bottom User Card & Logout (Image 1 style) */}
-        <div className="p-3.5 relative z-10 shrink-0">
-          <div className="p-3.5 rounded-2xl bg-[#08152B]/90 border border-blue-500/20 shadow-2xl shadow-black/60 backdrop-blur-md">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-11 h-11 rounded-full bg-[#DCE7FE] text-[#1E40AF] flex items-center justify-center font-black text-sm uppercase shrink-0 shadow-md ring-2 ring-blue-400/20">
+        {/* Bottom User Card & Logout (Image 1 style - customized for Member and Admin) */}
+        <div className="p-4 relative z-10 shrink-0">
+          <div className="p-4 rounded-[26px] bg-[#061225]/90 border border-blue-500/20 shadow-2xl shadow-black/80 backdrop-blur-md">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="w-12 h-12 rounded-full bg-[#DCE7FE] text-[#1E40AF] flex items-center justify-center font-black text-sm uppercase shrink-0 shadow-inner ring-2 ring-blue-400/20">
                 {user.name.slice(0, 2).toUpperCase()}
               </div>
               <div className="overflow-hidden min-w-0 flex-1">
-                <p className="text-[13px] font-bold text-white truncate">{user.name}</p>
+                <p className="text-[14px] font-bold text-white truncate">{user.name}</p>
                 <span className={`inline-block px-2.5 py-0.5 rounded text-[10px] font-extrabold tracking-wider uppercase mt-1 shadow-2xs ${
                   user.role === 'ADMIN'
                     ? 'bg-[#4338CA] text-indigo-100'
-                    : 'bg-blue-700 text-blue-100'
+                    : user.role === 'STAFF'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-[#1D68FE] text-white'
                 }`}>
                   {user.role}
                 </span>
@@ -492,7 +492,7 @@ export function App() {
 
             <button
               onClick={handleLogout}
-              className="mt-3.5 pt-1 w-full flex items-center gap-2.5 px-1 text-slate-300 hover:text-white transition-colors text-xs font-semibold cursor-pointer group"
+              className="mt-4 flex items-center gap-2.5 px-0.5 text-slate-300 hover:text-white transition-colors text-xs font-semibold cursor-pointer group"
             >
               <LogOut className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors" />
               <span>{lang === 'ta' ? 'வெளியேறு' : 'Logout'}</span>
@@ -511,38 +511,36 @@ export function App() {
           />
 
           {/* Drawer Content */}
-          <div className="relative w-72 max-w-[85vw] bg-gradient-to-b from-[#0B1E40] via-[#081730] to-[#050D1C] text-white h-full flex flex-col justify-between shadow-2xl z-10 animate-in slide-in-from-left duration-200 border-r border-blue-900/50 overflow-hidden">
-            {/* Authentic Dravidian Temple Gopuram & Glowing Waves */}
-            <div className="absolute bottom-24 right-0 w-[160px] pointer-events-none select-none z-0">
-              <img
-                src="/sidebar-temple.png"
-                alt="Temple Tower"
-                className="w-full h-auto object-contain opacity-90"
-              />
-            </div>
+          <div className="relative w-72 max-w-[85vw] bg-[#07142A] text-white h-full flex flex-col justify-between shadow-2xl z-10 animate-in slide-in-from-left duration-200 border-r border-blue-900/50 overflow-hidden">
+            {/* Full Background with Gopuram & Waves */}
+            <img
+              src="/sidebar-bg.png"
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none z-0"
+            />
 
-            {/* Header with App Logo & Close Button */}
-            <div className="p-4 border-b border-white/10 flex items-center justify-between shrink-0 relative z-10">
-              <div className="flex items-center gap-2.5 overflow-hidden">
-                <div className="p-1 rounded-2xl border-2 border-amber-400/60 bg-gradient-to-b from-amber-400/20 to-amber-600/10 shadow-sm shrink-0">
+            {/* Header with App Logo, Title & Close Button */}
+            <div className="pt-5 px-5 pb-2 flex items-start justify-between shrink-0 relative z-10">
+              <div>
+                <div className="w-[60px] h-[60px] rounded-[18px] border-2 border-amber-400/80 bg-gradient-to-b from-amber-400/25 to-amber-600/10 shadow-md ring-2 ring-amber-400/20 p-1 flex items-center justify-center">
                   <img
                     src="/logo.jpg"
                     alt="Logo"
-                    className="w-10 h-10 rounded-xl object-cover"
+                    className="w-full h-full rounded-[14px] object-cover"
                   />
                 </div>
-                <div className="overflow-hidden">
-                  <h2 className="font-extrabold text-white text-xs leading-tight truncate">
+                <div className="mt-3">
+                  <h2 className="font-extrabold text-white text-[14px] leading-tight">
                     {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன்' : 'Sri Pattanathu Mariamman'}
                   </h2>
-                  <p className="text-[11px] text-blue-300/80 font-medium truncate mt-0.5">
+                  <p className="text-[11.5px] text-blue-200/70 font-medium mt-0.5">
                     {lang === 'ta' ? 'ஆனங்கூர் சீட்டு குழு' : 'Anangur Seettu Kuzhu'}
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 shrink-0 ml-1 cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 shrink-0 cursor-pointer"
                 aria-label="Close Menu"
               >
                 <X className="w-5 h-5" />
@@ -550,7 +548,7 @@ export function App() {
             </div>
 
             {/* Nav Links */}
-            <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto relative z-10 scrollbar-none">
+            <nav className={`flex-1 px-3.5 ${user.role === 'MEMBER' ? 'py-3 space-y-2' : 'py-2 space-y-1.5'} overflow-y-auto relative z-10 scrollbar-none`}>
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
@@ -618,7 +616,7 @@ export function App() {
 
             {/* Mobile Drawer User Card & Logout (Image 1 style) */}
             <div className="p-3.5 relative z-10 shrink-0">
-              <div className="p-3.5 rounded-2xl bg-[#08152B]/90 border border-blue-500/20 shadow-xl shadow-black/60 backdrop-blur-md">
+              <div className="p-3.5 rounded-2xl bg-[#061225]/90 border border-blue-500/20 shadow-xl shadow-black/60 backdrop-blur-md">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-11 h-11 rounded-full bg-[#DCE7FE] text-[#1E40AF] flex items-center justify-center font-black text-sm uppercase shrink-0 shadow-md ring-2 ring-blue-400/20">
                     {user.name.slice(0, 2).toUpperCase()}
@@ -628,7 +626,9 @@ export function App() {
                     <span className={`inline-block px-2.5 py-0.5 rounded text-[10px] font-extrabold tracking-wider uppercase mt-1 shadow-2xs ${
                       user.role === 'ADMIN'
                         ? 'bg-[#4338CA] text-indigo-100'
-                        : 'bg-blue-700 text-blue-100'
+                        : user.role === 'STAFF'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-[#1D68FE] text-white'
                     }`}>
                       {user.role}
                     </span>
