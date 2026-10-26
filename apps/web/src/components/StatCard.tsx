@@ -29,9 +29,9 @@ export const StatCard: React.FC<StatCardProps> = ({
       waveStroke: '#10B981',
     },
     amber: {
-      bg: 'bg-purple-50 dark:bg-purple-950/40 text-purple-600 border-purple-100 dark:border-purple-900/50',
-      waveFill: 'rgba(168, 85, 247, 0.08)',
-      waveStroke: '#A855F7',
+      bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-500 border-amber-100 dark:border-amber-900/50',
+      waveFill: 'rgba(245, 158, 11, 0.08)',
+      waveStroke: '#F59E0B',
     },
     purple: {
       bg: 'bg-purple-50 dark:bg-purple-950/40 text-purple-600 border-purple-100 dark:border-purple-900/50',
@@ -48,9 +48,9 @@ export const StatCard: React.FC<StatCardProps> = ({
   const scheme = colorMap[color] || colorMap.blue;
 
   return (
-    <div className="bg-white dark:bg-[#111C2E] rounded-2xl p-5 shadow-xs border border-slate-100 dark:border-slate-800/80 hover:shadow-md transition-all relative overflow-hidden flex flex-col justify-between group">
+    <div className="bg-white dark:bg-[#0E192D] rounded-2xl p-5 shadow-xs hover:shadow-xl hover:-translate-y-0.5 border border-slate-200/80 dark:border-blue-900/40 hover:border-blue-500/40 transition-all duration-200 relative overflow-hidden flex flex-col justify-between group">
       <div className="flex items-start gap-3.5 relative z-10">
-        <div className={`p-2.5 rounded-xl border ${scheme.bg} shrink-0`}>
+        <div className={`p-3 rounded-2xl border ${scheme.bg} shrink-0 shadow-xs group-hover:scale-105 transition-transform`}>
           {icon}
         </div>
         <div className="flex-1 min-w-0">

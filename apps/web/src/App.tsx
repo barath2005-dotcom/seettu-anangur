@@ -253,26 +253,38 @@ export function App() {
     );
   }
 
-  // 1. LOGIN SCREEN WITH BILINGUAL SWITCHER
+  // 1. LOGIN SCREEN WITH BILINGUAL SWITCHER (ULTRA-PREMIUM UI)
   if (!user) {
     return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-[#F5F7FB] p-4">
-        {/* Language selector & Day/Night Toggle in login */}
-        <div className="mb-4 flex items-center gap-2.5">
-          <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-sm text-xs font-semibold">
-            <Languages className="w-4 h-4 text-[#2F7BFF]" />
+      <div className="min-h-screen flex flex-col justify-center items-center bg-[#071328] relative overflow-hidden p-4 sm:p-6 select-none">
+        {/* Subtle Ambient Glowing Mesh Background */}
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-600/20 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-amber-500/15 rounded-full blur-[120px] pointer-events-none"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-900/10 rounded-full blur-[140px] pointer-events-none"></div>
+
+        {/* Subtle decorative temple background watermark */}
+        <img
+          src="/sidebar-bg.png"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover opacity-20 pointer-events-none select-none z-0 mix-blend-overlay"
+        />
+
+        {/* Top Controls: Language & Theme Pill */}
+        <div className="mb-6 flex items-center gap-3 relative z-10">
+          <div className="flex items-center gap-1.5 bg-[#0C1A33]/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-blue-500/25 shadow-xl text-xs font-semibold text-slate-300">
+            <Languages className="w-4 h-4 text-blue-400" />
             <button
               onClick={() => handleLanguageChange('en')}
-              className={`px-2.5 py-1 rounded-full transition-colors ${
-                lang === 'en' ? 'bg-[#2F7BFF] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              className={`px-3 py-1 rounded-full transition-all text-xs font-extrabold ${
+                lang === 'en' ? 'bg-[#1D68FE] text-white shadow-md shadow-blue-500/30' : 'text-slate-300 hover:text-white'
               }`}
             >
               English
             </button>
             <button
               onClick={() => handleLanguageChange('ta')}
-              className={`px-2.5 py-1 rounded-full transition-colors ${
-                lang === 'ta' ? 'bg-[#2F7BFF] text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              className={`px-3 py-1 rounded-full transition-all text-xs font-extrabold ${
+                lang === 'ta' ? 'bg-[#1D68FE] text-white shadow-md shadow-blue-500/30' : 'text-slate-300 hover:text-white'
               }`}
             >
               தமிழ்
@@ -282,42 +294,45 @@ export function App() {
           <button
             onClick={toggleTheme}
             title={theme === 'light' ? t.nightMode : t.dayMode}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all text-xs font-semibold shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-blue-500/25 bg-[#0C1A33]/80 text-slate-300 hover:text-white transition-all text-xs font-bold shadow-xl backdrop-blur-md cursor-pointer"
           >
             {theme === 'light' ? (
               <>
-                <Moon className="w-3.5 h-3.5 text-indigo-600" />
+                <Moon className="w-3.5 h-3.5 text-blue-400" />
                 <span>{lang === 'ta' ? 'இரவு' : 'Night'}</span>
               </>
             ) : (
               <>
-                <Sun className="w-3.5 h-3.5 text-amber-500" />
+                <Sun className="w-3.5 h-3.5 text-amber-400" />
                 <span>{lang === 'ta' ? 'பகல்' : 'Day'}</span>
               </>
             )}
           </button>
         </div>
 
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-8">
+        {/* Ultra-Premium Glassmorphism Login Card */}
+        <div className="w-full max-w-md bg-[#0C1A33]/90 backdrop-blur-xl rounded-[28px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)] border border-blue-500/30 p-7 sm:p-9 relative z-10 text-white">
           {/* Centralized App Logo & Title */}
           <div className="flex flex-col items-center mb-6 text-center">
             <div className="relative mb-3">
-              <img
-                src="/logo.jpg"
-                alt="ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர் சீட்டு குழு Logo"
-                className="w-20 h-20 rounded-2xl object-cover shadow-lg border-2 border-amber-300 ring-4 ring-blue-50 mx-auto"
-              />
+              <div className="w-22 h-22 rounded-3xl border-2 border-amber-400/80 bg-gradient-to-b from-amber-400/25 to-amber-600/10 shadow-[0_0_35px_rgba(251,191,36,0.35)] ring-4 ring-amber-400/20 p-1 flex items-center justify-center">
+                <img
+                  src="/logo.jpg"
+                  alt="ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர் சீட்டு குழு Logo"
+                  className="w-full h-full rounded-[20px] object-cover"
+                />
+              </div>
             </div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-[#172033] tracking-tight text-center leading-snug">
+            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight text-center leading-snug">
               {t.appName}
             </h1>
-            <p className="text-xs text-slate-500 mt-1 text-center font-medium">
+            <p className="text-xs text-blue-200/70 mt-1 text-center font-medium">
               {t.tagline}
             </p>
           </div>
 
           {/* 2 Logins: Member & Admin Only */}
-          <div className="flex p-1 bg-slate-100 rounded-xl mb-6 border border-slate-200/80">
+          <div className="flex p-1.5 bg-[#061020] rounded-2xl mb-6 border border-blue-500/25 shadow-inner">
             <button
               type="button"
               onClick={() => {
@@ -326,10 +341,10 @@ export function App() {
                 setLoginPassword('');
                 setLoginError('');
               }}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 py-2.5 text-xs font-black rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 loginRole === 'MEMBER'
-                  ? 'bg-white text-[#2F7BFF] shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-gradient-to-r from-blue-600 to-[#1D68FE] text-white shadow-lg shadow-blue-500/30'
+                  : 'text-slate-400 hover:text-white'
               }`}
             >
               <UserCheck className="w-4 h-4" />
@@ -343,10 +358,10 @@ export function App() {
                 setLoginPassword('admin123');
                 setLoginError('');
               }}
-              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 py-2.5 text-xs font-black rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 loginRole === 'ADMIN'
-                  ? 'bg-white text-[#2F7BFF] shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-500/30'
+                  : 'text-slate-400 hover:text-white'
               }`}
             >
               <ShieldCheck className="w-4 h-4" />
@@ -355,15 +370,15 @@ export function App() {
           </div>
 
           {loginError && (
-            <div className="mb-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{loginError}</span>
+            <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2.5 backdrop-blur-sm">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+              <span className="font-semibold">{loginError}</span>
             </div>
           )}
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+              <label className="block text-[11px] font-black text-slate-300 uppercase tracking-wider mb-1.5">
                 {loginRole === 'ADMIN'
                   ? (lang === 'ta' ? 'நிர்வாகி மின்னஞ்சல் / பயனர் பெயர்' : 'Admin Username / Email')
                   : (lang === 'ta' ? 'உறுப்பினர் பெயர்' : 'Member Name')}
@@ -373,18 +388,18 @@ export function App() {
                 required
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F7BFF] focus:border-transparent font-medium"
+                className="w-full px-4 py-3 rounded-xl bg-[#061020]/90 border border-blue-500/25 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-medium shadow-inner transition-all"
                 placeholder={loginRole === 'ADMIN' ? 'admin@seettu.com' : (lang === 'ta' ? 'உங்கள் பெயர்' : 'Your Name')}
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-semibold text-slate-700 uppercase">
+                <label className="block text-[11px] font-black text-slate-300 uppercase tracking-wider">
                   {lang === 'ta' ? 'கடவுச்சொல்' : 'Password'}
                 </label>
                 {loginRole === 'MEMBER' && (
-                  <span className="text-[11px] text-blue-600 font-medium">
+                  <span className="text-[11px] text-blue-400 font-bold">
                     {lang === 'ta' ? '(உங்கள் பெயரே கடவுச்சொல்)' : '(Your Name or member123)'}
                   </span>
                 )}
@@ -394,14 +409,14 @@ export function App() {
                 required
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2F7BFF] focus:border-transparent"
+                className="w-full px-4 py-3 rounded-xl bg-[#061020]/90 border border-blue-500/25 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-inner transition-all"
                 placeholder={loginRole === 'ADMIN' ? 'admin123' : (lang === 'ta' ? 'உங்கள் பெயர் அல்லது member123' : 'Your Name or member123')}
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-2.5 px-4 bg-[#2F7BFF] hover:bg-blue-600 text-white rounded-xl text-sm font-bold transition-all shadow-md shadow-blue-500/10 flex items-center justify-center gap-2 cursor-pointer mt-2"
+              className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-sm font-black transition-all shadow-xl shadow-blue-600/30 flex items-center justify-center gap-2 cursor-pointer mt-3 hover:scale-[1.01]"
             >
               {loginRole === 'ADMIN'
                 ? (lang === 'ta' ? 'நிர்வாகியாக உள்நுழைக' : 'Sign In as Admin')
