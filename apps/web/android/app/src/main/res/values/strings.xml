@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ஸ்ரீ பட்டணத்து மாரியம்மன்</string>
+    <string name="title_activity_main">ஸ்ரீ பட்டணத்து மாரியம்மன்</string>
+    <string name="package_name">com.seettu.anangur</string>
+    <string name="custom_url_scheme">com.seettu.anangur</string>
+</resources>

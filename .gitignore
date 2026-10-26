@@ -54,3 +54,14 @@ web-build/
 
 # Testing
 coverage/
+
+# Android & iOS Capacitor Builds
+apps/web/android/app/build/
+apps/web/android/.gradle/
+apps/web/android/build/
+apps/web/android/local.properties
+*.apk
+*.aab
+apps/web/ios/App/Pods/
+apps/web/ios/App/build/
+*.ipa

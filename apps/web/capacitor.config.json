@@ -1,0 +1,9 @@
+{
+  "appId": "com.seettu.anangur",
+  "appName": "Sri Pattanathu Mariamman",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  }
+}
