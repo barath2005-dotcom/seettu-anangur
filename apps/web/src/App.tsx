@@ -410,50 +410,15 @@ export function App() {
         />
       )}
 
-      {/* Desktop Sidebar Navigation (Image 2 style) */}
-      <aside className="hidden lg:flex w-64 h-full bg-gradient-to-b from-[#0B1E40] via-[#081730] to-[#050D1C] text-white border-r border-blue-950/60 flex-col justify-between shrink-0 relative overflow-hidden select-none">
-        {/* Subtle Temple Gopuram Watermark Silhouette at bottom right (Image 2 style) */}
-        <div className="absolute bottom-24 -right-1 w-44 h-64 pointer-events-none opacity-25 text-blue-400 select-none">
-          <svg viewBox="0 0 160 220" className="w-full h-full fill-current" xmlns="http://www.w3.org/2000/svg">
-            <path d="M78 8 L80 2 L82 8 Z M74 10 L76 4 L78 10 Z M82 10 L84 4 L86 10 Z M70 12 L72 7 L74 12 Z M86 12 L88 7 L90 12 Z" />
-            <path d="M68 12 H92 V15 H68 Z" />
-            <path d="M65 16 H95 L93 26 H67 Z" />
-            <circle cx="80" cy="21" r="2" fill="#081730" />
-            <path d="M62 28 H98 L96 42 H64 Z" />
-            <rect x="76" y="32" width="8" height="8" rx="1" fill="#081730" />
-            <path d="M60 42 H100 V45 H60 Z" />
-            <path d="M57 46 H103 L101 64 H59 Z" />
-            <rect x="74" y="50" width="12" height="12" rx="2" fill="#081730" />
-            <circle cx="67" cy="56" r="2" fill="#081730" />
-            <circle cx="93" cy="56" r="2" fill="#081730" />
-            <path d="M54 64 H106 V67 H54 Z" />
-            <path d="M51 68 H109 L107 90 H53 Z" />
-            <rect x="72" y="74" width="16" height="14" rx="2" fill="#081730" />
-            <circle cx="63" cy="80" r="2.5" fill="#081730" />
-            <circle cx="97" cy="80" r="2.5" fill="#081730" />
-            <path d="M48 90 H112 V94 H48 Z" />
-            <path d="M45 95 H115 L113 122 H47 Z" />
-            <rect x="70" y="102" width="20" height="18" rx="2" fill="#081730" />
-            <circle cx="59" cy="110" r="3" fill="#081730" />
-            <circle cx="101" cy="110" r="3" fill="#081730" />
-            <path d="M42 122 H118 V127 H42 Z" />
-            <path d="M39 128 H121 L119 160 H41 Z" />
-            <rect x="68" y="136" width="24" height="22" rx="3" fill="#081730" />
-            <circle cx="54" cy="146" r="3.5" fill="#081730" />
-            <circle cx="106" cy="146" r="3.5" fill="#081730" />
-            <path d="M35 160 H125 V166 H35 Z" />
-            <path d="M32 167 H128 L126 215 H34 Z" />
-            <path d="M66 215 V182 Q80 170 94 182 V215 Z" fill="#081730" />
-          </svg>
-        </div>
-
-        {/* Glowing Electric Curved Waves (Image 2 style) */}
-        <div className="absolute bottom-24 -left-4 -right-4 h-20 pointer-events-none opacity-45 select-none overflow-hidden">
-          <svg viewBox="0 0 280 80" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M-10 40 C40 18, 90 65, 150 35 C210 10, 250 48, 290 30" stroke="#3B82F6" strokeWidth="2.5" />
-            <path d="M-10 55 C50 32, 110 75, 170 45 C230 18, 260 60, 300 45" stroke="#2563EB" strokeWidth="2" opacity="0.8" />
-            <path d="M-10 70 C60 48, 120 90, 180 60 C240 32, 270 70, 310 55" stroke="#1D4ED8" strokeWidth="1.5" opacity="0.6" />
-          </svg>
+      {/* Desktop Sidebar Navigation (Image 1 style) */}
+      <aside className="hidden lg:flex w-[276px] h-full bg-gradient-to-b from-[#0B1E40] via-[#081730] to-[#050D1C] text-white border-r border-blue-950/60 flex-col justify-between shrink-0 relative overflow-hidden select-none">
+        {/* Authentic Dravidian Temple Gopuram & Glowing Waves (Image 1 style) */}
+        <div className="absolute bottom-20 right-0 w-[172px] pointer-events-none select-none z-0">
+          <img
+            src="/sidebar-temple.png"
+            alt="Sri Pattanathu Mariamman Temple Tower"
+            className="w-full h-auto object-contain opacity-95 drop-shadow-[0_0_20px_rgba(37,99,235,0.25)]"
+          />
         </div>
 
         {/* Top Header */}
@@ -462,14 +427,14 @@ export function App() {
             <img
               src="/logo.jpg"
               alt="Sri Pattanathu Mariamman"
-              className="w-10 h-10 rounded-xl object-cover"
+              className="w-11 h-11 rounded-xl object-cover"
             />
           </div>
-          <div className="overflow-hidden min-w-0">
-            <h2 className="font-extrabold text-white text-[13px] leading-tight tracking-tight truncate">
+          <div className="overflow-hidden min-w-0 flex-1">
+            <h2 className="font-extrabold text-white text-[13.5px] leading-snug tracking-tight">
               {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன்' : 'Sri Pattanathu Mariamman'}
             </h2>
-            <p className="text-[11px] text-blue-300/80 font-medium tracking-tight truncate mt-0.5">
+            <p className="text-[11.5px] text-blue-300/80 font-medium tracking-tight mt-0.5">
               {lang === 'ta' ? 'ஆனங்கூர் சீட்டு குழு' : 'Anangur Seettu Kuzhu'}
             </p>
           </div>
@@ -486,7 +451,7 @@ export function App() {
                 onClick={() => setActiveTab(item.id)}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-[13px] transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-[#2563EB] text-white shadow-lg shadow-blue-600/40 font-bold'
+                    ? 'bg-[#1D68FE] text-white shadow-[0_4px_24px_rgba(29,104,254,0.45)] font-bold'
                     : 'text-slate-300 hover:text-white hover:bg-white/5 font-semibold'
                 }`}
               >
@@ -506,18 +471,18 @@ export function App() {
           })}
         </nav>
 
-        {/* Bottom User Card & Logout (Image 2 style) */}
-        <div className="p-3 border-t border-blue-900/40 relative z-10 shrink-0">
-          <div className="p-3 rounded-2xl bg-[#091830]/90 border border-blue-500/25 shadow-xl shadow-black/40 backdrop-blur-md">
+        {/* Bottom User Card & Logout (Image 1 style) */}
+        <div className="p-3.5 relative z-10 shrink-0">
+          <div className="p-3.5 rounded-2xl bg-[#08152B]/90 border border-blue-500/20 shadow-2xl shadow-black/60 backdrop-blur-md">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center font-black text-xs uppercase shrink-0 shadow-md ring-2 ring-blue-400/30">
+              <div className="w-11 h-11 rounded-full bg-[#DCE7FE] text-[#1E40AF] flex items-center justify-center font-black text-sm uppercase shrink-0 shadow-md ring-2 ring-blue-400/20">
                 {user.name.slice(0, 2).toUpperCase()}
               </div>
               <div className="overflow-hidden min-w-0 flex-1">
-                <p className="text-xs font-bold text-white truncate">{user.name}</p>
-                <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-black tracking-wider uppercase mt-0.5 shadow-2xs ${
+                <p className="text-[13px] font-bold text-white truncate">{user.name}</p>
+                <span className={`inline-block px-2.5 py-0.5 rounded text-[10px] font-extrabold tracking-wider uppercase mt-1 shadow-2xs ${
                   user.role === 'ADMIN'
-                    ? 'bg-[#3B28CC] text-indigo-100'
+                    ? 'bg-[#4338CA] text-indigo-100'
                     : 'bg-blue-700 text-blue-100'
                 }`}>
                   {user.role}
@@ -527,9 +492,9 @@ export function App() {
 
             <button
               onClick={handleLogout}
-              className="mt-3 pt-2.5 border-t border-white/10 w-full flex items-center gap-2 px-1 text-slate-300 hover:text-rose-400 transition-colors text-xs font-semibold cursor-pointer group"
+              className="mt-3.5 pt-1 w-full flex items-center gap-2.5 px-1 text-slate-300 hover:text-white transition-colors text-xs font-semibold cursor-pointer group"
             >
-              <LogOut className="w-4 h-4 text-slate-400 group-hover:text-rose-400 transition-colors" />
+              <LogOut className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors" />
               <span>{lang === 'ta' ? 'வெளியேறு' : 'Logout'}</span>
             </button>
           </div>
@@ -547,40 +512,13 @@ export function App() {
 
           {/* Drawer Content */}
           <div className="relative w-72 max-w-[85vw] bg-gradient-to-b from-[#0B1E40] via-[#081730] to-[#050D1C] text-white h-full flex flex-col justify-between shadow-2xl z-10 animate-in slide-in-from-left duration-200 border-r border-blue-900/50 overflow-hidden">
-            {/* Subtle Temple Gopuram Watermark Silhouette */}
-            <div className="absolute bottom-28 -right-2 w-44 h-64 pointer-events-none opacity-20 text-blue-400 select-none">
-              <svg viewBox="0 0 160 220" className="w-full h-full fill-current" xmlns="http://www.w3.org/2000/svg">
-                <path d="M78 8 L80 2 L82 8 Z M74 10 L76 4 L78 10 Z M82 10 L84 4 L86 10 Z M70 12 L72 7 L74 12 Z M86 12 L88 7 L90 12 Z" />
-                <path d="M68 12 H92 V15 H68 Z" />
-                <path d="M65 16 H95 L93 26 H67 Z" />
-                <circle cx="80" cy="21" r="2" fill="#081730" />
-                <path d="M62 28 H98 L96 42 H64 Z" />
-                <rect x="76" y="32" width="8" height="8" rx="1" fill="#081730" />
-                <path d="M60 42 H100 V45 H60 Z" />
-                <path d="M57 46 H103 L101 64 H59 Z" />
-                <rect x="74" y="50" width="12" height="12" rx="2" fill="#081730" />
-                <path d="M54 64 H106 V67 H54 Z" />
-                <path d="M51 68 H109 L107 90 H53 Z" />
-                <rect x="72" y="74" width="16" height="14" rx="2" fill="#081730" />
-                <path d="M48 90 H112 V94 H48 Z" />
-                <path d="M45 95 H115 L113 122 H47 Z" />
-                <rect x="70" y="102" width="20" height="18" rx="2" fill="#081730" />
-                <path d="M42 122 H118 V127 H42 Z" />
-                <path d="M39 128 H121 L119 160 H41 Z" />
-                <rect x="68" y="136" width="24" height="22" rx="3" fill="#081730" />
-                <path d="M35 160 H125 V166 H35 Z" />
-                <path d="M32 167 H128 L126 215 H34 Z" />
-                <path d="M66 215 V182 Q80 170 94 182 V215 Z" fill="#081730" />
-              </svg>
-            </div>
-
-            {/* Glowing Electric Curved Waves */}
-            <div className="absolute bottom-28 -left-4 -right-4 h-20 pointer-events-none opacity-40 select-none overflow-hidden">
-              <svg viewBox="0 0 280 80" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M-10 40 C40 18, 90 65, 150 35 C210 10, 250 48, 290 30" stroke="#3B82F6" strokeWidth="2.5" />
-                <path d="M-10 55 C50 32, 110 75, 170 45 C230 18, 260 60, 300 45" stroke="#2563EB" strokeWidth="2" opacity="0.8" />
-                <path d="M-10 70 C60 48, 120 90, 180 60 C240 32, 270 70, 310 55" stroke="#1D4ED8" strokeWidth="1.5" opacity="0.6" />
-              </svg>
+            {/* Authentic Dravidian Temple Gopuram & Glowing Waves */}
+            <div className="absolute bottom-24 right-0 w-[160px] pointer-events-none select-none z-0">
+              <img
+                src="/sidebar-temple.png"
+                alt="Temple Tower"
+                className="w-full h-auto object-contain opacity-90"
+              />
             </div>
 
             {/* Header with App Logo & Close Button */}
@@ -625,7 +563,7 @@ export function App() {
                     }}
                     className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-[13px] transition-all cursor-pointer ${
                       isActive
-                        ? 'bg-[#2563EB] text-white shadow-lg shadow-blue-600/40 font-bold'
+                        ? 'bg-[#1D68FE] text-white shadow-lg shadow-blue-600/40 font-bold'
                         : 'text-slate-300 hover:text-white hover:bg-white/5 font-semibold'
                     }`}
                   >
@@ -678,18 +616,18 @@ export function App() {
               </button>
             </div>
 
-            {/* Mobile Drawer User Card & Logout (Image 2 style) */}
-            <div className="p-3 border-t border-blue-900/40 relative z-10 shrink-0">
-              <div className="p-3 rounded-2xl bg-[#091830]/90 border border-blue-500/25 shadow-xl shadow-black/40 backdrop-blur-md">
+            {/* Mobile Drawer User Card & Logout (Image 1 style) */}
+            <div className="p-3.5 relative z-10 shrink-0">
+              <div className="p-3.5 rounded-2xl bg-[#08152B]/90 border border-blue-500/20 shadow-xl shadow-black/60 backdrop-blur-md">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 text-[#1E3A8A] flex items-center justify-center font-black text-xs uppercase shrink-0 shadow-md ring-2 ring-blue-400/30">
+                  <div className="w-11 h-11 rounded-full bg-[#DCE7FE] text-[#1E40AF] flex items-center justify-center font-black text-sm uppercase shrink-0 shadow-md ring-2 ring-blue-400/20">
                     {user.name.slice(0, 2).toUpperCase()}
                   </div>
                   <div className="overflow-hidden min-w-0 flex-1">
-                    <p className="text-xs font-bold text-white truncate">{user.name}</p>
-                    <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-black tracking-wider uppercase mt-0.5 shadow-2xs ${
+                    <p className="text-[13px] font-bold text-white truncate">{user.name}</p>
+                    <span className={`inline-block px-2.5 py-0.5 rounded text-[10px] font-extrabold tracking-wider uppercase mt-1 shadow-2xs ${
                       user.role === 'ADMIN'
-                        ? 'bg-[#3B28CC] text-indigo-100'
+                        ? 'bg-[#4338CA] text-indigo-100'
                         : 'bg-blue-700 text-blue-100'
                     }`}>
                       {user.role}
@@ -702,9 +640,9 @@ export function App() {
                     setMobileMenuOpen(false);
                     handleLogout();
                   }}
-                  className="mt-3 pt-2.5 border-t border-white/10 w-full flex items-center gap-2 px-1 text-slate-300 hover:text-rose-400 transition-colors text-xs font-semibold cursor-pointer group"
+                  className="mt-3.5 pt-1 w-full flex items-center gap-2.5 px-1 text-slate-300 hover:text-white transition-colors text-xs font-semibold cursor-pointer group"
                 >
-                  <LogOut className="w-4 h-4 text-slate-400 group-hover:text-rose-400 transition-colors" />
+                  <LogOut className="w-4 h-4 text-slate-400 group-hover:text-white transition-colors" />
                   <span>{lang === 'ta' ? 'வெளியேறு' : 'Logout'}</span>
                 </button>
               </div>
