@@ -408,18 +408,6 @@ export function App() {
                 : (lang === 'ta' ? 'உறுப்பினராக உள்நுழைக' : 'Sign In as Member')}
             </button>
           </form>
-
-          {/* Public Mobile App Download Link on Login */}
-          <div className="mt-5 text-center pt-4 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={() => setShowPublicDownload(true)}
-              className="text-xs text-[#2F7BFF] hover:underline font-bold inline-flex items-center gap-1.5 cursor-pointer"
-            >
-              <Smartphone className="w-4 h-4" />
-              <span>{lang === 'ta' ? '📱 மொபைல் ஆப் பதிவிறக்கம் (Android & iOS)' : '📱 Download Mobile App (Android APK & iOS)'}</span>
-            </button>
-          </div>
         </div>
       </div>
     );
