@@ -46,11 +46,13 @@ jobs:
           cp capacitor.config.json android/app/src/main/assets/capacitor.config.json 2>/dev/null || true
           npx cap sync android --no-color || true
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
       - name: Build Android APK (Debug)
         working-directory: apps/web/android
         run: |
           chmod +x gradlew
-          yes | sdkmanager --licenses || true
           ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload Android APK Artifact
