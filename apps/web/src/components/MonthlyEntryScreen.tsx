@@ -173,6 +173,7 @@ export function MonthlyEntryScreen({
 
   const isMember = user?.role?.toUpperCase() === 'MEMBER' || (user?.role !== 'ADMIN' && user?.role !== 'STAFF');
   const [memberSearch, setMemberSearch] = useState('');
+  const [showFullRoster, setShowFullRoster] = useState(false);
 
   // Mini Calendar Popover State
   const [showMiniCalendar, setShowMiniCalendar] = useState(false);
@@ -225,13 +226,31 @@ export function MonthlyEntryScreen({
     const yy = String(calYear).slice(-2);
     const newDateStr = `${dd}.${mm}.${yy}`;
 
+    const matched = savedReportsList.find((r) => r.date === newDateStr);
+    const targetChit = matched ? matched.chitNo : chitNo;
+
     setDate(newDateStr);
+    if (matched) {
+      setChitNo(matched.chitNo);
+    }
     try {
-      localStorage.setItem(LAST_ACTIVE_CHIT_KEY, JSON.stringify({ chitNo, date: newDateStr }));
+      localStorage.setItem(LAST_ACTIVE_CHIT_KEY, JSON.stringify({ chitNo: targetChit, date: newDateStr }));
     } catch (e) {}
 
     setShowMiniCalendar(false);
-    loadReport(chitNo, newDateStr);
+    loadReport(targetChit, newDateStr);
+  };
+
+  const selectChitByRecord = (c: string, d: string) => {
+    setChitNo(c);
+    setDate(d);
+    const p = parseChitDate(d);
+    setCalYear(p.year);
+    setCalMonth(p.month);
+    try {
+      localStorage.setItem(LAST_ACTIVE_CHIT_KEY, JSON.stringify({ chitNo: c, date: d }));
+    } catch (e) {}
+    loadReport(c, d);
   };
 
   const handlePrevCalMonth = (e: React.MouseEvent) => {
@@ -859,7 +878,7 @@ export function MonthlyEntryScreen({
   const totalCommission = entries.reduce((sum, e) => sum + (Number(e.commission) || 0), 0);
   const netPool = totalAmount - totalCommission;
 
-  // DEDICATED READ-ONLY MEMBER MONTHLY STATEMENT VIEW
+  // DEDICATED READ-ONLY MEMBER MONTHLY STATEMENT VIEW (WITH INTEGRATED CALENDAR)
   if (isMember) {
     const memberFilteredEntries = entries.filter((e) => {
       if (selectedSheet !== 'ALL' && e.sheetNumber !== selectedSheet) return false;
@@ -872,13 +891,9 @@ export function MonthlyEntryScreen({
       );
     });
 
-    const grandMemberAmount = memberFilteredEntries.reduce((s, e) => s + (Number(e.amount) || 0), 0);
-    const grandMemberCommission = memberFilteredEntries.reduce((s, e) => s + (Number(e.commission) || 0), 0);
-    const grandMemberOffered = memberFilteredEntries.reduce((s, e) => s + (Number(e.moneyOffered) || 0), 0);
-
     return (
-      <div className="space-y-6 max-w-7xl mx-auto pb-10">
-        {/* Top Header: Official Statement Title, Chit Selector & Export Actions */}
+      <div className="space-y-6 max-w-7xl mx-auto pb-12">
+        {/* Top Header: Official Statement Title & Export Actions */}
         <div className="bg-white dark:bg-[#101A2E] p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-blue-900/40 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex flex-wrap items-center gap-2">
@@ -893,45 +908,12 @@ export function MonthlyEntryScreen({
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               {lang === 'ta'
-                ? 'ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர் சீட்டு குழு • 78 உறுப்பினர்களின் தவணை மற்றும் கணக்கு விபரம் (பார்வைக்கு மட்டும்).'
-                : 'Sri Pattanathu Mariamman Anangur Seettu • Official monthly collection & settlement statement across 78 seats (Read-Only).'}
+                ? 'நாட்காட்டியில் தேதியைத் தேர்ந்தெடுத்து உங்கள் மாதாந்திர சீட்டு அறிக்கையைக் காண்க.'
+                : 'Select any date or chit on the calendar to view your official monthly statement and passbook.'}
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {/* Chit Selector */}
-            {savedReportsList.length > 0 && (
-              <div className="flex items-center gap-2 bg-slate-100 dark:bg-[#0B1424] px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800">
-                <span className="text-xs font-bold text-slate-500 uppercase">
-                  {lang === 'ta' ? 'சீட்டு:' : 'Chit:'}
-                </span>
-                <select
-                  value={`${chitNo}|${date}`}
-                  onChange={(e) => {
-                    const [c, d] = e.target.value.split('|');
-                    setChitNo(c);
-                    setDate(d);
-                    try {
-                      localStorage.setItem(LAST_ACTIVE_CHIT_KEY, JSON.stringify({ chitNo: c, date: d }));
-                    } catch (err) {}
-                    loadReport(c, d);
-                  }}
-                  className="bg-transparent text-xs font-black text-slate-900 dark:text-slate-100 outline-none cursor-pointer"
-                >
-                  {savedReportsList.map((r, i) => (
-                    <option key={i} value={`${r.chitNo}|${r.date}`} className="dark:bg-[#101A2E] text-slate-900 dark:text-white">
-                      Chit {r.chitNo} ({r.date})
-                    </option>
-                  ))}
-                  {!savedReportsList.some((r) => r.chitNo === chitNo && r.date === date) && (
-                    <option value={`${chitNo}|${date}`} className="dark:bg-[#101A2E] text-slate-900 dark:text-white">
-                      Chit {chitNo} ({date})
-                    </option>
-                  )}
-                </select>
-              </div>
-            )}
-
             <button
               onClick={() => loadReport(chitNo, date)}
               className="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl transition-colors cursor-pointer"
@@ -960,391 +942,491 @@ export function MonthlyEntryScreen({
           </div>
         </div>
 
-        {/* Member Personalized Hero Card (Your Chit Passbook) */}
-        {myEntry && (
-          <div className="bg-gradient-to-br from-[#06182C] via-[#0A2647] to-[#0D3B54] text-white p-5 sm:p-6 rounded-3xl border border-blue-500/30 shadow-xl relative overflow-hidden">
-            <div className="absolute -right-8 -bottom-8 text-8xl opacity-10 select-none pointer-events-none">🛕</div>
-            <div className="relative z-10">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-blue-400/20">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
-                  <span className="text-xs font-black uppercase tracking-wider text-emerald-300">
-                    {lang === 'ta' ? 'உங்களின் மாதாந்திர சீட்டு கணக்கு விவரம்' : 'Your Monthly Chit Standing & Passbook'}
-                  </span>
-                </div>
+        {/* Two-Column Responsive Layout: Interactive Calendar on Left, Selected Date Report on Right */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* LEFT COLUMN: Integrated Interactive Calendar (5 cols) */}
+          <div className="lg:col-span-5 space-y-4">
+            <div className="bg-white dark:bg-[#101A2E] p-4 sm:p-5 rounded-3xl border border-slate-200 dark:border-blue-900/40 shadow-sm space-y-4">
+              {/* Calendar Month Header & Navigation */}
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-blue-500/20 text-blue-200 border border-blue-400/30">
-                    {myEntry.memberNumber}
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-black bg-amber-500/20 text-amber-300 border border-amber-400/30">
-                    Seat #{myEntry.sno}
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/10 text-white border border-white/20">
-                    Sheet {myEntry.sheetNumber}
-                  </span>
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                    <Calendar className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                      {displayMonthName} {calYear}
+                    </h3>
+                    {monthSummary.pournamiDay && (
+                      <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                        🌕 {lang === 'ta' ? `பௌர்ணமி: ${monthSummary.pournamiDay}` : `Pournami Day: ${monthSummary.pournamiDay}`}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={handlePrevCalMonth}
+                    className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                    title="Previous Month"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNextCalMonth}
+                    className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                    title="Next Month"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
 
-              <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                    {myEntry.memberName}
-                  </h3>
-                  <p className="text-xs text-blue-200/80 mt-0.5 font-medium">
-                    {lang === 'ta' ? `சீட்டு எண்: ${chitNo} • தவணைத் தேதி: ${date}` : `Chit Scheme No: ${chitNo} • Draw Date: ${date}`}
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 bg-black/30 backdrop-blur-md p-3 rounded-2xl border border-white/10">
-                  <div className="p-2.5 rounded-xl bg-white/5">
-                    <span className="text-[10px] uppercase font-bold text-slate-300 block">
-                      {lang === 'ta' ? 'தவணைத் தொகை' : 'Installment Due'}
-                    </span>
-                    <span className="text-base sm:text-lg font-black text-white font-mono">
-                      ₹{Number(myEntry.amount).toLocaleString('en-IN')}
-                    </span>
-                  </div>
-
-                  <div className="p-2.5 rounded-xl bg-white/5">
-                    <span className="text-[10px] uppercase font-bold text-slate-300 block">
-                      {lang === 'ta' ? 'வழங்கப்பட்டது' : 'Money Offered'}
-                    </span>
-                    <span className="text-base sm:text-lg font-black text-emerald-300 font-mono">
-                      ₹{(Number(myEntry.moneyOffered) || 0).toLocaleString('en-IN')}
-                    </span>
-                  </div>
-
-                  <div className="p-2.5 rounded-xl bg-white/5">
-                    <span className="text-[10px] uppercase font-bold text-slate-300 block">
-                      {lang === 'ta' ? 'கமிஷன்' : 'Commission'}
-                    </span>
-                    <span className="text-base sm:text-lg font-black text-purple-300 font-mono">
-                      ₹{Number(myEntry.commission || 0).toLocaleString('en-IN')}
-                    </span>
-                  </div>
-
-                  <div className="p-2.5 rounded-xl bg-white/5 flex flex-col justify-center">
-                    <span className="text-[10px] uppercase font-bold text-slate-300 block mb-1">
-                      {lang === 'ta' ? 'செலுத்தல் நிலை' : 'Status'}
-                    </span>
-                    <span className="inline-flex items-center gap-1 text-xs font-black text-emerald-300 bg-emerald-500/20 px-2 py-1 rounded-lg border border-emerald-400/30 w-fit">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                      {myEntry.status === 'PAID' ? (lang === 'ta' ? 'செலுத்தப்பட்டது' : 'Paid') : myEntry.status}
-                    </span>
-                  </div>
-                </div>
+              {/* Day Headers (Su, Mo, Tu, We, Th, Fr, Sa) */}
+              <div className="grid grid-cols-7 gap-1 text-center">
+                {dayHeaders.map((dh, i) => (
+                  <span
+                    key={i}
+                    className={`text-[11px] font-black py-0.5 ${
+                      i === 0 ? 'text-rose-500' : 'text-slate-400'
+                    }`}
+                  >
+                    {dh}
+                  </span>
+                ))}
               </div>
-            </div>
-          </div>
-        )}
 
-        {/* 5 Official Chit Summary Stat Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
-          <div className="bg-white dark:bg-[#101A2E] p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-              {lang === 'ta' ? 'மொத்த உறுப்பினர்கள்' : 'Total Members'}
-            </span>
-            <div className="flex items-center justify-between">
-              <span className="text-xl font-black text-slate-900 dark:text-white font-mono">{entries.length}</span>
-              <span className="text-xs px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 font-bold font-mono">
-                6 {lang === 'ta' ? 'தாள்கள்' : 'Sheets'}
-              </span>
-            </div>
-          </div>
+              {/* Days Grid */}
+              <div className="grid grid-cols-7 gap-1">
+                {paddingArray.map((_, i) => (
+                  <div key={`pad-${i}`} className="h-9 w-full" />
+                ))}
 
-          <div className="bg-white dark:bg-[#101A2E] p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-              {lang === 'ta' ? 'மொத்த வசூல்' : 'Total Collected'}
-            </span>
-            <div className="flex items-center justify-between">
-              <span className="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
-                ₹{totalAmount.toLocaleString('en-IN')}
-              </span>
-              <span className="text-[10px] text-slate-400 font-medium">₹10k x 78</span>
-            </div>
-          </div>
+                {monthSummary.days.map((d) => {
+                  const isSelected =
+                    parsedCurrent.day === d.day &&
+                    parsedCurrent.month === calMonth &&
+                    parsedCurrent.year === calYear;
 
-          <div className="bg-white dark:bg-[#101A2E] p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-              {lang === 'ta' ? 'மொத்த கமிஷன்' : 'Total Commission'}
-            </span>
-            <div className="flex items-center justify-between">
-              <span className="text-xl font-black text-purple-600 dark:text-purple-400 font-mono">
-                ₹{totalCommission.toLocaleString('en-IN')}
-              </span>
-              <span className="text-[10px] text-purple-600 dark:text-purple-400 font-bold">
-                {totalAmount > 0 ? `${((totalCommission / totalAmount) * 100).toFixed(1)}%` : '0%'}
-              </span>
-            </div>
-          </div>
+                  const ddStr = String(d.day).padStart(2, '0');
+                  const mmStr = String(calMonth + 1).padStart(2, '0');
+                  const yyStr = String(calYear).slice(-2);
+                  const fullDateStr = `${ddStr}.${mmStr}.${yyStr}`;
+                  const hasRecordedChit = savedReportsList.some((r) => r.date === fullDateStr);
 
-          <div className="bg-white dark:bg-[#101A2E] p-4 rounded-2xl border border-amber-200 dark:border-amber-900/50 shadow-sm relative overflow-hidden bg-gradient-to-br from-white to-amber-50/30 dark:from-[#101A2E] dark:to-amber-950/20">
-            <div className="absolute -right-2 -bottom-2 text-3xl opacity-10 select-none">🛕</div>
-            <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider block mb-1">
-              🛕 {lang === 'ta' ? 'கோவில் தர்ம நிதி' : 'Temple Charity Fund'}
-            </span>
-            <div className="flex items-center justify-between">
-              <span className="text-xl font-black text-amber-800 dark:text-amber-300 font-mono">
-                ₹{Number(templeCharityFund).toLocaleString('en-IN')}
-              </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 font-bold">
-                {lang === 'ta' ? 'மாரியம்மன்' : 'Temple'}
-              </span>
-            </div>
-          </div>
+                  return (
+                    <button
+                      key={d.day}
+                      type="button"
+                      onClick={() => handleSelectDay(d.day)}
+                      className={`h-9 w-full rounded-xl text-xs font-bold flex flex-col items-center justify-center relative transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-[#1D68FE] text-white font-black shadow-md shadow-blue-500/30 scale-105 z-10'
+                          : d.isPournami
+                          ? 'bg-amber-100 dark:bg-amber-950/70 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700 font-black hover:bg-amber-200'
+                          : hasRecordedChit
+                          ? 'bg-blue-50 dark:bg-blue-950/50 text-[#1D68FE] dark:text-blue-300 border border-blue-200 dark:border-blue-800 font-extrabold hover:bg-blue-100'
+                          : d.isToday
+                          ? 'bg-slate-100 dark:bg-slate-800 text-[#1D68FE] font-bold border border-slate-300 dark:border-slate-700'
+                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                      }`}
+                      title={
+                        hasRecordedChit
+                          ? `Chit Date (${fullDateStr})`
+                          : d.isPournami
+                          ? `Pournami Day (${fullDateStr})`
+                          : fullDateStr
+                      }
+                    >
+                      <span className="leading-none">{d.day}</span>
+                      {d.isPournami && !isSelected && (
+                        <span className="text-[9px] leading-none mt-0.5">🌕</span>
+                      )}
+                      {hasRecordedChit && !d.isPournami && !isSelected && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#1D68FE] mt-0.5"></span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
 
-          <div className="bg-white dark:bg-[#101A2E] p-4 rounded-2xl border border-emerald-300 dark:border-emerald-800 shadow-sm relative overflow-hidden bg-gradient-to-br from-white to-emerald-50/50 dark:from-[#101A2E] dark:to-emerald-950/30">
-            <div className="absolute -right-2 -bottom-2 text-3xl opacity-10 select-none">⚖️</div>
-            <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider block mb-1">
-              ⚖️ {lang === 'ta' ? 'இறுதி கணக்கு சமரசம்' : 'Net Settlement Tally'}
-            </span>
-            <div className="flex items-center justify-between">
-              <span className="text-xl font-black text-emerald-950 dark:text-emerald-200 font-mono">
-                ₹{(totalAmount - totalCommission - templeCharityFund).toLocaleString('en-IN')}
-              </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold border border-emerald-300 dark:border-emerald-800">
-                ✓ {lang === 'ta' ? 'சமரசம்' : 'Tallied'}
-              </span>
-            </div>
-          </div>
-        </div>
+              {/* Quick Jump Shortcuts */}
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-semibold text-slate-500">
+                <button
+                  type="button"
+                  onClick={handleJumpToToday}
+                  className="px-2.5 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-[#1D68FE] font-bold transition-colors cursor-pointer"
+                >
+                  {lang === 'ta' ? 'இன்று' : 'Today'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleJumpToNextPournami}
+                  className="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900 text-amber-800 dark:text-amber-200 font-bold border border-amber-200 dark:border-amber-800 transition-colors flex items-center gap-1 cursor-pointer"
+                >
+                  <span>🌕</span>
+                  <span>{lang === 'ta' ? 'அடுத்த சீட்டு' : 'Next Pournami'}</span>
+                </button>
+              </div>
 
-        {/* Sheet Tabs & Quick Search */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[#101A2E] p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
-          {/* Sheet Tabs */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            <button
-              onClick={() => setSelectedSheet('ALL')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                selectedSheet === 'ALL'
-                  ? 'bg-[#1D68FE] text-white shadow-sm'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
-              }`}
-            >
-              {lang === 'ta' ? 'அனைத்தும் (1-78)' : 'All (1-78)'}
-            </button>
-            {[1, 2, 3, 4, 5, 6].map((s) => (
-              <button
-                key={s}
-                onClick={() => setSelectedSheet(s)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  selectedSheet === s
-                    ? 'bg-[#1D68FE] text-white shadow-sm'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
-                } ${myEntry?.sheetNumber === s ? 'ring-2 ring-emerald-500 font-black' : ''}`}
-              >
-                Sheet {s} ({(s - 1) * 13 + 1}-{s * 13})
-                {myEntry?.sheetNumber === s && ' ⭐'}
-              </button>
-            ))}
-          </div>
-
-          {/* Member Search Bar */}
-          <div className="relative w-full sm:w-64">
-            <input
-              type="text"
-              value={memberSearch}
-              onChange={(e) => setMemberSearch(e.target.value)}
-              placeholder={lang === 'ta' ? 'உறுப்பினர் பெயர் / எண் தேடுக...' : 'Search member or seat #...'}
-              className="w-full px-3 py-1.5 pl-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs text-slate-900 dark:text-white placeholder-slate-400 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <span className="absolute left-2.5 top-2 text-slate-400 text-xs">🔍</span>
-            {memberSearch && (
-              <button
-                onClick={() => setMemberSearch('')}
-                className="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 text-xs"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Clean Official Member Roster Table (100% Read-Only) */}
-        <div className="bg-white dark:bg-[#101A2E] rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
-          {/* Printable Official Header */}
-          <div className="p-4 bg-slate-50 dark:bg-[#0E1726] border-b border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white">
-            <div>
-              <span className="text-slate-500 font-normal">{lang === 'ta' ? 'தேதி:' : 'Date:'} </span>
-              <span className="font-mono">{date}</span>
-            </div>
-            <div className="text-center font-black text-xs uppercase tracking-wider text-blue-900 dark:text-blue-300">
-              {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர் சீட்டு குழு' : 'Sri Pattanathu Mariamman Anangur Seettu'}
-            </div>
-            <div>
-              <span className="text-slate-500 font-normal">{lang === 'ta' ? 'சீட்டு எண்:' : 'Chit No:'} </span>
-              <span className="font-mono">{chitNo}</span>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-slate-100 dark:bg-[#0C1523] text-slate-700 dark:text-slate-300 font-black border-b border-slate-200 dark:border-slate-800">
-                <tr>
-                  <th className="py-3 px-4 w-16 text-center border-r border-slate-200 dark:border-slate-800">S.no</th>
-                  <th className="py-3 px-4 border-r border-slate-200 dark:border-slate-800">
-                    {lang === 'ta' ? 'உறுப்பினர் பெயர்' : 'Member Name'}
-                  </th>
-                  <th className="py-3 px-4 w-28 text-center border-r border-slate-200 dark:border-slate-800">
-                    {lang === 'ta' ? 'தவணைத் தொகை' : 'Installment'}
-                  </th>
-                  <th className="py-3 px-4 w-28 text-center border-r border-slate-200 dark:border-slate-800">
-                    {lang === 'ta' ? 'கமிஷன்' : 'Commission'}
-                  </th>
-                  <th className="py-3 px-4 w-32 text-center border-r border-slate-200 dark:border-slate-800">
-                    {lang === 'ta' ? 'வழங்கப்பட்டது' : 'Money Offered'}
-                  </th>
-                  <th className="py-3 px-4 w-28 text-center border-r border-slate-200 dark:border-slate-800">
-                    {lang === 'ta' ? 'செலுத்தல் முறை' : 'Payment Mode'}
-                  </th>
-                  <th className="py-3 px-4 w-28 text-center">
-                    {lang === 'ta' ? 'நிலை' : 'Status'}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
-                {loading ? (
-                  <tr>
-                    <td colSpan={7} className="text-center py-12 text-slate-400">
-                      {lang === 'ta' ? 'அறிக்கை விவரங்கள் ஏற்றப்படுகின்றன...' : 'Loading monthly report statement...'}
-                    </td>
-                  </tr>
-                ) : memberFilteredEntries.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="text-center py-12 text-slate-400">
-                      {lang === 'ta' ? 'பொருத்தமான பதிவுகள் எதுவும் இல்லை' : 'No records match search'}
-                    </td>
-                  </tr>
-                ) : (
-                  memberFilteredEntries.map((e) => {
-                    const isMyRow = Boolean(myEntry && e.sno === myEntry.sno);
-                    return (
-                      <tr
-                        key={e.sno}
-                        className={`transition-colors ${
-                          isMyRow
-                            ? 'bg-emerald-50 dark:bg-emerald-950/40 ring-2 ring-emerald-500 font-bold'
-                            : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
-                        }`}
-                      >
-                        {/* S.No */}
-                        <td className={`py-3 px-4 text-center font-mono font-bold border-r border-slate-200 dark:border-slate-800 ${
-                          isMyRow ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-950 dark:text-emerald-200 font-black' : 'text-slate-800 dark:text-slate-300'
-                        }`}>
-                          {e.sno}
-                        </td>
-
-                        {/* Member Name */}
-                        <td className="py-3 px-4 border-r border-slate-200 dark:border-slate-800">
+              {/* Saved Chit Reports List (Click to jump directly) */}
+              {savedReportsList.length > 0 && (
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                    {lang === 'ta' ? 'அங்கீகரிக்கப்பட்ட சீட்டு தவணைகள்' : 'Official Recorded Chits'}
+                  </span>
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                    {savedReportsList.map((r, i) => {
+                      const isActive = r.chitNo === chitNo && r.date === date;
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => selectChitByRecord(r.chitNo, r.date)}
+                          className={`w-full p-2.5 rounded-xl border text-xs text-left transition-all flex items-center justify-between cursor-pointer ${
+                            isActive
+                              ? 'bg-blue-50 dark:bg-blue-950/60 border-[#1D68FE] text-slate-900 dark:text-white shadow-xs font-bold'
+                              : 'bg-slate-50 dark:bg-[#0B1424] border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                          }`}
+                        >
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-slate-900 dark:text-white text-sm">{e.memberName}</span>
-                            {isMyRow && (
-                              <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-black uppercase shadow-2xs">
-                                ⭐ {lang === 'ta' ? 'நீங்கள்' : 'You'}
+                            <span className="text-sm">🌕</span>
+                            <div>
+                              <span className="font-mono font-bold block">
+                                Chit {r.chitNo} ({r.date})
                               </span>
-                            )}
-                            {e.sno === 78 && (
-                              <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-800 text-[10px] font-black uppercase flex items-center gap-1 shadow-2xs">
-                                🛕 {lang === 'ta' ? 'கோவில் சீட்டு' : 'Temple Seat'}
+                              <span className="text-[10px] text-slate-400">
+                                78 Members • ₹{(r.totalAmount || 780000).toLocaleString('en-IN')}
                               </span>
-                            )}
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="font-mono text-[10px] text-slate-400">{e.memberNumber}</span>
-                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-mono">
-                              Sheet {e.sheetNumber}
+                          {isActive && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-[#1D68FE] text-white">
+                              {lang === 'ta' ? 'தேர்ந்தெடுக்கப்பட்டது' : 'Active'}
                             </span>
-                          </div>
-                        </td>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
 
-                        {/* Amount */}
-                        <td className="py-3 px-4 text-center font-mono font-bold text-slate-900 dark:text-slate-200 border-r border-slate-200 dark:border-slate-800">
-                          ₹{Number(e.amount).toLocaleString('en-IN')}
-                        </td>
+          {/* RIGHT COLUMN: Selected Date Report & Passbook (7 cols) */}
+          <div className="lg:col-span-7 space-y-5">
+            {/* Selected Date Header Pill */}
+            <div className="flex items-center justify-between bg-white dark:bg-[#101A2E] px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-slate-500">{lang === 'ta' ? 'தேர்ந்தெடுக்கப்பட்ட தேதி:' : 'Selected Date:'}</span>
+                <span className="text-sm font-mono font-black text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
+                  {date}
+                </span>
+                <span className="text-sm font-mono font-black text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2.5 py-1 rounded-lg border border-blue-200 dark:border-blue-900">
+                  Chit {chitNo}
+                </span>
+              </div>
+              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                {lang === 'ta' ? 'கணக்கு சரிபார்க்கப்பட்டது' : 'Verified'}
+              </span>
+            </div>
 
-                        {/* Commission */}
-                        <td className="py-3 px-4 text-center font-mono font-bold text-purple-700 dark:text-purple-400 border-r border-slate-200 dark:border-slate-800">
-                          {e.commission ? `₹${Number(e.commission).toLocaleString('en-IN')}` : '-'}
-                        </td>
+            {/* Member Personalized Hero Card (Passbook Statement) */}
+            {myEntry && (
+              <div className="bg-gradient-to-br from-[#06182C] via-[#0A2647] to-[#0D3B54] text-white p-5 sm:p-6 rounded-3xl border border-blue-500/30 shadow-xl relative overflow-hidden">
+                <div className="absolute -right-8 -bottom-8 text-8xl opacity-10 select-none pointer-events-none">🛕</div>
+                <div className="relative z-10">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-blue-400/20">
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
+                      <span className="text-xs font-black uppercase tracking-wider text-emerald-300">
+                        {lang === 'ta' ? 'உங்களின் மாதாந்திர சீட்டு கணக்கு விவரம்' : 'Your Monthly Chit Standing & Passbook'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-blue-500/20 text-blue-200 border border-blue-400/30">
+                        {myEntry.memberNumber}
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-black bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                        Seat #{myEntry.sno}
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/10 text-white border border-white/20">
+                        Sheet {myEntry.sheetNumber}
+                      </span>
+                    </div>
+                  </div>
 
-                        {/* Money Offered */}
-                        <td className="py-3 px-4 text-center font-mono font-bold text-emerald-700 dark:text-emerald-400 border-r border-slate-200 dark:border-slate-800">
-                          ₹{(Number(e.moneyOffered) || 0).toLocaleString('en-IN')}
-                        </td>
+                  <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                        {myEntry.memberName}
+                      </h3>
+                      <p className="text-xs text-blue-200/80 mt-0.5 font-medium">
+                        {lang === 'ta' ? `சீட்டு எண்: ${chitNo} • தவணைத் தேதி: ${date}` : `Chit Scheme No: ${chitNo} • Draw Date: ${date}`}
+                      </p>
+                    </div>
 
-                        {/* Payment Mode */}
-                        <td className="py-3 px-4 text-center text-xs font-semibold text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-800">
-                          {e.paymentMethod === 'CASH' ? '💵 Cash' : e.paymentMethod === 'UPI' ? '📱 UPI' : e.paymentMethod || '💵 Cash'}
-                        </td>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 bg-black/30 backdrop-blur-md p-3 rounded-2xl border border-white/10">
+                      <div className="p-2.5 rounded-xl bg-white/5">
+                        <span className="text-[10px] uppercase font-bold text-slate-300 block">
+                          {lang === 'ta' ? 'தவணைத் தொகை' : 'Installment Due'}
+                        </span>
+                        <span className="text-base sm:text-lg font-black text-white font-mono">
+                          ₹{Number(myEntry.amount).toLocaleString('en-IN')}
+                        </span>
+                      </div>
 
-                        {/* Status */}
-                        <td className="py-3 px-4 text-center">
-                          <span className={`inline-flex items-center gap-1 py-1 px-2.5 rounded-full text-xs font-bold ${
-                            e.status === 'PAID'
-                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                              : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
-                          }`}>
-                            {e.status === 'PAID' ? '✓ Paid' : '⏳ Pending'}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-              <tfoot className="bg-slate-100 dark:bg-[#0C1523] font-black text-slate-900 dark:text-white border-t-2 border-slate-300 dark:border-slate-700">
-                <tr>
-                  <td className="py-3 px-4 text-center font-mono border-r border-slate-300 dark:border-slate-700">
-                    {memberFilteredEntries.length}
-                  </td>
-                  <td className="py-3 px-4 border-r border-slate-300 dark:border-slate-700 uppercase tracking-wider text-xs">
-                    {lang === 'ta' ? 'அறிக்கை மொத்தம் (Total)' : 'Statement Total'}
-                  </td>
-                  <td className="py-3 px-4 text-center font-mono text-emerald-700 dark:text-emerald-400 border-r border-slate-300 dark:border-slate-700 text-sm">
-                    ₹{grandMemberAmount.toLocaleString('en-IN')}
-                  </td>
-                  <td className="py-3 px-4 text-center font-mono text-purple-700 dark:text-purple-400 border-r border-slate-300 dark:border-slate-700 text-sm">
-                    ₹{grandMemberCommission.toLocaleString('en-IN')}
-                  </td>
-                  <td className="py-3 px-4 text-center font-mono text-emerald-800 dark:text-emerald-300 border-r border-slate-300 dark:border-slate-700 text-sm">
-                    ₹{grandMemberOffered.toLocaleString('en-IN')}
-                  </td>
-                  <td colSpan={2} className="py-3 px-4 text-center font-mono text-emerald-700 dark:text-emerald-400 text-xs">
-                    ✓ Verified Official Roster
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
+                      <div className="p-2.5 rounded-xl bg-white/5">
+                        <span className="text-[10px] uppercase font-bold text-slate-300 block">
+                          {lang === 'ta' ? 'வழங்கப்பட்டது' : 'Money Offered'}
+                        </span>
+                        <span className="text-base sm:text-lg font-black text-emerald-300 font-mono">
+                          ₹{(Number(myEntry.moneyOffered) || 0).toLocaleString('en-IN')}
+                        </span>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-white/5">
+                        <span className="text-[10px] uppercase font-bold text-slate-300 block">
+                          {lang === 'ta' ? 'கமிஷன்' : 'Commission'}
+                        </span>
+                        <span className="text-base sm:text-lg font-black text-purple-300 font-mono">
+                          ₹{Number(myEntry.commission || 0).toLocaleString('en-IN')}
+                        </span>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-white/5 flex flex-col justify-center">
+                        <span className="text-[10px] uppercase font-bold text-slate-300 block mb-1">
+                          {lang === 'ta' ? 'செலுத்தல் நிலை' : 'Status'}
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-xs font-black text-emerald-300 bg-emerald-500/20 px-2 py-1 rounded-lg border border-emerald-400/30 w-fit">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                          {myEntry.status === 'PAID' ? (lang === 'ta' ? 'செலுத்தப்பட்டது' : 'Paid') : myEntry.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Official Chit Scheme Summary Stat Cards for Selected Date */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="bg-white dark:bg-[#101A2E] p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                  {lang === 'ta' ? 'மொத்த உறுப்பினர்கள்' : 'Total Members'}
+                </span>
+                <span className="text-lg font-black text-slate-900 dark:text-white font-mono block">
+                  {entries.length} (6 Sheets)
+                </span>
+              </div>
+
+              <div className="bg-white dark:bg-[#101A2E] p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                  {lang === 'ta' ? 'மொத்த வசூல்' : 'Total Collected'}
+                </span>
+                <span className="text-lg font-black text-emerald-600 dark:text-emerald-400 font-mono block">
+                  ₹{totalAmount.toLocaleString('en-IN')}
+                </span>
+              </div>
+
+              <div className="bg-white dark:bg-[#101A2E] p-3.5 rounded-2xl border border-amber-200 dark:border-amber-900/50 shadow-sm bg-gradient-to-br from-white to-amber-50/30 dark:from-[#101A2E] dark:to-amber-950/20">
+                <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider block mb-1">
+                  🛕 {lang === 'ta' ? 'கோவில் தர்ம நிதி' : 'Temple Charity'}
+                </span>
+                <span className="text-lg font-black text-amber-800 dark:text-amber-300 font-mono block">
+                  ₹{Number(templeCharityFund).toLocaleString('en-IN')}
+                </span>
+              </div>
+
+              <div className="bg-white dark:bg-[#101A2E] p-3.5 rounded-2xl border border-emerald-300 dark:border-emerald-800 shadow-sm bg-gradient-to-br from-white to-emerald-50/50 dark:from-[#101A2E] dark:to-emerald-950/30">
+                <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider block mb-1">
+                  ⚖️ {lang === 'ta' ? 'இறுதி கணக்கு சமரசம்' : 'Net Settlement'}
+                </span>
+                <span className="text-lg font-black text-emerald-950 dark:text-emerald-200 font-mono block">
+                  ₹{(totalAmount - totalCommission - templeCharityFund).toLocaleString('en-IN')}
+                </span>
+              </div>
+            </div>
+
+            {/* Direct Action Buttons for Selected Date */}
+            <div className="flex flex-wrap items-center gap-3 bg-white dark:bg-[#101A2E] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+              <button
+                onClick={exportPDF}
+                className="flex-1 sm:flex-none px-4 py-2.5 bg-[#1D68FE] hover:bg-blue-600 text-white rounded-xl text-xs font-black transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <FileText className="w-4 h-4" />
+                <span>{lang === 'ta' ? 'அதிகாரப்பூர்வ அறிக்கை (PDF)' : 'Download Official PDF Statement'}</span>
+              </button>
+
+              <button
+                onClick={exportCSV}
+                className="px-4 py-2.5 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+              >
+                <Download className="w-4 h-4 text-emerald-600" />
+                <span>Export CSV</span>
+              </button>
+            </div>
+
+            {/* Official Committee Verification Seal Box */}
+            <div className="p-4 rounded-2xl bg-white dark:bg-[#101A2E] border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 flex items-center justify-center text-xl shrink-0">
+                🛡️
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-xs font-black text-slate-900 dark:text-white truncate">
+                  {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன் சீட்டு நிர்வாக தணிக்கை சான்றிதழ்' : 'Official Committee Audit & Verification Certificate'}
+                </h4>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  {lang === 'ta'
+                    ? '78 உறுப்பினர்களின் பங்களிப்புகள் சரிபார்க்கப்பட்டு, கோவில் தர்ம நிதி ₹10,000 முறையாக ஒதுக்கப்பட்டுள்ளது.'
+                    : 'All 78 seats verified, audited, and temple charity fund of ₹10,000 allocated to Sri Pattanathu Mariamman.'}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Official Committee Verification Seal Box */}
-        <div className="p-5 rounded-2xl bg-white dark:bg-[#101A2E] border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 flex items-center justify-center text-2xl shadow-xs">
-              🛡️
-            </div>
-            <div>
-              <h4 className="text-sm font-black text-slate-900 dark:text-white">
-                {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன் சீட்டு நிர்வாக தணிக்கை சான்றிதழ்' : 'Official Committee Audit & Verification Certificate'}
-              </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+        {/* Optional Collapsible 78-Member Roster (Closed by default so it never clutters the screen) */}
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={() => setShowFullRoster((prev) => !prev)}
+            className="w-full py-3 px-4 rounded-2xl bg-white dark:bg-[#101A2E] border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-2xs cursor-pointer"
+          >
+            <span className="flex items-center gap-2">
+              <span>👥</span>
+              <span>
                 {lang === 'ta'
-                  ? '78 உறுப்பினர்களின் பங்களிப்புகள் சரிபார்க்கப்பட்டு, கோவில் தர்ம நிதி ₹10,000 முறையாக ஒதுக்கப்பட்டுள்ளது.'
-                  : 'All 78 seats verified, audited, and temple charity fund of ₹10,000 allocated to Sri Pattanathu Mariamman.'}
-              </p>
-            </div>
-          </div>
+                  ? '78 உறுப்பினர்களின் முழு பட்டியல் (விரும்பினால் மட்டும் காண்க)'
+                  : 'View Full 78 Seats Scheme Roster (Optional)'}
+              </span>
+            </span>
+            <span className="text-xs text-blue-600 dark:text-blue-400 font-mono font-bold">
+              {showFullRoster ? '▲ Hide' : '▼ Expand'}
+            </span>
+          </button>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={exportPDF}
-              className="px-4 py-2 bg-[#1D68FE] hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
-            >
-              <FileText className="w-4 h-4" />
-              <span>{lang === 'ta' ? 'அறிக்கையை PDF ஆக பதிவிறக்குக' : 'Download Official PDF'}</span>
-            </button>
-          </div>
+          {showFullRoster && (
+            <div className="mt-4 space-y-4 animate-in fade-in duration-200">
+              {/* Sheet Tabs & Search */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[#101A2E] p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <button
+                    onClick={() => setSelectedSheet('ALL')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      selectedSheet === 'ALL'
+                        ? 'bg-[#1D68FE] text-white shadow-sm'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                    }`}
+                  >
+                    {lang === 'ta' ? 'அனைத்தும் (1-78)' : 'All (1-78)'}
+                  </button>
+                  {[1, 2, 3, 4, 5, 6].map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setSelectedSheet(s)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        selectedSheet === s
+                          ? 'bg-[#1D68FE] text-white shadow-sm'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                      } ${myEntry?.sheetNumber === s ? 'ring-2 ring-emerald-500 font-black' : ''}`}
+                    >
+                      Sheet {s} ({(s - 1) * 13 + 1}-{s * 13})
+                      {myEntry?.sheetNumber === s && ' ⭐'}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="relative w-full sm:w-64">
+                  <input
+                    type="text"
+                    value={memberSearch}
+                    onChange={(e) => setMemberSearch(e.target.value)}
+                    placeholder={lang === 'ta' ? 'உறுப்பினர் பெயர் தேடுக...' : 'Search member or seat #...'}
+                    className="w-full px-3 py-1.5 pl-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs text-slate-900 dark:text-white placeholder-slate-400 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <span className="absolute left-2.5 top-2 text-slate-400 text-xs">🔍</span>
+                </div>
+              </div>
+
+              {/* Roster Table */}
+              <div className="bg-white dark:bg-[#101A2E] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead className="bg-slate-100 dark:bg-[#0C1523] text-slate-700 dark:text-slate-300 font-black border-b border-slate-200 dark:border-slate-800">
+                      <tr>
+                        <th className="py-3 px-4 w-16 text-center border-r border-slate-200 dark:border-slate-800">S.no</th>
+                        <th className="py-3 px-4 border-r border-slate-200 dark:border-slate-800">{lang === 'ta' ? 'உறுப்பினர் பெயர்' : 'Member Name'}</th>
+                        <th className="py-3 px-4 w-28 text-center border-r border-slate-200 dark:border-slate-800">{lang === 'ta' ? 'தவணைத் தொகை' : 'Installment'}</th>
+                        <th className="py-3 px-4 w-28 text-center border-r border-slate-200 dark:border-slate-800">{lang === 'ta' ? 'கமிஷன்' : 'Commission'}</th>
+                        <th className="py-3 px-4 w-32 text-center border-r border-slate-200 dark:border-slate-800">{lang === 'ta' ? 'வழங்கப்பட்டது' : 'Money Offered'}</th>
+                        <th className="py-3 px-4 w-28 text-center border-r border-slate-200 dark:border-slate-800">{lang === 'ta' ? 'செலுத்தல் முறை' : 'Payment Mode'}</th>
+                        <th className="py-3 px-4 w-28 text-center">{lang === 'ta' ? 'நிலை' : 'Status'}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+                      {memberFilteredEntries.map((e) => {
+                        const isMyRow = Boolean(myEntry && e.sno === myEntry.sno);
+                        return (
+                          <tr
+                            key={e.sno}
+                            className={`transition-colors ${
+                              isMyRow
+                                ? 'bg-emerald-50 dark:bg-emerald-950/40 ring-2 ring-emerald-500 font-bold'
+                                : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                            }`}
+                          >
+                            <td className={`py-3 px-4 text-center font-mono font-bold border-r border-slate-200 dark:border-slate-800 ${
+                              isMyRow ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-950 dark:text-emerald-200 font-black' : 'text-slate-800 dark:text-slate-300'
+                            }`}>
+                              {e.sno}
+                            </td>
+                            <td className="py-3 px-4 border-r border-slate-200 dark:border-slate-800">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-slate-900 dark:text-white text-sm">{e.memberName}</span>
+                                {isMyRow && (
+                                  <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-black uppercase">
+                                    ⭐ {lang === 'ta' ? 'நீங்கள்' : 'You'}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="font-mono text-[10px] text-slate-400">{e.memberNumber} • Sheet {e.sheetNumber}</span>
+                            </td>
+                            <td className="py-3 px-4 text-center font-mono font-bold text-slate-900 dark:text-slate-200 border-r border-slate-200 dark:border-slate-800">
+                              ₹{Number(e.amount).toLocaleString('en-IN')}
+                            </td>
+                            <td className="py-3 px-4 text-center font-mono font-bold text-purple-700 dark:text-purple-400 border-r border-slate-200 dark:border-slate-800">
+                              {e.commission ? `₹${Number(e.commission).toLocaleString('en-IN')}` : '-'}
+                            </td>
+                            <td className="py-3 px-4 text-center font-mono font-bold text-emerald-700 dark:text-emerald-400 border-r border-slate-200 dark:border-slate-800">
+                              ₹{(Number(e.moneyOffered) || 0).toLocaleString('en-IN')}
+                            </td>
+                            <td className="py-3 px-4 text-center text-xs font-semibold text-slate-700 dark:text-slate-300 border-r border-slate-200 dark:border-slate-800">
+                              {e.paymentMethod === 'CASH' ? '💵 Cash' : e.paymentMethod === 'UPI' ? '📱 UPI' : e.paymentMethod || '💵 Cash'}
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              <span className={`inline-flex items-center gap-1 py-1 px-2.5 rounded-full text-xs font-bold ${
+                                e.status === 'PAID'
+                                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                                  : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                              }`}>
+                                {e.status === 'PAID' ? '✓ Paid' : '⏳ Pending'}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
