@@ -20,7 +20,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
     if (existing.length > 0) {
       const totalAmount = existing.reduce((sum, e) => sum + e.amount, 0);
       const totalCommission = existing.reduce((sum, e) => sum + e.commission, 0);
-      const charityFund = existing[0]?.templeCharityFund ?? 10000;
+      const charityFund = existing[0]?.templeCharityFund ?? 15600;
 
       res.json({
         success: true,
@@ -58,15 +58,16 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       memberNumber: m.memberNumber,
       memberName: m.fullName,
       amount: 10000,
-      commission: 0,
+      commission: 600,
       moneyOffered: 0,
-      templeCharityFund: 10000,
+      templeCharityFund: 15600,
       status: 'PAID',
       paymentMethod: 'CASH',
       notes: '',
     }));
 
     const totalAmount = entries.reduce((sum: number, e: any) => sum + e.amount, 0);
+    const totalCommission = entries.reduce((sum: number, e: any) => sum + e.commission, 0);
 
     res.json({
       success: true,
@@ -76,9 +77,9 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
         isSaved: false,
         totalMembers: entries.length,
         totalAmount,
-        totalCommission: 0,
-        templeCharityFund: 10000,
-        netAmount: totalAmount,
+        totalCommission,
+        templeCharityFund: 15600,
+        netAmount: totalAmount - totalCommission,
         entries,
       },
     });
@@ -91,14 +92,14 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
 // POST /api/monthly-reports - Save or update monthly report entries (Batch)
 router.post('/', authenticate, requireRole('ADMIN', 'STAFF'), async (req: Request, res: Response) => {
   try {
-    const { chitNo, date, entries, templeCharityFund = 10000 } = req.body;
+    const { chitNo, date, entries, templeCharityFund = 15600 } = req.body;
 
     if (!chitNo || !date || !Array.isArray(entries) || entries.length === 0) {
       res.status(400).json({ success: false, error: 'Chit number, date, and entries array are required' });
       return;
     }
 
-    const fundAmount = Number(templeCharityFund) || 10000;
+    const fundAmount = Number(templeCharityFund) || 15600;
     let totalAmount = 0;
     let totalCommission = 0;
 
@@ -244,7 +245,7 @@ router.get('/dates', authenticate, async (req: Request, res: Response) => {
             where: { chitNo: r.chitNo, date: r.date },
             select: { templeCharityFund: true },
           });
-          const templeCharityFund = sample?.templeCharityFund ?? 15000;
+          const templeCharityFund = sample?.templeCharityFund ?? 15600;
           const totalAmount = r._sum.amount || 0;
           const totalCommission = r._sum.commission || 0;
           const totalOffered = r._sum.moneyOffered || 0;
@@ -276,8 +277,8 @@ router.get('/dates', authenticate, async (req: Request, res: Response) => {
         totalAmount: 780000,
         totalCommission: 46800,
         totalOffered: 0,
-        templeCharityFund: 15000,
-        netTally: 780000 - 46800 - 15000,
+        templeCharityFund: 15600,
+        netTally: 780000 - 46800 - 15600,
         isSaved: true,
       });
     }
@@ -294,8 +295,8 @@ router.get('/dates', authenticate, async (req: Request, res: Response) => {
           totalAmount: 780000,
           totalCommission: 46800,
           totalOffered: 0,
-          templeCharityFund: 15000,
-          netTally: 718200,
+          templeCharityFund: 15600,
+          netTally: 780000 - 46800 - 15600,
           isSaved: true,
         },
       ],

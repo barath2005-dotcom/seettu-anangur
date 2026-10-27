@@ -3635,7 +3635,7 @@ function ReportsScreen({
       .then((res) => {
         const map = new Map<string, any>();
         localList.forEach((r) => {
-          const charity = r.templeCharityFund !== undefined ? Number(r.templeCharityFund) : 15000;
+          const charity = r.templeCharityFund !== undefined ? Number(r.templeCharityFund) : 15600;
           const gross = Number(r.totalAmount) || 780000;
           const comm = Number(r.totalCommission) || 46800;
           const off = Number(r.totalOffered) || 0;
@@ -3651,7 +3651,7 @@ function ReportsScreen({
 
         if (res.success && Array.isArray(res.data)) {
           res.data.forEach((r: any) => {
-            const charity = r.templeCharityFund !== undefined ? Number(r.templeCharityFund) : 15000;
+            const charity = r.templeCharityFund !== undefined ? Number(r.templeCharityFund) : 15600;
             const gross = Number(r.totalAmount) || 780000;
             const comm = Number(r.totalCommission) || 46800;
             const off = Number(r.totalOffered) || 0;
@@ -3675,8 +3675,8 @@ function ReportsScreen({
             totalAmount: 780000,
             totalCommission: 46800,
             totalOffered: 0,
-            templeCharityFund: 15000,
-            netTally: 780000 - 46800 - 15000,
+            templeCharityFund: 15600,
+            netTally: 780000 - 46800 - 15600,
             isSaved: true,
           });
         }
@@ -3695,8 +3695,8 @@ function ReportsScreen({
               totalAmount: 780000,
               totalCommission: 46800,
               totalOffered: 0,
-              templeCharityFund: 15000,
-              netTally: 718200,
+              templeCharityFund: 15600,
+              netTally: 780000 - 46800 - 15600,
               isSaved: true,
             },
           ]);
@@ -3708,7 +3708,7 @@ function ReportsScreen({
   const totalChitsCount = monthlyReports.length;
   const grandGrossCollection = monthlyReports.reduce((s, r) => s + (Number(r.totalAmount) || 0), 0);
   const grandCommission = monthlyReports.reduce((s, r) => s + (Number(r.totalCommission) || 0), 0);
-  const grandTempleCharity = monthlyReports.reduce((s, r) => s + (Number(r.templeCharityFund) || 15000), 0);
+  const grandTempleCharity = monthlyReports.reduce((s, r) => s + (Number(r.templeCharityFund) || 15600), 0);
   const grandOffered = monthlyReports.reduce((s, r) => s + (Number(r.totalOffered) || 0), 0);
   const grandNetTally = grandGrossCollection - grandCommission - grandTempleCharity;
 
@@ -3810,7 +3810,7 @@ function ReportsScreen({
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
               {monthlyReports.map((r, idx) => {
-                const charity = Number(r.templeCharityFund) || 15000;
+                const charity = Number(r.templeCharityFund) || 15600;
                 const gross = Number(r.totalAmount) || 780000;
                 const comm = Number(r.totalCommission) || 46800;
                 const offered = Number(r.totalOffered) || 0;
