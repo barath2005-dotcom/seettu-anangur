@@ -98,156 +98,132 @@ router.post('/', authenticate, requireRole('ADMIN', 'STAFF'), async (req: Reques
       return;
     }
 
-    let savedCount = 0;
+    const fundAmount = Number(templeCharityFund) || 10000;
     let totalAmount = 0;
     let totalCommission = 0;
 
-    // Check if an active scheme exists to sync member ledger payments
-    const activeScheme = await prisma.scheme.findFirst({
-      where: { status: 'ACTIVE' },
+    const formattedEntries = entries.map((item: any, idx: number) => {
+      const sno = Number(item.sno) || idx + 1;
+      const amount = Number(item.amount) || 10000;
+      const commission = Number(item.commission) || 0;
+      const moneyOffered = item.moneyOffered !== undefined && item.moneyOffered !== null && item.moneyOffered !== ''
+        ? Number(item.moneyOffered) || 0
+        : 0;
+      const itemCharity = item.templeCharityFund !== undefined && item.templeCharityFund !== null
+        ? Number(item.templeCharityFund)
+        : fundAmount;
+      const sheetNumber = item.sheetNumber || Math.floor((sno - 1) / 13) + 1;
+
+      totalAmount += amount;
+      totalCommission += commission;
+
+      return {
+        chitNo: String(chitNo),
+        date: String(date),
+        sno,
+        sheetNumber,
+        memberNumber: item.memberNumber || null,
+        memberName: item.memberName || `Member ${sno}`,
+        amount,
+        commission,
+        moneyOffered,
+        templeCharityFund: itemCharity,
+        status: item.status || 'PAID',
+        paymentMethod: item.paymentMethod || 'CASH',
+        notes: item.notes || null,
+      };
     });
 
-    const fundAmount = Number(templeCharityFund) || 10000;
-
+    // Fast, atomic replace: delete existing entries for this chit & date, then createMany
     await prisma.$transaction(async (tx) => {
-      for (const item of entries) {
-        const sno = Number(item.sno);
-        const amount = Number(item.amount) || 10000;
-        const commission = Number(item.commission) || 0;
-        const moneyOffered = item.moneyOffered !== undefined && item.moneyOffered !== null && item.moneyOffered !== ''
-          ? Number(item.moneyOffered) || 0
-          : 0;
-        const itemCharity = item.templeCharityFund !== undefined && item.templeCharityFund !== null
-          ? Number(item.templeCharityFund)
-          : fundAmount;
-        const sheetNumber = item.sheetNumber || Math.floor((sno - 1) / 13) + 1;
+      await tx.monthlyReportEntry.deleteMany({
+        where: {
+          chitNo: String(chitNo),
+          date: String(date),
+        },
+      });
 
-        totalAmount += amount;
-        totalCommission += commission;
+      await tx.monthlyReportEntry.createMany({
+        data: formattedEntries,
+      });
 
-        await tx.monthlyReportEntry.upsert({
-          where: {
-            chitNo_date_sno: {
-              chitNo: String(chitNo),
-              date: String(date),
-              sno,
-            },
-          },
-          update: {
-            amount,
-            commission,
-            moneyOffered,
-            templeCharityFund: itemCharity,
-            status: item.status || 'PAID',
-            paymentMethod: item.paymentMethod || 'CASH',
-            notes: item.notes || null,
-          },
-          create: {
-            chitNo: String(chitNo),
-            date: String(date),
-            sno,
-            sheetNumber,
-            memberNumber: item.memberNumber || null,
-            memberName: item.memberName || `Member ${sno}`,
-            amount,
-            commission,
-            moneyOffered,
-            templeCharityFund: itemCharity,
-            status: item.status || 'PAID',
-            paymentMethod: item.paymentMethod || 'CASH',
-            notes: item.notes || null,
-          },
-        });
-        savedCount++;
-
-        // Sync payment record for member ledger if status is PAID
-        if (activeScheme && (item.status === 'PAID' || item.status === 'Paid')) {
-          try {
-            const roundNum = parseInt(String(chitNo), 10) || 1;
-            const memberRecord = item.memberNumber
-              ? await tx.member.findUnique({ where: { memberNumber: item.memberNumber } })
-              : null;
-
-            if (memberRecord) {
-              const existingPayment = await tx.payment.findFirst({
-                where: {
-                  schemeId: activeScheme.id,
-                  memberId: memberRecord.id,
-                  roundNumber: roundNum,
-                },
-              });
-
-              if (!existingPayment) {
-                const amountPaise = amount * 100;
-                const txId = `TXN-C${chitNo}-${String(sno).padStart(3, '0')}-${Date.now().toString().slice(-4)}`;
-                const recNo = `REC-C${chitNo}-${String(sno).padStart(3, '0')}`;
-
-                const payment = await tx.payment.create({
-                  data: {
-                    transactionId: txId,
-                    receiptNumber: recNo,
-                    schemeId: activeScheme.id,
-                    memberId: memberRecord.id,
-                    roundNumber: roundNum,
-                    amountDuePaise: amountPaise,
-                    amountReceivedPaise: amountPaise,
-                    balanceRemainingPaise: 0,
-                    paymentDate: new Date(),
-                    paymentMethod: item.paymentMethod || 'CASH',
-                    recordedByUserId: req.user!.id,
-                    status: 'SUCCESS',
-                    notes: `Monthly Report Chit ${chitNo} (${date}) S.No ${sno}`,
-                  },
-                });
-
-                await tx.receipt.create({
-                  data: {
-                    receiptNumber: recNo,
-                    paymentId: payment.id,
-                    memberId: memberRecord.id,
-                    schemeId: activeScheme.id,
-                    amountPaise,
-                  },
-                });
-              }
-            }
-          } catch (syncErr) {
-            console.warn(`Payment ledger sync skipped for member ${item.memberNumber}:`, syncErr);
-          }
-        }
-      }
-
-      // Record audit log
       try {
         await tx.auditLog.create({
           data: {
             userId: req.user!.id,
             action: 'SAVE_MONTHLY_REPORT',
             entityType: 'MonthlyReport',
-            details: JSON.stringify({ chitNo, date, savedCount, totalAmount, totalCommission }),
+            details: JSON.stringify({
+              chitNo,
+              date,
+              savedCount: formattedEntries.length,
+              totalAmount,
+              totalCommission,
+              templeCharityFund: fundAmount,
+            }),
             ipAddress: req.ip || req.socket.remoteAddress,
           },
         });
-      } catch (auditErr) {
-        console.warn('Audit log write skipped:', auditErr);
-      }
+      } catch (auditErr) {}
     });
 
     res.json({
       success: true,
-      message: `Monthly report for Chit ${chitNo} (${date}) saved successfully (${savedCount} members).`,
+      message: `Monthly report for Chit ${chitNo} (${date}) saved successfully (${formattedEntries.length} members).`,
       data: {
         chitNo,
         date,
-        savedCount,
+        savedCount: formattedEntries.length,
         totalAmount,
         totalCommission,
+        templeCharityFund: fundAmount,
         netAmount: totalAmount - totalCommission,
       },
     });
   } catch (err: any) {
     console.error('Failed to save monthly report:', err);
     res.status(500).json({ success: false, error: err.message || 'Failed to save monthly report' });
+  }
+});
+
+// DELETE /api/monthly-reports - Delete monthly report by chitNo and date
+router.delete('/', authenticate, requireRole('ADMIN', 'STAFF'), async (req: Request, res: Response) => {
+  try {
+    const chitNo = (req.query.chitNo as string) || (req.body?.chitNo as string);
+    const date = (req.query.date as string) || (req.body?.date as string);
+
+    if (!chitNo || !date) {
+      res.status(400).json({ success: false, error: 'Chit number and date are required' });
+      return;
+    }
+
+    const deleted = await prisma.monthlyReportEntry.deleteMany({
+      where: {
+        chitNo: String(chitNo),
+        date: String(date),
+      },
+    });
+
+    try {
+      await prisma.auditLog.create({
+        data: {
+          userId: req.user!.id,
+          action: 'DELETE_MONTHLY_REPORT',
+          entityType: 'MonthlyReport',
+          details: JSON.stringify({ chitNo, date, deletedCount: deleted.count }),
+          ipAddress: req.ip || req.socket.remoteAddress,
+        },
+      });
+    } catch (e) {}
+
+    res.json({
+      success: true,
+      message: `Monthly report for Chit ${chitNo} (${date}) deleted successfully (${deleted.count} entries removed).`,
+      data: { chitNo, date, deletedCount: deleted.count },
+    });
+  } catch (err: any) {
+    console.error('Failed to delete monthly report:', err);
+    res.status(500).json({ success: false, error: err.message || 'Failed to delete monthly report' });
   }
 });
 

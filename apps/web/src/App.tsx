@@ -155,6 +155,9 @@ export function App() {
         .then((res) => {
           if (res.success) {
             setUser(res.data);
+            if (res.data.role === 'MEMBER') {
+              setActiveTab('monthly-entry');
+            }
             fetchNotifications();
           } else {
             clearAuthTokens();
@@ -187,7 +190,7 @@ export function App() {
       if (res.success) {
         setAuthTokens(res.data.accessToken, res.data.refreshToken);
         setUser(res.data.user);
-        setActiveTab('dashboard');
+        setActiveTab(res.data.user.role === 'MEMBER' ? 'monthly-entry' : 'dashboard');
         fetchNotifications();
         showToast(`${t.welcomeBack}, ${res.data.user.name}!`);
       }
@@ -430,7 +433,7 @@ export function App() {
 
   // Navigation Items by Role
   const navItems = [
-    { id: 'dashboard', label: lang === 'ta' ? 'முகப்பு' : 'Dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
+    { id: 'dashboard', label: lang === 'ta' ? 'முகப்பு' : 'Dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'STAFF'] },
     { id: 'members', label: lang === 'ta' ? 'உறுப்பினர்கள்' : 'Members', icon: Users, roles: ['ADMIN', 'STAFF'] },
     {
       id: 'monthly-entry',
@@ -440,10 +443,10 @@ export function App() {
       icon: ClipboardList,
       roles: ['ADMIN', 'STAFF', 'MEMBER'],
     },
-    { id: 'schemes', label: lang === 'ta' ? 'சீட்டு திட்டங்கள்' : 'Chit Schemes', icon: Coins, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
-    { id: 'calendar', label: lang === 'ta' ? 'சீட்டு நாட்காட்டி' : 'Chit Calendar', icon: Calendar, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
-    { id: 'payments', label: lang === 'ta' ? 'தவணை பதிவேடு' : 'Payments Ledger', icon: Receipt, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
-    { id: 'payouts', label: lang === 'ta' ? 'வழங்கல்கள்' : 'Payouts', icon: Gift, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
+    { id: 'schemes', label: lang === 'ta' ? 'சீட்டு திட்டங்கள்' : 'Chit Schemes', icon: Coins, roles: ['ADMIN', 'STAFF'] },
+    { id: 'calendar', label: lang === 'ta' ? 'சீட்டு நாட்காட்டி' : 'Chit Calendar', icon: Calendar, roles: ['ADMIN', 'STAFF'] },
+    { id: 'payments', label: lang === 'ta' ? 'தவணை பதிவேடு' : 'Payments Ledger', icon: Receipt, roles: ['ADMIN', 'STAFF'] },
+    { id: 'payouts', label: lang === 'ta' ? 'வழங்கல்கள்' : 'Payouts', icon: Gift, roles: ['ADMIN', 'STAFF'] },
     { id: 'reports', label: lang === 'ta' ? 'நிதி அறிக்கைகள்' : 'Financial Reports', icon: FileBarChart2, roles: ['ADMIN', 'STAFF'] },
     { id: 'notifications', label: lang === 'ta' ? 'அறிவிப்புகள்' : 'Notifications', icon: Bell, roles: ['ADMIN', 'STAFF', 'MEMBER'], badge: unreadCount },
     { id: 'staff', label: lang === 'ta' ? 'பணியாளர்கள் & அனுமதிகள்' : 'Staff & Roles', icon: ShieldCheck, roles: ['ADMIN'] },

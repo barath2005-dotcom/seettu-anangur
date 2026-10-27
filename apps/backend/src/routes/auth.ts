@@ -224,6 +224,7 @@ router.post('/login', validateBody(LoginSchema), async (req: Request, res: Respo
           role: authenticatedUser.role,
           phone: authenticatedUser.phone,
           memberId: authenticatedUser.memberId,
+          member: authenticatedUser.member,
           isActive: authenticatedUser.isActive,
           createdAt: authenticatedUser.createdAt.toISOString(),
           updatedAt: authenticatedUser.updatedAt.toISOString(),

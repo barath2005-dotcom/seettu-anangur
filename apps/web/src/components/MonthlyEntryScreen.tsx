@@ -16,6 +16,11 @@ import {
   X,
   Search,
   ShieldCheck,
+  Trash2,
+  Edit3,
+  AlertTriangle,
+  Eye,
+  UserCheck,
 } from 'lucide-react';
 import { api } from '../services/api';
 import {
@@ -172,6 +177,10 @@ export function MonthlyEntryScreen({
   const [bulkCommission, setBulkCommission] = useState('');
 
   const isMember = user?.role?.toUpperCase() === 'MEMBER' || (user?.role !== 'ADMIN' && user?.role !== 'STAFF');
+  const [adminPreviewMemberView, setAdminPreviewMemberView] = useState(false);
+  const effectiveIsMember = isMember || adminPreviewMemberView;
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedMemberSeat, setSelectedMemberSeat] = useState<number | null>(null);
   const [memberSearch, setMemberSearch] = useState('');
   const [showFullRoster, setShowFullRoster] = useState(false);
 
@@ -308,22 +317,31 @@ export function MonthlyEntryScreen({
     loadReport(chitNo, newDateStr);
   };
 
-  // Identify member's own entry if logged in as a member
-  const myEntry =
-    entries.find((e) => {
-      if (!isMember) return false;
-      if (user?.member?.memberNumber && e.memberNumber === user.member.memberNumber) return true;
-      if (user?.name) {
-        const uNorm = user.name.toLowerCase().replace(/[\s\.\-]+/g, '');
-        const eNorm = (e.memberName || '').toLowerCase().replace(/[\s\.\-]+/g, '');
-        return eNorm.includes(uNorm) || uNorm.includes(eNorm);
+  // Identify member's seats (could be 1 or multiple seats like M-024 / M-025)
+  const memberSeats = entries.filter((e) => {
+    if (!effectiveIsMember) return false;
+    if (user?.member?.memberNumber && e.memberNumber === user.member.memberNumber) return true;
+    if (user?.memberId && user?.member?.id && (e.memberNumber === user.member.memberNumber || e.memberNumber === user.memberId)) return true;
+    if (user?.name) {
+      const uNorm = user.name.toLowerCase().replace(/[\s\.\-]+/g, '');
+      const eNorm = (e.memberName || '').toLowerCase().replace(/[\s\.\-]+/g, '');
+      if (eNorm.includes(uNorm) || uNorm.includes(eNorm)) return true;
+      const parts = user.name.split(/[\s\/\(\)]+/).filter((p: string) => p.length >= 3);
+      for (const p of parts) {
+        if (eNorm.includes(p.toLowerCase())) return true;
       }
-      return false;
-    }) || (isMember ? entries.find((e) => e.sno === 14) || entries[0] : undefined);
+    }
+    return false;
+  });
+
+  const activeSeatNumber = selectedMemberSeat !== null
+    ? selectedMemberSeat
+    : (memberSeats[0]?.sno || 1);
+
+  const myEntry = entries.find((e) => e.sno === activeSeatNumber) || entries[0];
 
   const loadReport = (targetChit = chitNo, targetDate = date) => {
     setLoading(true);
-    // Instant local cache recovery
     const localKey = `seettu_monthly_report_${targetChit}_${targetDate}`;
     const fundKey = `seettu_charity_fund_${targetChit}_${targetDate}`;
     try {
@@ -331,7 +349,6 @@ export function MonthlyEntryScreen({
       if (savedFund) setTempleCharityFund(Number(savedFund) || 10000);
     } catch (e) {}
 
-    let currentData = entries;
     const cached = localStorage.getItem(localKey);
     if (cached) {
       try {
@@ -341,7 +358,6 @@ export function MonthlyEntryScreen({
             ...e,
             moneyOffered: (e.moneyOffered === 10000 || e.moneyOffered === 9916 || e.moneyOffered === undefined || e.moneyOffered === null) ? 0 : (Number(e.moneyOffered) || 0),
           }));
-          currentData = cleaned;
           setEntries(cleaned);
           setIsSaved(true);
           if (parsed[0]?.templeCharityFund !== undefined) {
@@ -372,26 +388,76 @@ export function MonthlyEntryScreen({
             }));
             setEntries(cleaned);
             setIsSaved(Boolean(res.data.isSaved));
-            localStorage.setItem(localKey, JSON.stringify(cleaned));
+            if (res.data.isSaved) {
+              localStorage.setItem(localKey, JSON.stringify(cleaned));
+            }
             if (res.data.entries[0]?.templeCharityFund !== undefined) {
               setTempleCharityFund(Number(res.data.entries[0].templeCharityFund) || 10000);
             }
-          } else if (currentData && currentData.length > 0) {
-            // Keep existing valid entries; never overwrite with empty
-            setEntries(currentData);
           } else {
             const fallback = getDefaultEntries(targetChit, targetDate);
             setEntries(fallback);
+            setIsSaved(false);
           }
+        } else {
+          setEntries(getDefaultEntries(targetChit, targetDate));
+          setIsSaved(false);
         }
       })
       .catch((err) => {
         console.warn('Network error loading report, falling back to local/default:', err);
-        if (!currentData || currentData.length === 0) {
-          setEntries(getDefaultEntries(targetChit, targetDate));
-        }
+        const fallback = getDefaultEntries(targetChit, targetDate);
+        setEntries(fallback);
+        setIsSaved(false);
       })
       .finally(() => setLoading(false));
+  };
+
+  const handleDeleteReport = async () => {
+    const confirmMsg =
+      lang === 'ta'
+        ? `சீட்டு எண் ${chitNo} (${date}) அறிக்கையை முழுமையாக நீக்க விரும்புகிறீர்களா? இந்த செயல்முறை திரும்பப் பெற முடியாது.`
+        : `Are you sure you want to delete the monthly report for Chit ${chitNo} (${date})? This action cannot be undone.`;
+
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      setLoading(true);
+      await api.deleteMonthlyReport({ chitNo, date });
+
+      const localKey = `seettu_monthly_report_${chitNo}_${date}`;
+      const fundKey = `seettu_charity_fund_${chitNo}_${date}`;
+      try {
+        localStorage.removeItem(localKey);
+        localStorage.removeItem(fundKey);
+      } catch (e) {}
+
+      const updated = savedReportsList.filter((r) => !(r.chitNo === chitNo && r.date === date));
+      setSavedReportsList(updated);
+      try {
+        localStorage.setItem(SAVED_REGISTRY_KEY, JSON.stringify(updated));
+      } catch (e) {}
+
+      showToast(
+        lang === 'ta'
+          ? `சீட்டு எண் ${chitNo} (${date}) அறிக்கை வெற்றிகரமாக நீக்கப்பட்டது.`
+          : `Monthly report for Chit ${chitNo} (${date}) deleted successfully.`
+      );
+
+      if (updated.length > 0) {
+        setChitNo(updated[0].chitNo);
+        setDate(updated[0].date);
+        loadReport(updated[0].chitNo, updated[0].date);
+      } else {
+        setChitNo('08');
+        setDate('25.10.26');
+        loadReport('08', '25.10.26');
+      }
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to delete report', 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const loadSavedDates = () => {
@@ -879,7 +945,7 @@ export function MonthlyEntryScreen({
   const netPool = totalAmount - totalCommission;
 
   // DEDICATED READ-ONLY MEMBER MONTHLY STATEMENT VIEW (WITH INTEGRATED CALENDAR)
-  if (isMember) {
+  if (effectiveIsMember) {
     const memberFilteredEntries = entries.filter((e) => {
       if (selectedSheet !== 'ALL' && e.sheetNumber !== selectedSheet) return false;
       if (!memberSearch) return true;
@@ -901,10 +967,21 @@ export function MonthlyEntryScreen({
               <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
                 {lang === 'ta' ? 'அதிகாரப்பூர்வ மாதாந்திர சீட்டு அறிக்கை' : 'Official Monthly Chit Statement'}
               </h2>
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1 shadow-2xs">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                {lang === 'ta' ? 'சரிபார்க்கப்பட்ட அறிக்கை' : 'Verified Report'}
+              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-black border flex items-center gap-1 shadow-2xs ${
+                isSaved
+                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+                  : 'bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border-amber-300 dark:border-amber-800'
+              }`}>
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                {isSaved
+                  ? (lang === 'ta' ? 'சரிபார்க்கப்பட்ட அறிக்கை' : 'Verified Report')
+                  : (lang === 'ta' ? 'திட்டமிடப்பட்ட வரைவு' : 'Scheduled Draft')}
               </span>
+              {adminPreviewMemberView && (
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-300">
+                  👁️ {lang === 'ta' ? 'உறுப்பினர் பார்வை மாதிரி' : 'Admin Preview'}
+                </span>
+              )}
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               {lang === 'ta'
@@ -914,6 +991,16 @@ export function MonthlyEntryScreen({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            {adminPreviewMemberView && (
+              <button
+                type="button"
+                onClick={() => setAdminPreviewMemberView(false)}
+                className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+              >
+                <span>⬅️ {lang === 'ta' ? 'நிர்வாகப் பதிவேடு' : 'Back to Admin Worksheet'}</span>
+              </button>
+            )}
+
             <button
               onClick={() => loadReport(chitNo, date)}
               className="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl transition-colors cursor-pointer"
@@ -1119,21 +1206,36 @@ export function MonthlyEntryScreen({
 
           {/* RIGHT COLUMN: Selected Date Report & Passbook (7 cols) */}
           <div className="lg:col-span-7 space-y-5">
-            {/* Selected Date Header Pill */}
-            <div className="flex items-center justify-between bg-white dark:bg-[#101A2E] px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-slate-500">{lang === 'ta' ? 'தேர்ந்தெடுக்கப்பட்ட தேதி:' : 'Selected Date:'}</span>
-                <span className="text-sm font-mono font-black text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
+            {/* Selected Date Header Pill & Member/Seat Switcher */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[#101A2E] px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-bold text-slate-500">{lang === 'ta' ? 'தேர்ந்தெடுக்கப்பட்ட தேதி:' : 'Selected Date:'}</span>
+                <span className="text-xs font-mono font-black text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
                   {date}
                 </span>
-                <span className="text-sm font-mono font-black text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2.5 py-1 rounded-lg border border-blue-200 dark:border-blue-900">
+                <span className="text-xs font-mono font-black text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2.5 py-1 rounded-lg border border-blue-200 dark:border-blue-900">
                   Chit {chitNo}
                 </span>
               </div>
-              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                {lang === 'ta' ? 'கணக்கு சரிபார்க்கப்பட்டது' : 'Verified'}
-              </span>
+
+              {/* Quick Member / Seat Picker: Allows viewing any seat statement */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-500 whitespace-nowrap flex items-center gap-1">
+                  <UserCheck className="w-3.5 h-3.5 text-blue-500" />
+                  <span>{lang === 'ta' ? 'உறுப்பினர்:' : 'Seat / Member:'}</span>
+                </span>
+                <select
+                  value={activeSeatNumber}
+                  onChange={(e) => setSelectedMemberSeat(Number(e.target.value))}
+                  className="bg-slate-50 dark:bg-[#0B1424] border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white rounded-xl px-2.5 py-1 max-w-[200px] sm:max-w-[230px] truncate focus:ring-2 focus:ring-[#1D68FE] cursor-pointer"
+                >
+                  {entries.map((e) => (
+                    <option key={e.sno} value={e.sno}>
+                      #{e.sno} {e.memberName.split('/')[0].trim()} ({e.memberNumber})
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Member Personalized Hero Card (Passbook Statement) */}
@@ -1141,6 +1243,29 @@ export function MonthlyEntryScreen({
               <div className="bg-gradient-to-br from-[#06182C] via-[#0A2647] to-[#0D3B54] text-white p-5 sm:p-6 rounded-3xl border border-blue-500/30 shadow-xl relative overflow-hidden">
                 <div className="absolute -right-8 -bottom-8 text-8xl opacity-10 select-none pointer-events-none">🛕</div>
                 <div className="relative z-10">
+                  {/* Multiple Seats Switcher Tabs (e.g. for members holding 2 seats like Mayilsamy or Kannan) */}
+                  {memberSeats.length > 1 && (
+                    <div className="flex flex-wrap items-center gap-2 mb-3 bg-white/10 p-2 rounded-2xl border border-white/20">
+                      <span className="text-xs font-black text-amber-300 px-1">
+                        ⭐ {lang === 'ta' ? 'உங்களின் பல சீட்டுகள்:' : 'Your Multiple Seats:'}
+                      </span>
+                      {memberSeats.map((ms) => (
+                        <button
+                          key={ms.sno}
+                          type="button"
+                          onClick={() => setSelectedMemberSeat(ms.sno)}
+                          className={`px-3 py-1 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                            activeSeatNumber === ms.sno
+                              ? 'bg-amber-400 text-slate-900 shadow-md scale-105'
+                              : 'bg-white/10 text-white hover:bg-white/20'
+                          }`}
+                        >
+                          Seat #{ms.sno} ({ms.memberNumber})
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
                   {/* Card Header: Category & Seat Badges */}
                   <div className="flex flex-wrap items-center justify-between gap-3 pb-3.5 border-b border-blue-400/20">
                     <div className="flex items-center gap-2.5">
@@ -1725,17 +1850,55 @@ export function MonthlyEntryScreen({
             <span>Export PDF</span>
           </button>
 
+          {/* Edit Mode Toggle */}
+          <button
+            type="button"
+            onClick={() => setIsEditMode((prev) => !prev)}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer ${
+              isEditMode
+                ? 'bg-amber-500 text-white shadow-amber-500/30 ring-2 ring-amber-400 font-black'
+                : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'
+            }`}
+            title={isEditMode ? 'Exit edit mode' : 'Enable editing mode'}
+          >
+            <Edit3 className="w-3.5 h-3.5" />
+            <span>{isEditMode ? (lang === 'ta' ? 'பதிவு முறை (செயலில்)' : 'Editing Mode') : (lang === 'ta' ? 'அறிக்கையைத் திருத்து' : 'Edit Report')}</span>
+          </button>
+
+          {/* Delete Report Button */}
+          <button
+            type="button"
+            onClick={handleDeleteReport}
+            disabled={loading}
+            className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
+            title="Delete this monthly report from database"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+            <span>{lang === 'ta' ? 'அறிக்கையை நீக்கு' : 'Delete Report'}</span>
+          </button>
+
           {/* Save Report Button (Admin / Staff only) */}
           {!isMember && (
             <button
               onClick={handleSave}
               disabled={saving}
-              className="px-4 py-2 bg-[#2F7BFF] hover:bg-blue-600 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-colors shadow-sm flex items-center gap-1.5"
+              className="px-4 py-2 bg-[#2F7BFF] hover:bg-blue-600 disabled:opacity-50 text-white rounded-xl text-xs font-black transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer"
             >
               <Save className="w-4 h-4" />
               <span>{saving ? (lang === 'ta' ? 'சேமிக்கப்படுகிறது...' : 'Saving...') : (lang === 'ta' ? 'சேமிக்க' : 'Save Report')}</span>
             </button>
           )}
+
+          {/* Preview Member View Button */}
+          <button
+            type="button"
+            onClick={() => setAdminPreviewMemberView(true)}
+            className="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+            title="Preview Member Statement View"
+          >
+            <Eye className="w-3.5 h-3.5" />
+            <span>{lang === 'ta' ? 'உறுப்பினர் பார்வை' : 'Member View'}</span>
+          </button>
         </div>
       </div>
 
@@ -2277,9 +2440,38 @@ export function MonthlyEntryScreen({
         </div>
 
         <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 w-full sm:w-auto">
+          {!isMember && (
+            <>
+              <button
+                type="button"
+                onClick={() => setIsEditMode((prev) => !prev)}
+                className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer ${
+                  isEditMode
+                    ? 'bg-amber-500 text-white shadow-amber-500/30 ring-2 ring-amber-400 font-black'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                }`}
+                title={isEditMode ? 'Exit edit mode' : 'Enable editing mode'}
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>{isEditMode ? (lang === 'ta' ? 'செயலில்' : 'Editing') : (lang === 'ta' ? 'திருத்து' : 'Edit')}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDeleteReport}
+                disabled={loading}
+                className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
+                title="Delete this monthly report from database"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                <span>{lang === 'ta' ? 'நீக்கு' : 'Delete'}</span>
+              </button>
+            </>
+          )}
+
           <button
             onClick={exportCSV}
-            className="px-3 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
+            className="px-3 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
             title="Download CSV Spreadsheet"
           >
             <Download className="w-4 h-4 text-emerald-600" />
@@ -2288,7 +2480,7 @@ export function MonthlyEntryScreen({
 
           <button
             onClick={exportPDF}
-            className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm"
+            className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
             title="Export official 6-sheet PDF"
           >
             <FileText className="w-4 h-4" />
@@ -2299,7 +2491,7 @@ export function MonthlyEntryScreen({
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex-1 sm:flex-none px-5 py-2.5 bg-[#2F7BFF] hover:bg-blue-600 disabled:opacity-50 text-white rounded-xl text-xs font-black transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2"
+              className="flex-1 sm:flex-none px-5 py-2.5 bg-[#2F7BFF] hover:bg-blue-600 disabled:opacity-50 text-white rounded-xl text-xs font-black transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer"
             >
               <Save className="w-4 h-4" />
               <span>

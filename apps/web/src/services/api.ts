@@ -233,5 +233,11 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+  deleteMonthlyReport: (params: { chitNo: string; date: string }) => {
+    const query = new URLSearchParams(params as any).toString();
+    return apiFetch<{ success: boolean; data: any; message: string }>(`/monthly-reports?${query}`, {
+      method: 'DELETE',
+    });
+  },
   getMonthlyReportDates: () => apiFetch<{ success: boolean; data: any[] }>('/monthly-reports/dates'),
 };
