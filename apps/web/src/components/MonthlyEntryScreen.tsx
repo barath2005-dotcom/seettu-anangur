@@ -1141,73 +1141,80 @@ export function MonthlyEntryScreen({
               <div className="bg-gradient-to-br from-[#06182C] via-[#0A2647] to-[#0D3B54] text-white p-5 sm:p-6 rounded-3xl border border-blue-500/30 shadow-xl relative overflow-hidden">
                 <div className="absolute -right-8 -bottom-8 text-8xl opacity-10 select-none pointer-events-none">🛕</div>
                 <div className="relative z-10">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-blue-400/20">
+                  {/* Card Header: Category & Seat Badges */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 pb-3.5 border-b border-blue-400/20">
                     <div className="flex items-center gap-2.5">
                       <span className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
                       <span className="text-xs font-black uppercase tracking-wider text-emerald-300">
                         {lang === 'ta' ? 'உங்களின் மாதாந்திர சீட்டு கணக்கு விவரம்' : 'Your Monthly Chit Standing & Passbook'}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-blue-500/20 text-blue-200 border border-blue-400/30">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-blue-500/20 text-blue-200 border border-blue-400/30">
                         {myEntry.memberNumber}
                       </span>
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-black bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                      <span className="px-3 py-1 rounded-full text-xs font-mono font-black bg-amber-500/20 text-amber-300 border border-amber-400/30">
                         Seat #{myEntry.sno}
                       </span>
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/10 text-white border border-white/20">
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/10 text-white border border-white/20">
                         Sheet {myEntry.sheetNumber}
                       </span>
                     </div>
                   </div>
 
-                  <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                      <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                        {myEntry.memberName}
-                      </h3>
-                      <p className="text-xs text-blue-200/80 mt-0.5 font-medium">
-                        {lang === 'ta' ? `சீட்டு எண்: ${chitNo} • தவணைத் தேதி: ${date}` : `Chit Scheme No: ${chitNo} • Draw Date: ${date}`}
-                      </p>
+                  {/* Member Name & Chit Date (Full Width) */}
+                  <div className="mt-4">
+                    <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                      {myEntry.memberName}
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-blue-200/80 font-medium">
+                      <span>{lang === 'ta' ? `சீட்டு எண்: ${chitNo}` : `Chit Scheme No: ${chitNo}`}</span>
+                      <span>•</span>
+                      <span>{lang === 'ta' ? `தவணைத் தேதி: ${date}` : `Draw Date: ${date}`}</span>
+                    </div>
+                  </div>
+
+                  {/* 4 Stat Boxes (Full Width 4-column Grid with Generous Padding) */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-white/10">
+                    {/* Box 1: Installment Due */}
+                    <div className="p-3.5 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 flex flex-col justify-between">
+                      <span className="text-[10px] sm:text-[11px] uppercase font-bold text-slate-300 block mb-1 whitespace-nowrap">
+                        {lang === 'ta' ? 'தவணைத் தொகை' : 'Installment Due'}
+                      </span>
+                      <span className="text-lg sm:text-xl font-black text-white font-mono whitespace-nowrap">
+                        ₹{Number(myEntry.amount).toLocaleString('en-IN')}
+                      </span>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 bg-black/30 backdrop-blur-md p-3 rounded-2xl border border-white/10">
-                      <div className="p-2.5 rounded-xl bg-white/5">
-                        <span className="text-[10px] uppercase font-bold text-slate-300 block">
-                          {lang === 'ta' ? 'தவணைத் தொகை' : 'Installment Due'}
-                        </span>
-                        <span className="text-base sm:text-lg font-black text-white font-mono">
-                          ₹{Number(myEntry.amount).toLocaleString('en-IN')}
-                        </span>
-                      </div>
+                    {/* Box 2: Money Offered */}
+                    <div className="p-3.5 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 flex flex-col justify-between">
+                      <span className="text-[10px] sm:text-[11px] uppercase font-bold text-slate-300 block mb-1 whitespace-nowrap">
+                        {lang === 'ta' ? 'வழங்கப்பட்டது' : 'Money Offered'}
+                      </span>
+                      <span className="text-lg sm:text-xl font-black text-emerald-300 font-mono whitespace-nowrap">
+                        ₹{(Number(myEntry.moneyOffered) || 0).toLocaleString('en-IN')}
+                      </span>
+                    </div>
 
-                      <div className="p-2.5 rounded-xl bg-white/5">
-                        <span className="text-[10px] uppercase font-bold text-slate-300 block">
-                          {lang === 'ta' ? 'வழங்கப்பட்டது' : 'Money Offered'}
-                        </span>
-                        <span className="text-base sm:text-lg font-black text-emerald-300 font-mono">
-                          ₹{(Number(myEntry.moneyOffered) || 0).toLocaleString('en-IN')}
-                        </span>
-                      </div>
+                    {/* Box 3: Commission */}
+                    <div className="p-3.5 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 flex flex-col justify-between">
+                      <span className="text-[10px] sm:text-[11px] uppercase font-bold text-slate-300 block mb-1 whitespace-nowrap">
+                        {lang === 'ta' ? 'கமிஷன்' : 'Commission'}
+                      </span>
+                      <span className="text-lg sm:text-xl font-black text-purple-300 font-mono whitespace-nowrap">
+                        ₹{Number(myEntry.commission || 0).toLocaleString('en-IN')}
+                      </span>
+                    </div>
 
-                      <div className="p-2.5 rounded-xl bg-white/5">
-                        <span className="text-[10px] uppercase font-bold text-slate-300 block">
-                          {lang === 'ta' ? 'கமிஷன்' : 'Commission'}
-                        </span>
-                        <span className="text-base sm:text-lg font-black text-purple-300 font-mono">
-                          ₹{Number(myEntry.commission || 0).toLocaleString('en-IN')}
-                        </span>
-                      </div>
-
-                      <div className="p-2.5 rounded-xl bg-white/5 flex flex-col justify-center">
-                        <span className="text-[10px] uppercase font-bold text-slate-300 block mb-1">
-                          {lang === 'ta' ? 'செலுத்தல் நிலை' : 'Status'}
-                        </span>
-                        <span className="inline-flex items-center gap-1 text-xs font-black text-emerald-300 bg-emerald-500/20 px-2 py-1 rounded-lg border border-emerald-400/30 w-fit">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                          {myEntry.status === 'PAID' ? (lang === 'ta' ? 'செலுத்தப்பட்டது' : 'Paid') : myEntry.status}
-                        </span>
-                      </div>
+                    {/* Box 4: Status */}
+                    <div className="p-3.5 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 flex flex-col justify-between">
+                      <span className="text-[10px] sm:text-[11px] uppercase font-bold text-slate-300 block mb-1 whitespace-nowrap">
+                        {lang === 'ta' ? 'செலுத்தல் நிலை' : 'Status'}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 text-xs font-black text-emerald-300 bg-emerald-500/20 px-2.5 py-1 rounded-xl border border-emerald-400/30 w-fit">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>{myEntry.status === 'PAID' ? (lang === 'ta' ? 'செலுத்தப்பட்டது' : 'Paid') : myEntry.status}</span>
+                      </span>
                     </div>
                   </div>
                 </div>
