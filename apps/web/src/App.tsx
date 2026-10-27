@@ -3749,10 +3749,10 @@ function ReportsScreen({
             <div className="absolute -right-2 -bottom-2 text-3xl opacity-15 select-none">⚖️</div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-emerald-900 uppercase font-bold">
-                ⚖️ {lang === 'ta' ? 'இறுதி கணக்கு சமரசம்' : 'Net Tally Balance'}
+                💰 {lang === 'ta' ? 'மொத்த இருப்பு' : 'Total Balance'}
               </span>
               <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-200 text-emerald-900">
-                ✓ {lang === 'ta' ? 'சமரசம்' : 'Tallied'}
+                ✓ {lang === 'ta' ? 'சரிபார்க்கப்பட்டது' : 'Verified'}
               </span>
             </div>
             <p className="text-2xl font-black text-emerald-950 mt-1">
@@ -3767,20 +3767,20 @@ function ReportsScreen({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-lg">⚖️</span>
+              <span className="text-lg">💰</span>
               <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">
                 {lang === 'ta'
-                  ? 'மாதாந்திர சீட்டு மற்றும் கோவில் தர்ம நிதி கணக்கு முடிவு (Tally)'
-                  : 'Monthly Chit Tally & Temple Charity Fund Audit'}
+                  ? 'மாதாந்திர சீட்டு மற்றும் கோவில் தர்ம நிதி கணக்கு விவரம்'
+                  : 'Monthly Chit Balance & Temple Charity Fund Audit'}
               </h3>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
-                ✓ {lang === 'ta' ? 'சமரசம்' : 'Tallied'}
+                ✓ {lang === 'ta' ? 'சரிபார்க்கப்பட்டது' : 'Verified'}
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-1">
               {lang === 'ta'
-                ? 'வசூல் தொகை - ஏலக் கழிவு (கமிஷன்) - கோவில் தர்ம நிதி = நிகர இறுதி இருப்பு கணக்கு சமரசம்'
-                : 'Reconciliation: Gross Collection - Auction Commission - Temple Charity Fund = Final Net Settlement Tally'}
+                ? 'வசூல் தொகை - ஏலக் கழிவு (கமிஷன்) - கோவில் தர்ம நிதி = மொத்த இருப்புத் தொகை'
+                : 'Reconciliation: Gross Collection - Auction Commission - Temple Charity Fund = Total Balance'}
             </p>
           </div>
 
@@ -3801,7 +3801,7 @@ function ReportsScreen({
                 <th className="py-3 px-3 text-right text-purple-700">{lang === 'ta' ? 'கமிஷன்' : 'Commission'}</th>
                 <th className="py-3 px-3 text-right text-amber-800 bg-amber-50/50">🛕 {lang === 'ta' ? 'கோவில் தர்ம நிதி' : 'Temple Charity'}</th>
                 <th className="py-3 px-3 text-right text-slate-700">{lang === 'ta' ? 'வழங்கப்பட்டது' : 'Money Offered'}</th>
-                <th className="py-3 px-3 text-right font-black text-emerald-950 bg-emerald-50">⚖️ {lang === 'ta' ? 'இறுதி கணக்கு சமரசம்' : 'Net Tally Balance'}</th>
+                <th className="py-3 px-3 text-right font-black text-emerald-950 bg-emerald-50">💰 {lang === 'ta' ? 'மொத்த இருப்பு' : 'Total Balance'}</th>
                 <th className="py-3 px-3 text-center">{lang === 'ta' ? 'நிலை' : 'Status'}</th>
                 {onOpenMonthlyReport && (
                   <th className="py-3 px-3 text-center">{lang === 'ta' ? 'செயல்' : 'Action'}</th>
