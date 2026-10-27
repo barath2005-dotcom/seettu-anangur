@@ -317,26 +317,33 @@ export function MonthlyEntryScreen({
     loadReport(chitNo, newDateStr);
   };
 
-  // Identify member's seats (could be 1 or multiple seats like M-024 / M-025)
+  // Identify member's own entry/seats accurately without false positives
   const memberSeats = entries.filter((e) => {
     if (!effectiveIsMember) return false;
+    // 1. Exact Member Number match (guaranteed unique e.g. M-002)
     if (user?.member?.memberNumber && e.memberNumber === user.member.memberNumber) return true;
-    if (user?.memberId && user?.member?.id && (e.memberNumber === user.member.memberNumber || e.memberNumber === user.memberId)) return true;
-    if (user?.name) {
-      const uNorm = user.name.toLowerCase().replace(/[\s\.\-]+/g, '');
-      const eNorm = (e.memberName || '').toLowerCase().replace(/[\s\.\-]+/g, '');
-      if (eNorm.includes(uNorm) || uNorm.includes(eNorm)) return true;
-      const parts = user.name.split(/[\s\/\(\)]+/).filter((p: string) => p.length >= 3);
-      for (const p of parts) {
-        if (eNorm.includes(p.toLowerCase())) return true;
-      }
+    if (user?.memberId && (e.memberNumber === user.memberId || e.memberNumber === user?.member?.memberNumber)) return true;
+
+    // 2. Strict Name match (comparing unique primary name, avoiding common suffixes like B.L.R / S.R / ஆனங்கூர்)
+    if (user?.name && e.memberName) {
+      const uNorm = user.name.toLowerCase().replace(/[\s\.\-\/\(\)\d]+/g, '');
+      const eNorm = e.memberName.toLowerCase().replace(/[\s\.\-\/\(\)\d]+/g, '');
+      if (uNorm === eNorm) return true;
+
+      const uEng = (user.name.split('/')[1] || '').trim().toLowerCase().split(' ')[0] || '';
+      const eEng = (e.memberName.split('/')[1] || '').trim().toLowerCase().split(' ')[0] || '';
+      if (uEng.length >= 4 && eEng.length >= 4 && uEng === eEng) return true;
+
+      const uTam = (user.name.split('/')[0] || '').trim().toLowerCase().split(' ')[0] || '';
+      const eTam = (e.memberName.split('/')[0] || '').trim().toLowerCase().split(' ')[0] || '';
+      if (uTam.length >= 4 && eTam.length >= 4 && uTam === eTam) return true;
     }
     return false;
   });
 
   const activeSeatNumber = selectedMemberSeat !== null
     ? selectedMemberSeat
-    : (memberSeats[0]?.sno || 1);
+    : (memberSeats[0]?.sno || (isMember ? 1 : 1));
 
   const myEntry = entries.find((e) => e.sno === activeSeatNumber) || entries[0];
 
