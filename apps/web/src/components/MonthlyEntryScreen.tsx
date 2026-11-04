@@ -391,15 +391,30 @@ export function MonthlyEntryScreen({
             } catch (e) {}
           }
           if (Array.isArray(res.data.entries) && res.data.entries.length > 0) {
-            const cleaned = res.data.entries.map((e: any) => ({
+            const serverEntries = res.data.entries.map((e: any) => ({
               ...e,
               moneyOffered: (e.moneyOffered === 10000 || e.moneyOffered === 9916 || e.moneyOffered === undefined || e.moneyOffered === null) ? 0 : (Number(e.moneyOffered) || 0),
             }));
-            setEntries(cleaned);
+
+            // Check if local cache has custom user edits while server had defaults
+            let useEntries = serverEntries;
+            try {
+              const localRaw = localStorage.getItem(localKey);
+              if (localRaw) {
+                const localParsed = JSON.parse(localRaw);
+                const localHasEdits = localParsed.some((e: any) => (Number(e.moneyOffered) || 0) > 0 || (Number(e.commission) || 0) > 0);
+                const serverHasEdits = serverEntries.some((e: any) => (Number(e.moneyOffered) || 0) > 0 || (Number(e.commission) || 0) > 0);
+                if (localHasEdits && !serverHasEdits) {
+                  useEntries = localParsed;
+                  // Auto-sync local edits to server
+                  api.saveMonthlyReport({ chitNo: targetChit, date: targetDate, entries: localParsed, templeCharityFund: Number(res.data.templeCharityFund) || 15600 }).catch(() => {});
+                }
+              }
+            } catch (e) {}
+
+            setEntries(useEntries);
             setIsSaved(Boolean(res.data.isSaved));
-            if (res.data.isSaved) {
-              localStorage.setItem(localKey, JSON.stringify(cleaned));
-            }
+            localStorage.setItem(localKey, JSON.stringify(useEntries));
             if (res.data.entries[0]?.templeCharityFund !== undefined) {
               const rawFund = Number(res.data.entries[0].templeCharityFund);
               setTempleCharityFund(rawFund === 10000 || !rawFund ? 15600 : rawFund);
@@ -515,23 +530,34 @@ export function MonthlyEntryScreen({
   }, [initialTarget]);
 
   const handleFieldChange = (index: number, field: keyof MonthlyEntry, value: any) => {
+    setIsSaved(false);
     setEntries((prev) => {
       const updated = [...prev];
       updated[index] = { ...updated[index], [field]: value };
+      try {
+        const localKey = `seettu_monthly_report_${chitNo}_${date}`;
+        localStorage.setItem(localKey, JSON.stringify(updated));
+      } catch (e) {}
       return updated;
     });
   };
 
   const applyBulkCommission = () => {
     const val = Number(bulkCommission) || 0;
-    setEntries((prev) =>
-      prev.map((e) => {
+    setIsSaved(false);
+    setEntries((prev) => {
+      const updated = prev.map((e) => {
         if (selectedSheet === 'ALL' || e.sheetNumber === selectedSheet) {
           return { ...e, commission: val };
         }
         return e;
-      })
-    );
+      });
+      try {
+        const localKey = `seettu_monthly_report_${chitNo}_${date}`;
+        localStorage.setItem(localKey, JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
     showToast(
       lang === 'ta'
         ? `அனைத்து உறுப்பினர்களுக்கும் கமிஷன் ₹${val} அமைக்கப்பட்டது`
@@ -539,7 +565,7 @@ export function MonthlyEntryScreen({
     );
   };
 
-  const handleSave = async () => {
+  const handleSave = async (silent: boolean = false) => {
     setSaving(true);
     try {
       const localKey = `seettu_monthly_report_${chitNo}_${date}`;
@@ -553,7 +579,6 @@ export function MonthlyEntryScreen({
       localStorage.setItem(localKey, JSON.stringify(entriesToSave));
       localStorage.setItem(fundKey, String(templeCharityFund));
       localStorage.setItem(LAST_ACTIVE_CHIT_KEY, JSON.stringify({ chitNo, date }));
-      setIsSaved(true);
 
       // 2. Update saved reports registry locally
       const currentList = getStoredSavedReports();
@@ -583,26 +608,38 @@ export function MonthlyEntryScreen({
         templeCharityFund,
       });
 
-      showToast(
-        lang === 'ta'
-          ? `சீட்டு எண் ${chitNo} (${date}) மாதாந்திர அறிக்கை வெற்றிகரமாகச் சேமிக்கப்பட்டது!`
-          : (res?.message || `Monthly report for Chit ${chitNo} (${date}) saved successfully!`)
-      );
+      setIsSaved(true);
+      if (!silent) {
+        showToast(
+          lang === 'ta'
+            ? `✅ சீட்டு எண் ${chitNo} (${date}) அறிக்கை Backend தரவுத்தளத்தில் வெற்றிகரமாகச் சேமிக்கப்பட்டது!`
+            : (res?.message || `Monthly report for Chit ${chitNo} (${date}) saved to server database!`)
+        );
+      }
       loadSavedDates();
+      return true;
     } catch (err: any) {
-      showToast(
-        lang === 'ta'
-          ? `சீட்டு எண் ${chitNo} (${date}) உள்ளூர் நினைவகத்தில் பாதுகாப்பாகச் சேமிக்கப்பட்டது!`
-          : `Saved locally for Chit ${chitNo} (${date})`
-      );
+      console.error('Save report failed:', err);
+      setIsSaved(true); // Persisted locally
+      if (!silent) {
+        showToast(
+          lang === 'ta'
+            ? `⚠️ உள்ளூர் நினைவகத்தில் சேமிக்கப்பட்டது (Local Cache). ${err?.message ? `(${err.message})` : ''}`
+            : `Saved to local memory. ${err?.message || ''}`
+        );
+      }
       loadSavedDates();
+      return false;
     } finally {
       setSaving(false);
     }
   };
 
   // 1. Export as CSV (with UTF-8 BOM for Tamil Unicode compatibility)
-  const exportCSV = () => {
+  const exportCSV = async () => {
+    if (!isSaved) {
+      await handleSave(true);
+    }
     const headers = [
       'S.no',
       'Sheet',
@@ -624,7 +661,6 @@ export function MonthlyEntryScreen({
       const tamilName = (parts[0] || '').trim();
       const englishName = (parts[1] || '').trim();
       const offered = Number(e.moneyOffered) || 0;
-
       return [
         e.sno,
         `Sheet ${e.sheetNumber}`,
@@ -671,7 +707,10 @@ export function MonthlyEntryScreen({
   };
 
   // 2. Export as PDF (Exact 6 Sheets layout identical to the official Chit 08 PDF)
-  const exportPDF = () => {
+  const exportPDF = async () => {
+    if (!isSaved) {
+      await handleSave(true);
+    }
     const sheetsToExport = selectedSheet === 'ALL' ? [1, 2, 3, 4, 5, 6] : [Number(selectedSheet)];
 
     const grandTotalAmount = entries.reduce((s, e) => s + (Number(e.amount) || 0), 0);
@@ -1937,12 +1976,23 @@ export function MonthlyEntryScreen({
           {/* Save Report Button (Admin / Staff only) */}
           {!isMember && (
             <button
-              onClick={handleSave}
+              onClick={() => handleSave(false)}
               disabled={saving}
-              className="px-4 py-2 bg-[#2F7BFF] hover:bg-blue-600 disabled:opacity-50 text-white rounded-xl text-xs font-black transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer"
+              className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer shadow-md ${
+                !isSaved 
+                  ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 ring-2 ring-amber-400 font-extrabold animate-pulse' 
+                  : 'bg-[#2F7BFF] hover:bg-blue-600 text-white'
+              }`}
+              title="Save all entries to the backend database"
             >
               <Save className="w-4 h-4" />
-              <span>{saving ? (lang === 'ta' ? 'சேமிக்கப்படுகிறது...' : 'Saving...') : (lang === 'ta' ? 'சேமிக்க' : 'Save Report')}</span>
+              <span>
+                {saving 
+                  ? (lang === 'ta' ? 'சேமிக்கப்படுகிறது...' : 'Saving...') 
+                  : !isSaved
+                  ? (lang === 'ta' ? '⚠️ சேமிக்கவும் (Save Now)' : '⚠️ Save Changes')
+                  : (lang === 'ta' ? '✓ சேமிக்கப்பட்டது' : '✓ Saved')}
+              </span>
             </button>
           )}
 
@@ -2588,15 +2638,21 @@ export function MonthlyEntryScreen({
 
           {!isMember && (
             <button
-              onClick={handleSave}
+              onClick={() => handleSave(false)}
               disabled={saving}
-              className="flex-1 sm:flex-none px-5 py-2.5 bg-[#2F7BFF] hover:bg-blue-600 disabled:opacity-50 text-white rounded-xl text-xs font-black transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer"
+              className={`flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-xs font-black transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer ${
+                !isSaved
+                  ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 ring-4 ring-amber-400/50 animate-pulse font-extrabold'
+                  : 'bg-[#2F7BFF] hover:bg-blue-600 text-white shadow-blue-500/20'
+              }`}
             >
               <Save className="w-4 h-4" />
               <span>
                 {saving
-                  ? lang === 'ta' ? 'சேமிக்கப்படுகிறது...' : 'Saving...'
-                  : lang === 'ta' ? 'அறிக்கையைச் சேமிக்க' : 'Save Monthly Report'}
+                  ? (lang === 'ta' ? 'சேமிக்கப்படுகிறது...' : 'Saving...')
+                  : !isSaved
+                  ? (lang === 'ta' ? '⚠️ அறிக்கையைச் சேமிக்கவும் (Save Changes)' : '⚠️ Save Monthly Report')
+                  : (lang === 'ta' ? '✓ அறிக்கை சேமிக்கப்பட்டது' : '✓ Saved to Database')}
               </span>
             </button>
           )}
