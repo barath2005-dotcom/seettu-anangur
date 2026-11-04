@@ -1,6 +1,7 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 generator client {
@@ -26,8 +27,6 @@ model User {
   payoutsApproved  Payout[]  @relation("PayoutsApproved")
   notifications    Notification[]
   auditLogs        AuditLog[]
-
-  @@map("users")
 }
 
 model Member {
@@ -50,8 +49,6 @@ model Member {
   payments     Payment[]
   payouts      Payout[]
   receipts     Receipt[]
-
-  @@map("members")
 }
 
 model Scheme {
@@ -64,7 +61,7 @@ model Scheme {
   totalInstallments        Int
   frequency                String    @default("MONTHLY") // MONTHLY, WEEKLY
   contributionAmountPaise  Int       // Integer minor unit (Paise)
-  totalPoolAmountPaise     Int       // e.g. 10000000 (1 Lakh INR)
+  totalPoolAmountPaise     Int       // e.g., 20 * 500000 = 10000000 (1 Lakh INR)
   totalMembersCount        Int
   organizerCommissionPaise Int       @default(0)
   status                   String    @default("ACTIVE") // DRAFT, ACTIVE, COMPLETED, CANCELLED
@@ -77,8 +74,6 @@ model Scheme {
   payments                 Payment[]
   payouts                  Payout[]
   receipts                 Receipt[]
-
-  @@map("schemes")
 }
 
 model SchemeMembership {
@@ -96,7 +91,6 @@ model SchemeMembership {
 
   @@unique([schemeId, slotNumber])
   @@unique([schemeId, memberId])
-  @@map("scheme_memberships")
 }
 
 model CollectionRound {
@@ -121,7 +115,6 @@ model CollectionRound {
   payouts                Payout[]
 
   @@unique([schemeId, roundNumber])
-  @@map("collection_rounds")
 }
 
 model Payment {
@@ -150,8 +143,6 @@ model Payment {
   member               Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
   recordedBy           User      @relation("PaymentsRecorded", fields: [recordedByUserId], references: [id])
   receipt              Receipt?
-
-  @@map("payments")
 }
 
 model Payout {
@@ -180,8 +171,6 @@ model Payout {
   recipient          Member           @relation(fields: [recipientMemberId], references: [id], onDelete: Cascade)
   preparedBy         User             @relation("PayoutsPrepared", fields: [preparedByUserId], references: [id])
   approvedBy         User?            @relation("PayoutsApproved", fields: [approvedByUserId], references: [id])
-
-  @@map("payouts")
 }
 
 model Receipt {
@@ -197,8 +186,6 @@ model Receipt {
   payment       Payment   @relation(fields: [paymentId], references: [id], onDelete: Cascade)
   member        Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
   scheme        Scheme    @relation(fields: [schemeId], references: [id], onDelete: Cascade)
-
-  @@map("receipts")
 }
 
 model Notification {
@@ -206,27 +193,44 @@ model Notification {
   userId    String
   title     String
   message   String
-  type      String   @default("ANNOUNCEMENT")
+  type      String   @default("ANNOUNCEMENT") // PAYMENT_RECEIVED, INSTALLMENT_DUE, PAYOUT_APPROVED, SCHEME_UPDATE, ANNOUNCEMENT
   isRead    Boolean  @default(false)
   linkUrl   String?
   createdAt DateTime @default(now())
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("notifications")
 }
 
 model AuditLog {
   id         String   @id @default(uuid())
   userId     String?
-  action     String
-  entityType String
+  action     String   // CREATE_MEMBER, RECORD_PAYMENT, APPROVE_PAYOUT, etc.
+  entityType String   // Member, Payment, Scheme, Payout
   entityId   String?
-  details    String?
+  details    String?  // JSON serialized details
   ipAddress  String?
   createdAt  DateTime @default(now())
 
   user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
 
-  @@map("audit_logs")
+model MonthlyReportEntry {
+  id              String    @id @default(uuid())
+  chitNo          String    // e.g. "08"
+  date            String    // e.g. "25.10.26" or "2026-10-25"
+  sno             Int       // 1 to 78
+  sheetNumber     Int       @default(1) // 1 to 6
+  memberNumber    String?   // e.g. "M-001"
+  memberName      String    // e.g. "பழனிச்சாமி பி எல் ஆர் / Palanisamy B.L.R"
+  amount          Int       @default(10000) // ₹10,000
+  commission      Int       @default(0)     // Commission
+  moneyOffered    Int?      @default(0)     // Money Offered (manual entry)
+  templeCharityFund Int?    @default(10000) // Temple Charity Fund (கோவில் தர்ம நிதி)
+  status          String    @default("PAID") // PAID, PENDING, UNPAID
+  paymentMethod   String    @default("CASH") // CASH, UPI, GPAY
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([chitNo, date, sno])
 }

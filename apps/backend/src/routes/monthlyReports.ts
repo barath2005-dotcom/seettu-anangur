@@ -18,8 +18,8 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
     });
 
     if (existing.length > 0) {
-      const totalAmount = existing.reduce((sum, e) => sum + e.amount, 0);
-      const totalCommission = existing.reduce((sum, e) => sum + e.commission, 0);
+      const totalAmount = existing.reduce((sum: number, e: any) => sum + Number(e.amount || 0), 0);
+      const totalCommission = existing.reduce((sum: number, e: any) => sum + Number(e.commission || 0), 0);
       const charityFund = existing[0]?.templeCharityFund ?? 15600;
 
       res.json({
@@ -240,7 +240,7 @@ router.get('/dates', authenticate, async (req: Request, res: Response) => {
       });
 
       list = await Promise.all(
-        rawReports.map(async (r) => {
+        rawReports.map(async (r: any) => {
           const sample = await prisma.monthlyReportEntry.findFirst({
             where: { chitNo: r.chitNo, date: r.date },
             select: { templeCharityFund: true },
