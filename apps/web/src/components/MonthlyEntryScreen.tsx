@@ -23,7 +23,7 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
-import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { api } from '../services/api';
 import {
@@ -693,11 +693,11 @@ export function MonthlyEntryScreen({
     if (Capacitor.isNativePlatform()) {
       try {
         const csvFileName = `seettu-chit-${chitNo}-${date.replace(/\./g, '-')}.csv`;
-        const base64Data = btoa(unescape(encodeURIComponent(csvContent)));
         const savedFile = await Filesystem.writeFile({
           path: csvFileName,
-          data: base64Data,
+          data: csvContent,
           directory: Directory.Cache,
+          encoding: Encoding.UTF8,
         });
         await Share.share({
           title: `Chit ${chitNo} (${date}) CSV`,
@@ -709,6 +709,7 @@ export function MonthlyEntryScreen({
         return;
       } catch (err: any) {
         console.error('Failed native CSV export:', err);
+        showToast(lang === 'ta' ? 'CSV ஏற்றுமதி பிழை' : 'Failed to export CSV', 'error');
       }
     }
 

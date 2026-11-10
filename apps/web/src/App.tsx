@@ -58,6 +58,8 @@ import { MonthlyEntryScreen } from './components/MonthlyEntryScreen';
 import { DownloadAppScreen } from './components/DownloadAppScreen';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 
 export function App() {
   // Language State
@@ -2226,6 +2228,33 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
 
       const csvContent =
         '\uFEFF' + [headers.join(','), ...rows.map((r: any) => r.join(','))].join('\r\n');
+
+      if (Capacitor.isNativePlatform()) {
+        try {
+          const csvFileName = `seettu-members-78.csv`;
+          const savedFile = await Filesystem.writeFile({
+            path: csvFileName,
+            data: csvContent,
+            directory: Directory.Cache,
+            encoding: Encoding.UTF8,
+          });
+          await Share.share({
+            title: '78 Members List CSV',
+            text: 'Sri Pattanathu Mariamman Anangur Seettu 78 Members List CSV',
+            url: savedFile.uri,
+            dialogTitle: 'Share Members CSV',
+          });
+          showToast(
+            lang === 'ta'
+              ? 'உறுப்பினர்கள் பட்டியல் (78 நபர்கள்) பகிர தயாராக உள்ளது!'
+              : 'Members list (78 members) ready to share!'
+          );
+          return;
+        } catch (err: any) {
+          console.error('Failed native members CSV export:', err);
+        }
+      }
+
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
