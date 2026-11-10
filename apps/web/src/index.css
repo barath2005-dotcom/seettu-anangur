@@ -11,6 +11,21 @@
   }
 }
 
+/* Safe Area Insets for Mobile (Notch, Camera Hole, Status Bar) */
+.mobile-safe-top {
+  padding-top: max(env(safe-area-inset-top, 0px), 2.25rem);
+}
+
+@media (min-width: 640px) {
+  .mobile-safe-top {
+    padding-top: 0.75rem;
+  }
+}
+
+.mobile-safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 0.5rem);
+}
+
 /* Day Mode (Default) */
 :root {
   color-scheme: light;

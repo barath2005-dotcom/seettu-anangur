@@ -282,7 +282,7 @@ export function App() {
   // 1. LOGIN SCREEN WITH BILINGUAL SWITCHER (ULTRA-PREMIUM UI)
   if (!user) {
     return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-[#071328] relative overflow-hidden p-4 sm:p-6 select-none">
+      <div className="min-h-screen flex flex-col justify-center items-center bg-[#071328] relative overflow-hidden p-4 sm:p-6 mobile-safe-top mobile-safe-bottom select-none">
         {/* Subtle Ambient Glowing Mesh Background */}
         <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-600/20 rounded-full blur-[100px] pointer-events-none"></div>
         <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-amber-500/15 rounded-full blur-[120px] pointer-events-none"></div>
@@ -613,7 +613,7 @@ export function App() {
             />
 
             {/* Header with App Logo, Title & Close Button */}
-            <div className="pt-5 px-5 pb-2 flex items-start justify-between shrink-0 relative z-10">
+            <div className="mobile-safe-top px-5 pb-2 flex items-start justify-between shrink-0 relative z-10">
               <div>
                 <div className="w-[60px] h-[60px] rounded-[18px] border-2 border-amber-400/80 bg-gradient-to-b from-amber-400/25 to-amber-600/10 shadow-md ring-2 ring-amber-400/20 p-1 flex items-center justify-center">
                   <img
@@ -708,7 +708,7 @@ export function App() {
             </div>
 
             {/* Mobile Drawer User Card & Logout (Image 1 style) */}
-            <div className="p-3.5 relative z-10 shrink-0">
+            <div className="p-3.5 mobile-safe-bottom relative z-10 shrink-0">
               <div className="p-3.5 rounded-2xl bg-[#061225]/90 border border-blue-500/20 shadow-xl shadow-black/60 backdrop-blur-md">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-11 h-11 rounded-full bg-[#DCE7FE] text-[#1E40AF] flex items-center justify-center font-black text-sm uppercase shrink-0 shadow-md ring-2 ring-blue-400/20">
@@ -746,104 +746,139 @@ export function App() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
-        {/* Top Header Bar */}
-        <header className="bg-white dark:bg-[#0E1726] border-b border-slate-200/80 dark:border-slate-800 px-4 sm:px-6 py-3 flex items-center justify-between gap-4 sticky top-0 z-30">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <button
-              onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 focus:outline-none shrink-0"
-              aria-label="Open Navigation Menu"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
+        {/* Top Header Bar (Safe-area padded for Android status bar and camera punch-hole) */}
+        <header className="bg-white dark:bg-[#0E1726] border-b border-slate-200/80 dark:border-slate-800 px-3.5 sm:px-6 mobile-safe-top pb-2.5 sm:pb-3 sticky top-0 z-30 transition-all shadow-xs">
+          {/* Main Top Row */}
+          <div className="flex items-center justify-between gap-2.5 sm:gap-4 w-full">
+            {/* Left: Menu button + Brand on mobile, Search on desktop */}
+            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+              <button
+                onClick={() => setMobileMenuOpen(true)}
+                className="lg:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 focus:outline-none shrink-0 cursor-pointer"
+                aria-label="Open Navigation Menu"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
 
-            {/* Pill Search Input matching the image */}
-            <div className="relative flex items-center w-64 sm:w-80 md:w-96">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
+              {/* Mobile Brand Title */}
+              <div className="flex items-center gap-2 sm:hidden min-w-0">
+                <img
+                  src="/logo.jpg"
+                  alt="Logo"
+                  className="w-7 h-7 rounded-lg object-cover shrink-0 shadow-2xs border border-amber-400/40"
+                />
+                <span className="text-xs font-black text-slate-900 dark:text-white truncate">
+                  {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன்' : 'Sri Pattanathu Mariamman'}
+                </span>
+              </div>
+
+              {/* Desktop Search Bar */}
+              <div className="relative hidden sm:flex items-center w-64 sm:w-80 md:w-96">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder={
+                    lang === 'ta'
+                      ? 'உறுப்பினர்கள், சீட்டுகள், பதிவேடு தேடுக...'
+                      : 'Search members, chit schemes, transactions...'
+                  }
+                  className="w-full pl-10 pr-4 py-2 bg-slate-100 hover:bg-slate-100/80 focus:bg-white dark:bg-slate-800 dark:hover:bg-slate-800/80 dark:focus:bg-slate-900 rounded-full text-xs text-slate-700 dark:text-slate-200 placeholder-slate-400 border border-transparent focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-950 outline-none transition-all shadow-2xs"
+                />
+              </div>
+            </div>
+
+            {/* Right: Quick Controls & Profile */}
+            <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+              {/* Download Mobile App Button (Hidden inside APK) */}
+              {!Capacitor.isNativePlatform() && (
+                <button
+                  onClick={() => setActiveTab('download')}
+                  title={lang === 'ta' ? 'மொபைல் ஆப் பதிவிறக்கம் (Android & iOS)' : 'Download Mobile App (Android & iOS)'}
+                  className={`hidden md:flex px-3 py-1.5 rounded-full border text-xs font-bold transition-all items-center gap-1.5 shadow-2xs cursor-pointer ${
+                    activeTab === 'download'
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                      : 'border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  <Smartphone className="w-3.5 h-3.5 text-blue-500" />
+                  <span>{lang === 'ta' ? 'ஆப் பதிவிறக்கு' : 'Download App'}</span>
+                </button>
+              )}
+
+              {/* Bilingual Switcher [EN | தமிழ்] */}
+              <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-full p-0.5 text-xs font-bold border border-slate-200/80 dark:border-slate-700 shadow-2xs">
+                <button
+                  onClick={() => handleLanguageChange('en')}
+                  className={`px-2.5 sm:px-3 py-1 rounded-full transition-all text-[11px] sm:text-xs font-bold ${
+                    lang === 'en'
+                      ? 'bg-[#2563EB] text-white shadow-2xs'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                  }`}
+                >
+                  EN
+                </button>
+                <button
+                  onClick={() => handleLanguageChange('ta')}
+                  className={`px-2.5 sm:px-3 py-1 rounded-full transition-all text-[11px] sm:text-xs font-bold ${
+                    lang === 'ta'
+                      ? 'bg-[#2563EB] text-white shadow-2xs'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                  }`}
+                >
+                  தமிழ்
+                </button>
+              </div>
+
+              {/* Day / Night Mode Toggle */}
+              <button
+                onClick={toggleTheme}
+                title={theme === 'light' ? t.nightMode : t.dayMode}
+                className="p-1.5 sm:p-2 rounded-full border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs transition-colors cursor-pointer"
+              >
+                {theme === 'light' ? (
+                  <Moon className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-slate-600" />
+                ) : (
+                  <Sun className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-amber-400" />
+                )}
+              </button>
+
+              {/* Notifications Bell */}
+              <button
+                onClick={() => setActiveTab('notifications')}
+                className="p-1.5 sm:p-2 rounded-full border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 relative shadow-2xs transition-colors cursor-pointer"
+              >
+                <Bell className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
+                {unreadCount > 0 && (
+                  <span className="w-2 h-2 bg-rose-500 rounded-full absolute top-1.5 right-1.5 ring-2 ring-white dark:ring-slate-800"></span>
+                )}
+              </button>
+
+              {/* User Profile Avatar */}
+              <div className="flex items-center gap-1.5 pl-0.5 sm:pl-2">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                  {user.name.slice(0, 2).toUpperCase()}
+                </div>
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 hidden sm:inline truncate max-w-[120px]">
+                  {user.name}
+                </span>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:inline" />
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile Full-Width Search Input (Row 2 on mobile phones) */}
+          <div className="w-full mt-2 sm:hidden">
+            <div className="relative flex items-center w-full">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 pointer-events-none" />
               <input
                 type="text"
                 placeholder={
                   lang === 'ta'
-                    ? 'உறுப்பினர்கள், சீட்டுகள், பதிவேடு தேடுக...'
+                    ? 'உறுப்பினர்கள், சீட்டுகள் தேடுக...'
                     : 'Search members, chit schemes, transactions...'
                 }
-                className="w-full pl-10 pr-4 py-2 bg-slate-100 hover:bg-slate-100/80 focus:bg-white dark:bg-slate-800 dark:hover:bg-slate-800/80 dark:focus:bg-slate-900 rounded-full text-xs text-slate-700 dark:text-slate-200 placeholder-slate-400 border border-transparent focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-950 outline-none transition-all shadow-2xs"
+                className="w-full pl-9 pr-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs text-slate-700 dark:text-slate-200 placeholder-slate-400 border border-transparent focus:border-blue-400 focus:bg-white dark:focus:bg-slate-900 outline-none transition-all shadow-inner"
               />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            {/* Download Mobile App Button */}
-            <button
-              onClick={() => setActiveTab('download')}
-              title={lang === 'ta' ? 'மொபைல் ஆப் பதிவிறக்கம் (Android & iOS)' : 'Download Mobile App (Android & iOS)'}
-              className={`px-3 py-1.5 rounded-full border text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer ${
-                activeTab === 'download'
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                  : 'border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'
-              }`}
-            >
-              <Smartphone className="w-3.5 h-3.5 text-blue-500" />
-              <span className="hidden sm:inline">{lang === 'ta' ? 'ஆப் பதிவிறக்கு' : 'Download App'}</span>
-            </button>
-
-            {/* Bilingual Switcher [EN | தமிழ்] */}
-            <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-full p-0.5 text-xs font-bold border border-slate-200/80 dark:border-slate-700 shadow-2xs">
-              <button
-                onClick={() => handleLanguageChange('en')}
-                className={`px-3 py-1 rounded-full transition-all text-xs font-bold ${
-                  lang === 'en'
-                    ? 'bg-[#2563EB] text-white shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
-                }`}
-              >
-                EN
-              </button>
-              <button
-                onClick={() => handleLanguageChange('ta')}
-                className={`px-3 py-1 rounded-full transition-all text-xs font-bold ${
-                  lang === 'ta'
-                    ? 'bg-[#2563EB] text-white shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
-                }`}
-              >
-                தமிழ்
-              </button>
-            </div>
-
-            {/* Day / Night Mode Toggle */}
-            <button
-              onClick={toggleTheme}
-              title={theme === 'light' ? t.nightMode : t.dayMode}
-              className="p-2 rounded-full border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs transition-colors"
-            >
-              {theme === 'light' ? (
-                <Moon className="w-4 h-4 text-slate-600" />
-              ) : (
-                <Sun className="w-4 h-4 text-amber-400" />
-              )}
-            </button>
-
-            {/* Notifications Bell */}
-            <button
-              onClick={() => setActiveTab('notifications')}
-              className="p-2 rounded-full border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 relative shadow-2xs transition-colors"
-            >
-              <Bell className="w-4 h-4" />
-              {unreadCount > 0 && (
-                <span className="w-2 h-2 bg-rose-500 rounded-full absolute top-1.5 right-1.5 ring-2 ring-white dark:ring-slate-800"></span>
-              )}
-            </button>
-
-            {/* User Profile Pill matching image */}
-            <div className="flex items-center gap-2 pl-1 sm:pl-2">
-              <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-                {user.name.slice(0, 2).toUpperCase()}
-              </div>
-              <span className="text-xs font-bold text-slate-800 dark:text-slate-200 hidden sm:inline truncate max-w-[120px]">
-                {user.name}
-              </span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:inline" />
             </div>
           </div>
         </header>
@@ -933,7 +968,7 @@ export function App() {
         </main>
 
         {/* Mobile Bottom Navigation Bar (Phone Optimized) */}
-        <div className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-30 flex items-center justify-around py-1.5 px-1 shadow-lg pb-[max(0.375rem,env(safe-area-inset-bottom))]">
+        <div className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 dark:bg-[#0E1726]/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 z-30 flex items-center justify-around py-1.5 px-1 shadow-lg mobile-safe-bottom">
           <button
             onClick={() => setActiveTab('dashboard')}
             className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl text-[10px] font-bold transition-all ${
