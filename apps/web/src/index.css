@@ -26,6 +26,22 @@
   padding-bottom: max(env(safe-area-inset-bottom, 0px), 0.5rem);
 }
 
+@keyframes shimmer-progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(25%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer-progress {
+  animation: shimmer-progress 1.6s ease-in-out infinite;
+}
+
 /* Day Mode (Default) */
 :root {
   color-scheme: light;

@@ -261,11 +261,68 @@ export function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F5F7FB]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-sm font-medium text-slate-600">
-            {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர் சீட்டு குழு ஏற்றப்படுகிறது...' : 'Loading Sri Pattanathu Mariamman Anangur Seettu Kuzhu...'}
+      <div className="min-h-screen flex flex-col justify-between items-center bg-[#071328] text-white relative overflow-hidden p-6 select-none mobile-safe-top mobile-safe-bottom">
+        {/* Subtle Ambient Glowing Mesh Background */}
+        <div className="absolute -top-36 -left-36 w-96 h-96 bg-blue-600/20 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute -bottom-36 -right-36 w-96 h-96 bg-amber-500/15 rounded-full blur-[120px] pointer-events-none"></div>
+        <img
+          src="/sidebar-bg.png"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover opacity-20 pointer-events-none select-none z-0 mix-blend-overlay"
+        />
+
+        {/* Top App Version Tag */}
+        <div className="w-full flex justify-between items-center relative z-10 pt-2 px-2">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span className="text-[11px] font-bold text-slate-400 tracking-wide uppercase">
+              {lang === 'ta' ? 'அதிகாரப்பூர்வ செயலி' : 'Official App'}
+            </span>
+          </div>
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/10 text-blue-200 border border-white/10 backdrop-blur-md">
+            v{CURRENT_APP_VERSION}
+          </span>
+        </div>
+
+        {/* Center: Glowing Brand Logo & Title & Shimmer Progress Bar */}
+        <div className="flex flex-col items-center text-center relative z-10 max-w-sm px-4 my-auto">
+          {/* Logo with pulsing golden aura */}
+          <div className="relative mb-6">
+            <div className="absolute -inset-2 bg-gradient-to-r from-amber-400/40 via-yellow-500/20 to-amber-600/40 rounded-[28px] blur-md animate-pulse"></div>
+            <div className="relative w-24 h-24 rounded-[24px] border-2 border-amber-400/80 bg-gradient-to-b from-amber-400/25 to-amber-600/10 shadow-[0_0_35px_rgba(251,191,36,0.35)] ring-4 ring-amber-400/20 p-1 flex items-center justify-center">
+              <img
+                src="/logo.jpg"
+                alt="Logo"
+                className="w-full h-full rounded-[20px] object-cover"
+              />
+            </div>
+          </div>
+
+          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-snug">
+            {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன்' : 'Sri Pattanathu Mariamman'}
+          </h1>
+          <p className="text-xs sm:text-sm text-blue-200/80 font-semibold tracking-wide mt-1">
+            {lang === 'ta' ? 'ஆனங்கூர் சீட்டு குழு' : 'Anangur Seettu Kuzhu'}
+          </p>
+
+          {/* Sleek Modern Shimmer Progress Bar */}
+          <div className="w-48 h-1.5 bg-blue-950/90 rounded-full overflow-hidden mt-8 border border-blue-500/30 shadow-inner">
+            <div className="w-1/2 h-full bg-gradient-to-r from-blue-500 via-amber-400 to-indigo-500 rounded-full animate-shimmer-progress"></div>
+          </div>
+
+          <p className="text-[11px] font-semibold text-slate-400 tracking-wider mt-3">
+            {lang === 'ta' ? 'பாதுகாப்பாக இணைக்கப்படுகிறது...' : 'Connecting securely to cloud ledger...'}
+          </p>
+        </div>
+
+        {/* Bottom Trust Badge */}
+        <div className="flex flex-col items-center gap-1.5 text-center relative z-10 pb-2">
+          <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span>{lang === 'ta' ? '256-Bit SSL பாதுகாப்பானது' : '256-Bit SSL Encrypted Cloud Ledger'}</span>
+          </div>
+          <p className="text-[10px] text-slate-500">
+            {lang === 'ta' ? 'அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை © 2026' : 'Official Mobile App • All Rights Reserved © 2026'}
           </p>
         </div>
       </div>
@@ -1188,7 +1245,51 @@ function DashboardScreen({ user, lang, onNavigate, onViewReceipt }: { user: any;
   }, []);
 
   if (loading) {
-    return <div className="text-center py-12 text-slate-400">{lang === 'ta' ? 'புள்ளிவிவரங்கள் ஏற்றப்படுகின்றன...' : 'Loading dashboard metrics...'}</div>;
+    return (
+      <div className="space-y-4 animate-pulse select-none">
+        {/* Top Header Skeleton */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-2">
+            <div className="h-7 w-44 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+            <div className="h-4 w-56 bg-slate-100 dark:bg-slate-800/60 rounded-lg"></div>
+          </div>
+          <div className="h-10 w-44 bg-slate-200 dark:bg-slate-800 rounded-2xl hidden sm:block"></div>
+        </div>
+
+        {/* Hero Chit Card Skeleton (Deep authentic navy) */}
+        <div className="rounded-[30px] p-6 sm:p-8 bg-gradient-to-br from-[#0c1a33] to-[#071328] border border-blue-950/80 shadow-xl relative overflow-hidden flex flex-col items-center text-center space-y-4">
+          <div className="h-4 w-32 bg-blue-900/60 rounded-full"></div>
+          <div className="h-8 w-64 bg-blue-800/50 rounded-xl"></div>
+          <div className="w-24 h-24 rounded-full bg-blue-900/40 my-1"></div>
+          <div className="h-5 w-40 bg-amber-400/30 rounded-lg"></div>
+          <div className="h-11 w-52 bg-amber-500/40 rounded-2xl"></div>
+        </div>
+
+        {/* 2 Big Stat Cards Skeletons */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div className="p-5 rounded-2xl bg-white dark:bg-[#0E1726] border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-950/60 shrink-0"></div>
+            <div className="flex-1 space-y-2.5">
+              <div className="h-3.5 w-28 bg-slate-200 dark:bg-slate-800 rounded"></div>
+              <div className="h-7 w-36 bg-slate-300 dark:bg-slate-700 rounded-lg"></div>
+            </div>
+          </div>
+          <div className="p-5 rounded-2xl bg-white dark:bg-[#0E1726] border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/60 shrink-0"></div>
+            <div className="flex-1 space-y-2.5">
+              <div className="h-3.5 w-32 bg-slate-200 dark:bg-slate-800 rounded"></div>
+              <div className="h-7 w-36 bg-slate-300 dark:bg-slate-700 rounded-lg"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Live sync indicator footer */}
+        <div className="flex items-center justify-center gap-2 py-4 text-xs font-bold text-slate-400">
+          <div className="w-2 h-2 rounded-full bg-blue-600 animate-ping"></div>
+          <span>{lang === 'ta' ? 'கிளவுட் கணக்கு விவரங்கள் புதுப்பிக்கப்படுகின்றன...' : 'Syncing live cloud ledger metrics...'}</span>
+        </div>
+      </div>
+    );
   }
 
   if (data?.isMember) {
