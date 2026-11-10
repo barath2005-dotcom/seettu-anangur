@@ -56,6 +56,8 @@ import { ReceiptModal } from './components/ReceiptModal';
 import { ChitCalendar } from './components/ChitCalendar';
 import { MonthlyEntryScreen } from './components/MonthlyEntryScreen';
 import { DownloadAppScreen } from './components/DownloadAppScreen';
+import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
 
 export function App() {
   // Language State
@@ -166,6 +168,28 @@ export function App() {
       setLoading(false);
     }
   }, []);
+
+  // Android Hardware Back Button Handling
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    let removeListener: (() => void) | null = null;
+    CapApp.addListener('backButton', () => {
+      if (viewingReceipt) {
+        setViewingReceipt(null);
+      } else if (mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      } else if (activeTab !== 'dashboard') {
+        setActiveTab('dashboard');
+      } else {
+        CapApp.exitApp();
+      }
+    }).then((handle) => {
+      removeListener = () => handle.remove();
+    });
+    return () => {
+      if (removeListener) removeListener();
+    };
+  }, [viewingReceipt, mobileMenuOpen, activeTab]);
 
   const fetchNotifications = async () => {
     try {

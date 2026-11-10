@@ -22,6 +22,9 @@ import {
   Eye,
   UserCheck,
 } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 import { api } from '../services/api';
 import {
   formatINR,
@@ -686,6 +689,29 @@ export function MonthlyEntryScreen({
 
     const csvContent =
       '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(',')), ...summaryRows].join('\r\n');
+
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const csvFileName = `seettu-chit-${chitNo}-${date.replace(/\./g, '-')}.csv`;
+        const base64Data = btoa(unescape(encodeURIComponent(csvContent)));
+        const savedFile = await Filesystem.writeFile({
+          path: csvFileName,
+          data: base64Data,
+          directory: Directory.Cache,
+        });
+        await Share.share({
+          title: `Chit ${chitNo} (${date}) CSV`,
+          text: `Sri Pattanathu Mariamman Anangur Seettu Chit ${chitNo} (${date})`,
+          url: savedFile.uri,
+          dialogTitle: 'Share CSV Report',
+        });
+        showToast(lang === 'ta' ? 'CSV அறிக்கை பகிர தயாராக உள்ளது!' : 'CSV Report ready to share!');
+        return;
+      } catch (err: any) {
+        console.error('Failed native CSV export:', err);
+      }
+    }
+
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -961,6 +987,62 @@ export function MonthlyEntryScreen({
   </script>
 </body>
 </html>`;
+
+    if (Capacitor.isNativePlatform()) {
+      showToast(lang === 'ta' ? 'PDF உருவாக்கப்படுகிறது...' : 'Generating PDF...');
+      try {
+        const container = document.createElement('div');
+        container.style.position = 'fixed';
+        container.style.left = '-9999px';
+        container.style.top = '0';
+        container.style.width = '794px';
+        container.style.backgroundColor = '#ffffff';
+        container.innerHTML = htmlContent;
+        document.body.appendChild(container);
+
+        const html2pdfModule = (await import('html2pdf.js')).default;
+        const opt = {
+          margin: 8,
+          filename: `Seettu_Chit_${chitNo}_${date.replace(/\./g, '-')}.pdf`,
+          image: { type: 'jpeg' as const, quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+          jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
+        };
+
+        const pdfBase64 = await html2pdfModule()
+          .set(opt)
+          .from(container)
+          .outputPdf('datauristring');
+
+        document.body.removeChild(container);
+
+        const base64Data = pdfBase64.split(',')[1];
+        const fileName = `Seettu_Chit_${chitNo}_${date.replace(/\./g, '-')}.pdf`;
+
+        const savedFile = await Filesystem.writeFile({
+          path: fileName,
+          data: base64Data,
+          directory: Directory.Cache,
+        });
+
+        await Share.share({
+          title: `சீட்டு அறிக்கை - ${chitNo} (${date})`,
+          text: `ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர் சீட்டு எண் ${chitNo} (${date}) மாதாந்திர அறிக்கை`,
+          url: savedFile.uri,
+          dialogTitle: 'Share Seettu PDF Report',
+        });
+
+        showToast(lang === 'ta' ? 'PDF அறிக்கை பகிரப்பட்டது!' : 'PDF report ready to share!');
+        return;
+      } catch (err: any) {
+        console.error('Failed native PDF export:', err);
+        showToast(
+          lang === 'ta'
+            ? 'PDF உருவாக்குவதில் பிழை: ' + (err?.message || err)
+            : 'Error generating PDF: ' + (err?.message || err)
+        );
+      }
+    }
 
     const printWin = window.open('', '_blank');
     if (printWin) {
