@@ -3645,73 +3645,153 @@ function PaymentsScreen({ user, lang, showToast, onViewReceipt }: { user: any; l
         )}
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
-        <table className="w-full text-left text-xs">
-          <thead className="bg-slate-50 text-slate-500 uppercase font-semibold border-b border-slate-100">
-            <tr>
-              <th className="py-3 px-4">{t.receiptNumber}</th>
-              <th className="py-3 px-4">{t.fullName}</th>
-              <th className="py-3 px-4">{t.schemes}</th>
-              <th className="py-3 px-4">{t.amountReceived}</th>
-              <th className="py-3 px-4">{t.paymentMethod}</th>
-              <th className="py-3 px-4">{t.dueDate}</th>
-              <th className="py-3 px-4">{t.status}</th>
-              <th className="py-3 px-4 text-right">{lang === 'ta' ? 'செயல்கள்' : 'Actions'}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 font-medium">
-            {payments.map((p) => (
-              <tr key={p.id} className="hover:bg-slate-50 transition-colors">
-                <td className="py-3 px-4 font-mono font-bold text-slate-800">{p.receiptNumber}</td>
-                <td className="py-3 px-4">
-                  <span className="font-bold text-slate-900 block">{p.memberName}</span>
-                  <span className="text-[10px] text-slate-400 font-mono">ID: {p.memberNumber}</span>
-                </td>
-                <td className="py-3 px-4">
-                  <span className="font-medium text-slate-800 block">{p.schemeName}</span>
-                  <span className="text-[10px] text-slate-400">{t.roundNumber} #{p.roundNumber}</span>
-                </td>
-                <td className="py-3 px-4 font-extrabold text-emerald-600">
-                  {formatINR(p.amountReceivedPaise)}
-                </td>
-                <td className="py-3 px-4">
-                  <span className="font-mono text-[11px] font-semibold text-slate-700">{p.paymentMethod}</span>
-                  {p.externalReference && (
-                    <span className="text-[10px] text-slate-400 block font-mono">Ref: {p.externalReference}</span>
-                  )}
-                </td>
-                <td className="py-3 px-4 text-slate-500">{formatKolkataDate(p.paymentDate)}</td>
-                <td className="py-3 px-4">
+      {/* Mobile Card View (< md) */}
+      <div className="block md:hidden space-y-3">
+        {payments.length === 0 ? (
+          <div className="bg-white p-8 text-center rounded-xl border border-slate-100 text-slate-400 text-xs">
+            {lang === 'ta' ? 'பணம் செலுத்திய பதிவுகள் எதுவும் இல்லை' : 'No payment records found'}
+          </div>
+        ) : (
+          payments.map((p) => (
+            <div key={p.id} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                <div>
+                  <span className="font-mono font-bold text-slate-800 text-xs">{p.receiptNumber}</span>
+                  <span className="text-[10px] text-slate-400 block">{formatKolkataDate(p.paymentDate)}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     p.status === 'SUCCESS' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
                   }`}>
                     {p.status === 'SUCCESS' ? (lang === 'ta' ? 'வெற்றி' : 'SUCCESS') : (lang === 'ta' ? 'ரத்து செய்யப்பட்டது' : 'REVERSED')}
                   </span>
-                </td>
-                <td className="py-3 px-4 text-right">
-                  <div className="flex items-center justify-end gap-2">
+                  <button
+                    onClick={() => onViewReceipt(p)}
+                    className="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                    title={t.viewReceipt}
+                  >
+                    <Printer className="w-4 h-4" />
+                  </button>
+                  {user.role === 'ADMIN' && p.status === 'SUCCESS' && (
                     <button
-                      onClick={() => onViewReceipt(p)}
-                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      title={t.viewReceipt}
+                      onClick={() => setShowReverseModal(p.id)}
+                      className="p-1.5 text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
+                      title={t.reversePayment}
                     >
-                      <Printer className="w-4 h-4" />
+                      <RotateCcw className="w-4 h-4" />
                     </button>
-                    {user.role === 'ADMIN' && p.status === 'SUCCESS' && (
-                      <button
-                        onClick={() => setShowReverseModal(p.id)}
-                        className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
-                        title={t.reversePayment}
-                      >
-                        <RotateCcw className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                </td>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="text-[10px] text-slate-400 block uppercase">{t.fullName}</span>
+                  <span className="font-bold text-slate-900 block">{p.memberName}</span>
+                  <span className="text-[10px] text-slate-400 font-mono">ID: {p.memberNumber}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block uppercase">{t.schemes}</span>
+                  <span className="font-medium text-slate-800 block truncate">{p.schemeName}</span>
+                  <span className="text-[10px] text-slate-400">{t.roundNumber} #{p.roundNumber}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-2 border-t border-slate-50 bg-slate-50/60 -mx-4 -mb-4 px-4 py-2.5 rounded-b-xl">
+                <div>
+                  <span className="text-[10px] text-slate-400 block uppercase">{t.amountReceived}</span>
+                  <span className="font-extrabold text-sm text-emerald-600">{formatINR(p.amountReceivedPaise)}</span>
+                </div>
+                <div className="text-right">
+                  <span className="font-mono text-[11px] font-semibold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200 inline-block">{p.paymentMethod}</span>
+                  {p.externalReference && (
+                    <span className="text-[10px] text-slate-400 block font-mono">Ref: {p.externalReference}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop / Tablet Table View (hidden on mobile, overflow-x-auto on tablet/desktop) */}
+      <div className="hidden md:block bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-50 text-slate-500 uppercase font-semibold border-b border-slate-100">
+              <tr>
+                <th className="py-3 px-4">{t.receiptNumber}</th>
+                <th className="py-3 px-4">{t.fullName}</th>
+                <th className="py-3 px-4">{t.schemes}</th>
+                <th className="py-3 px-4">{t.amountReceived}</th>
+                <th className="py-3 px-4">{t.paymentMethod}</th>
+                <th className="py-3 px-4">{lang === 'ta' ? 'செலுத்திய தேதி' : 'Payment Date'}</th>
+                <th className="py-3 px-4">{t.status}</th>
+                <th className="py-3 px-4 text-right">{lang === 'ta' ? 'செயல்கள்' : 'Actions'}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-100 font-medium">
+              {payments.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-8 text-center text-slate-400">
+                    {lang === 'ta' ? 'பணம் செலுத்திய பதிவுகள் எதுவும் இல்லை' : 'No payment records found'}
+                  </td>
+                </tr>
+              ) : (
+                payments.map((p) => (
+                  <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="py-3 px-4 font-mono font-bold text-slate-800">{p.receiptNumber}</td>
+                    <td className="py-3 px-4">
+                      <span className="font-bold text-slate-900 block">{p.memberName}</span>
+                      <span className="text-[10px] text-slate-400 font-mono">ID: {p.memberNumber}</span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="font-medium text-slate-800 block">{p.schemeName}</span>
+                      <span className="text-[10px] text-slate-400">{t.roundNumber} #{p.roundNumber}</span>
+                    </td>
+                    <td className="py-3 px-4 font-extrabold text-emerald-600">
+                      {formatINR(p.amountReceivedPaise)}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="font-mono text-[11px] font-semibold text-slate-700">{p.paymentMethod}</span>
+                      {p.externalReference && (
+                        <span className="text-[10px] text-slate-400 block font-mono">Ref: {p.externalReference}</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-slate-500">{formatKolkataDate(p.paymentDate)}</td>
+                    <td className="py-3 px-4">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        p.status === 'SUCCESS' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                      }`}>
+                        {p.status === 'SUCCESS' ? (lang === 'ta' ? 'வெற்றி' : 'SUCCESS') : (lang === 'ta' ? 'ரத்து செய்யப்பட்டது' : 'REVERSED')}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => onViewReceipt(p)}
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title={t.viewReceipt}
+                        >
+                          <Printer className="w-4 h-4" />
+                        </button>
+                        {user.role === 'ADMIN' && p.status === 'SUCCESS' && (
+                          <button
+                            onClick={() => setShowReverseModal(p.id)}
+                            className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                            title={t.reversePayment}
+                          >
+                            <RotateCcw className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Record Payment Modal */}
@@ -3914,65 +3994,146 @@ function PayoutsScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
         <p className="text-xs text-slate-400">{t.payoutsSubtitle}</p>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
-        <table className="w-full text-left text-xs">
-          <thead className="bg-slate-50 text-slate-500 uppercase font-semibold border-b border-slate-100">
-            <tr>
-              <th className="py-3 px-4">{t.schemes}</th>
-              <th className="py-3 px-4">{t.recipient}</th>
-              <th className="py-3 px-4">{t.grossPayout}</th>
-              <th className="py-3 px-4">{t.deductions}</th>
-              <th className="py-3 px-4">{t.netPayout}</th>
-              <th className="py-3 px-4">{t.approvalStatus}</th>
-              <th className="py-3 px-4">{t.disbursedRef}</th>
-              <th className="py-3 px-4 text-right">{lang === 'ta' ? 'செயல்கள்' : 'Actions'}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 font-medium">
-            {payouts.map((po) => (
-              <tr key={po.id} className="hover:bg-slate-50 transition-colors">
-                <td className="py-3.5 px-4">
-                  <span className="font-bold text-slate-800 block">{po.schemeName}</span>
-                  <span className="text-[10px] text-blue-600 font-semibold">{t.roundNumber} #{po.roundNumber}</span>
-                </td>
-                <td className="py-3.5 px-4">
-                  <span className="font-bold text-slate-900 block">{po.recipientName}</span>
-                  <span className="text-[10px] text-slate-400 font-mono">ID: {po.recipientMemberNumber}</span>
-                </td>
-                <td className="py-3.5 px-4 font-semibold text-slate-700">{formatINR(po.grossPayoutPaise)}</td>
-                <td className="py-3.5 px-4 text-rose-600 font-semibold">-{formatINR(po.deductionsPaise)}</td>
-                <td className="py-3.5 px-4 font-extrabold text-purple-700">{formatINR(po.netPayoutPaise)}</td>
-                <td className="py-3.5 px-4">
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    po.approvalStatus === 'DISBURSED' ? 'bg-purple-100 text-purple-800' :
-                    po.approvalStatus === 'APPROVED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                  }`}>
-                    {po.approvalStatus}
-                  </span>
-                </td>
-                <td className="py-3.5 px-4 font-mono text-[11px] text-slate-600">{po.referenceNumber || '-'}</td>
-                <td className="py-3.5 px-4 text-right">
-                  {user.role === 'ADMIN' && po.approvalStatus === 'PENDING_APPROVAL' && (
-                    <div className="flex items-center justify-end gap-1.5">
-                      <button
-                        onClick={() => handleApprove(po.id, true)}
-                        className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-bold"
-                      >
-                        {t.approve}
-                      </button>
-                      <button
-                        onClick={() => handleApprove(po.id, false)}
-                        className="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded text-[11px] font-bold"
-                      >
-                        {t.reject}
-                      </button>
-                    </div>
-                  )}
-                </td>
+      {/* Mobile Card View (< md) */}
+      <div className="block md:hidden space-y-3">
+        {payouts.length === 0 ? (
+          <div className="bg-white p-8 text-center rounded-xl border border-slate-100 text-slate-400 text-xs">
+            {lang === 'ta' ? 'பட்டுவாடா பதிவுகள் எதுவும் இல்லை' : 'No payout records found'}
+          </div>
+        ) : (
+          payouts.map((po) => (
+            <div key={po.id} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                <div>
+                  <span className="font-bold text-slate-800 text-xs">{po.schemeName}</span>
+                  <span className="text-[10px] text-blue-600 font-semibold block">{t.roundNumber} #{po.roundNumber}</span>
+                </div>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                  po.approvalStatus === 'DISBURSED' ? 'bg-purple-100 text-purple-800' :
+                  po.approvalStatus === 'APPROVED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                }`}>
+                  {po.approvalStatus}
+                </span>
+              </div>
+
+              <div>
+                <span className="text-[10px] text-slate-400 block uppercase">{t.recipient}</span>
+                <span className="font-bold text-slate-900 text-xs">{po.recipientName}</span>
+                <span className="text-[10px] text-slate-400 font-mono block">ID: {po.recipientMemberNumber}</span>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 bg-slate-50 p-2.5 rounded-lg text-xs">
+                <div>
+                  <span className="text-[10px] text-slate-400 block">{t.grossPayout}</span>
+                  <span className="font-semibold text-slate-700 text-[11px]">{formatINR(po.grossPayoutPaise)}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 block">{t.deductions}</span>
+                  <span className="font-semibold text-rose-600 text-[11px]">-{formatINR(po.deductionsPaise)}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-purple-700 font-bold block">{t.netPayout}</span>
+                  <span className="font-extrabold text-purple-700 text-[11px]">{formatINR(po.netPayoutPaise)}</span>
+                </div>
+              </div>
+
+              {po.referenceNumber && (
+                <div className="text-[11px] text-slate-500 font-mono">
+                  {t.disbursedRef}: {po.referenceNumber}
+                </div>
+              )}
+
+              {user.role === 'ADMIN' && po.approvalStatus === 'PENDING_APPROVAL' && (
+                <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
+                  <button
+                    onClick={() => handleApprove(po.id, true)}
+                    className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors"
+                  >
+                    {t.approve}
+                  </button>
+                  <button
+                    onClick={() => handleApprove(po.id, false)}
+                    className="flex-1 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition-colors"
+                  >
+                    {t.reject}
+                  </button>
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop / Tablet Table View (hidden on mobile, overflow-x-auto on tablet/desktop) */}
+      <div className="hidden md:block bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-50 text-slate-500 uppercase font-semibold border-b border-slate-100">
+              <tr>
+                <th className="py-3 px-4">{t.schemes}</th>
+                <th className="py-3 px-4">{t.recipient}</th>
+                <th className="py-3 px-4">{t.grossPayout}</th>
+                <th className="py-3 px-4">{t.deductions}</th>
+                <th className="py-3 px-4">{t.netPayout}</th>
+                <th className="py-3 px-4">{t.approvalStatus}</th>
+                <th className="py-3 px-4">{t.disbursedRef}</th>
+                <th className="py-3 px-4 text-right">{lang === 'ta' ? 'செயல்கள்' : 'Actions'}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-100 font-medium">
+              {payouts.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-8 text-center text-slate-400">
+                    {lang === 'ta' ? 'பட்டுவாடா பதிவுகள் எதுவும் இல்லை' : 'No payout records found'}
+                  </td>
+                </tr>
+              ) : (
+                payouts.map((po) => (
+                  <tr key={po.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="py-3.5 px-4">
+                      <span className="font-bold text-slate-800 block">{po.schemeName}</span>
+                      <span className="text-[10px] text-blue-600 font-semibold">{t.roundNumber} #{po.roundNumber}</span>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span className="font-bold text-slate-900 block">{po.recipientName}</span>
+                      <span className="text-[10px] text-slate-400 font-mono">ID: {po.recipientMemberNumber}</span>
+                    </td>
+                    <td className="py-3.5 px-4 font-semibold text-slate-700">{formatINR(po.grossPayoutPaise)}</td>
+                    <td className="py-3.5 px-4 text-rose-600 font-semibold">-{formatINR(po.deductionsPaise)}</td>
+                    <td className="py-3.5 px-4 font-extrabold text-purple-700">{formatINR(po.netPayoutPaise)}</td>
+                    <td className="py-3.5 px-4">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        po.approvalStatus === 'DISBURSED' ? 'bg-purple-100 text-purple-800' :
+                        po.approvalStatus === 'APPROVED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                      }`}>
+                        {po.approvalStatus}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-[11px] text-slate-600">{po.referenceNumber || '-'}</td>
+                    <td className="py-3.5 px-4 text-right">
+                      {user.role === 'ADMIN' && po.approvalStatus === 'PENDING_APPROVAL' && (
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => handleApprove(po.id, true)}
+                            className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-bold"
+                          >
+                            {t.approve}
+                          </button>
+                          <button
+                            onClick={() => handleApprove(po.id, false)}
+                            className="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded text-[11px] font-bold"
+                          >
+                            {t.reject}
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
