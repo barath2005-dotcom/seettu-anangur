@@ -59,6 +59,7 @@ import { ChitCalendar } from './components/ChitCalendar';
 import { MonthlyEntryScreen } from './components/MonthlyEntryScreen';
 import { DownloadAppScreen } from './components/DownloadAppScreen';
 import { AppUpdateModal } from './components/AppUpdateModal';
+import { LuckyDrawWheelModal } from './components/LuckyDrawWheelModal';
 import { checkAppUpdate, AppUpdateInfo, CURRENT_APP_VERSION, downloadAndInstallApk } from './services/appUpdate';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
@@ -661,6 +662,7 @@ export function App() {
       roles: ['ADMIN', 'STAFF', 'MEMBER'],
     },
     { id: 'schemes', label: lang === 'ta' ? 'சீட்டு திட்டங்கள்' : 'Chit Schemes', icon: Coins, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
+    { id: 'lucky-draw', label: lang === 'ta' ? 'டிஜிட்டல் குலுக்கல்' : 'Digital Lucky Draw', icon: Sparkles, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
     { id: 'calendar', label: lang === 'ta' ? 'சீட்டு நாட்காட்டி' : 'Chit Calendar', icon: Calendar, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
     { id: 'payments', label: lang === 'ta' ? 'தவணை பதிவேடு' : 'Payments Ledger', icon: Receipt, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
     { id: 'payouts', label: lang === 'ta' ? 'வழங்கல்கள்' : 'Payouts', icon: Gift, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
@@ -1207,6 +1209,17 @@ export function App() {
               lang={lang}
               showToast={showToast}
               onRecordPaymentForScheme={() => setActiveTab('payments')}
+              onLaunchLuckyDraw={(schemeId) => {
+                setActiveTab('lucky-draw');
+              }}
+            />
+          )}
+          {activeTab === 'lucky-draw' && (
+            <LuckyDrawWheelModal
+              user={user}
+              lang={lang}
+              showToast={showToast}
+              onNavigateToPayouts={() => setActiveTab('payouts')}
             />
           )}
           {activeTab === 'calendar' && (
@@ -2013,13 +2026,22 @@ function DashboardScreen({ user, lang, onNavigate, onViewReceipt }: { user: any;
             <span className="text-lg">1</span>
             <span>{lang === 'ta' ? 'நாள் மீதமுள்ளது' : 'DAY REMAINING'}</span>
           </div>
-          <button
-            onClick={() => onNavigate('calendar')}
-            className="bg-[#F59E0B] hover:bg-[#D97706] text-slate-950 font-extrabold text-xs px-5 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
-          >
-            <Calendar className="w-4 h-4" />
-            <span>{lang === 'ta' ? 'சீட்டு நாட்காட்டி ➔' : 'View Chit Calendar →'}</span>
-          </button>
+          <div className="flex flex-wrap items-center justify-center md:justify-end gap-2">
+            <button
+              onClick={() => onNavigate('lucky-draw')}
+              className="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 hover:from-amber-600 hover:to-red-600 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer hover:shadow-lg hover:-translate-y-0.5"
+            >
+              <Sparkles className="w-4 h-4 text-yellow-200" />
+              <span>{lang === 'ta' ? 'டிஜிட்டல் குலுக்கல் 🎡' : 'Live Lucky Draw 🎡'}</span>
+            </button>
+            <button
+              onClick={() => onNavigate('calendar')}
+              className="bg-[#F59E0B] hover:bg-[#D97706] text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+            >
+              <Calendar className="w-4 h-4" />
+              <span>{lang === 'ta' ? 'சீட்டு நாட்காட்டி ➔' : 'Chit Calendar →'}</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -3228,7 +3250,19 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
 // -------------------------------------------------------------
 // 4. SCHEMES SCREEN (BILINGUAL)
 // -------------------------------------------------------------
-function SchemesScreen({ user, lang, showToast, onRecordPaymentForScheme }: { user: any; lang: SupportedLanguage; showToast: any; onRecordPaymentForScheme: (id: string) => void }) {
+function SchemesScreen({
+  user,
+  lang,
+  showToast,
+  onRecordPaymentForScheme,
+  onLaunchLuckyDraw,
+}: {
+  user: any;
+  lang: SupportedLanguage;
+  showToast: any;
+  onRecordPaymentForScheme: (id: string) => void;
+  onLaunchLuckyDraw?: (schemeId: string) => void;
+}) {
   const t = translations[lang];
   const [schemes, setSchemes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -3355,10 +3389,20 @@ function SchemesScreen({ user, lang, showToast, onRecordPaymentForScheme }: { us
             <div className="mt-5 pt-3 border-t border-slate-100 flex items-center gap-2">
               <button
                 onClick={() => handleViewScheme(s.id)}
-                className="flex-1 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold transition-colors text-center"
+                className="flex-1 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold transition-colors text-center"
               >
                 {t.viewDetailsAndRounds}
               </button>
+              {onLaunchLuckyDraw && (
+                <button
+                  onClick={() => onLaunchLuckyDraw(s.id)}
+                  className="py-2 px-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer hover:shadow-md"
+                  title={lang === 'ta' ? 'டிஜிட்டல் குலுக்கல் துவக்குக' : 'Launch Lucky Draw'}
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>{lang === 'ta' ? 'குலுக்கல்' : 'Draw'}</span>
+                </button>
+              )}
             </div>
           </div>
         ))}
@@ -3533,7 +3577,21 @@ function SchemesScreen({ user, lang, showToast, onRecordPaymentForScheme }: { us
               </div>
             </div>
 
-            <div className="border-t border-slate-100 px-5 py-3 bg-slate-50 flex justify-end shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <div className="border-t border-slate-100 px-5 py-3 bg-slate-50 flex items-center justify-between shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              {onLaunchLuckyDraw ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const sid = selectedScheme.id;
+                    setSelectedScheme(null);
+                    onLaunchLuckyDraw(sid);
+                  }}
+                  className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4 text-yellow-200" />
+                  <span>{lang === 'ta' ? '🎡 டிஜிட்டல் குலுக்கல்' : '🎡 Launch Lucky Draw'}</span>
+                </button>
+              ) : <div />}
               <button
                 type="button"
                 onClick={() => setSelectedScheme(null)}

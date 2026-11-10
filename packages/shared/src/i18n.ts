@@ -20,6 +20,7 @@ export interface Translations {
   staff: string;
   audit: string;
   settings: string;
+  luckyDraw: string;
   signOut: string;
   signIn: string;
 
@@ -204,6 +205,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
     staff: 'Staff & Roles',
     audit: 'Audit Trail',
     settings: 'Settings',
+    luckyDraw: 'Digital Lucky Draw',
     signOut: 'Sign Out',
     signIn: 'Sign In',
 
@@ -378,6 +380,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
     staff: 'பணியாளர்கள்',
     audit: 'தணிக்கைப் பதிவு',
     settings: 'அமைப்புகள்',
+    luckyDraw: 'டிஜிட்டல் குலுக்கல்',
     signOut: 'வெளியேறுக',
     signIn: 'உள்நுழைக',
 
