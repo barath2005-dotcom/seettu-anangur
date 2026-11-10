@@ -14,12 +14,50 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
     if (status && status !== 'ALL') where.status = status;
     if (type && type !== 'ALL') where.schemeType = type;
 
-    // If member role, list schemes they are enrolled in or all active public schemes
-    if (req.user?.role === 'MEMBER' && req.user.memberId) {
-      // Find schemes where member is enrolled
-      where.memberships = {
-        some: { memberId: req.user.memberId },
-      };
+    // If member role, list schemes they are enrolled in, with phone and active-scheme fallback
+    if (req.user?.role === 'MEMBER') {
+      let resolvedMemberId = req.user.memberId;
+
+      // Fallback: If memberId is missing from token, resolve by user relation or phone
+      if (!resolvedMemberId && req.user.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: req.user.id },
+          include: { member: true },
+        });
+
+        if (dbUser?.member?.id) {
+          resolvedMemberId = dbUser.member.id;
+        } else if (dbUser?.phone) {
+          const cleanPhone = dbUser.phone.replace(/[^0-9]/g, '').slice(-10);
+          const memberByPhone = await prisma.member.findFirst({
+            where: {
+              phone: { contains: cleanPhone },
+            },
+          });
+          if (memberByPhone) {
+            resolvedMemberId = memberByPhone.id;
+          }
+        }
+      }
+
+      if (resolvedMemberId) {
+        // Check if member has active scheme enrollments
+        const enrolledCount = await prisma.schemeMembership.count({
+          where: { memberId: resolvedMemberId },
+        });
+
+        if (enrolledCount > 0) {
+          where.memberships = {
+            some: { memberId: resolvedMemberId },
+          };
+        } else {
+          // If no explicit membership record exists yet, show active schemes so member isn't stranded with an empty list []
+          where.status = 'ACTIVE';
+        }
+      } else {
+        // Fallback for members without linked memberId: display active schemes
+        where.status = 'ACTIVE';
+      }
     }
 
     const schemes = await prisma.scheme.findMany({

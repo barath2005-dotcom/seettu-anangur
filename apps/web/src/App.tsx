@@ -211,15 +211,53 @@ export function App() {
     if (!Capacitor.isNativePlatform()) return;
     let removeListener: (() => void) | null = null;
     CapApp.addListener('backButton', () => {
+      // 1. Dispatch custom event so any custom modal hook or listener can intercept
+      const customEvent = new CustomEvent('app:backbutton', { cancelable: true });
+      const wasPrevented = !window.dispatchEvent(customEvent);
+      if (wasPrevented) return;
+
+      // 2. If Viewing Receipt modal is active, close it
       if (viewingReceipt) {
         setViewingReceipt(null);
-      } else if (mobileMenuOpen) {
-        setMobileMenuOpen(false);
-      } else if (activeTab !== 'dashboard') {
-        setActiveTab('dashboard');
-      } else {
-        CapApp.exitApp();
+        return;
       }
+
+      // 3. If Mobile Drawer Menu is open, close it
+      if (mobileMenuOpen) {
+        setMobileMenuOpen(false);
+        return;
+      }
+
+      // 4. Intercept any active open modal in the DOM (e.g. Member Profile, Add Member, Delete Modal, Record Payment, Schemes)
+      const openModals = document.querySelectorAll<HTMLElement>(
+        '.fixed.inset-0.z-50, [role="dialog"], .fixed.inset-0.bg-black\\/60, .fixed.inset-0[class*="z-50"]'
+      );
+      if (openModals.length > 0) {
+        const topModal = openModals[openModals.length - 1];
+        // Find close or cancel button inside the top modal
+        const closeBtn =
+          topModal.querySelector<HTMLElement>('button[aria-label="Close"], button[aria-label="close"], [data-close-modal]') ||
+          Array.from(topModal.querySelectorAll<HTMLButtonElement>('button')).find(
+            (b) =>
+              b.textContent?.includes('Cancel') ||
+              b.textContent?.includes('ரத்து') ||
+              b.textContent?.includes('Done') ||
+              b.textContent?.includes('முடிந்தது')
+          );
+        if (closeBtn) {
+          closeBtn.click();
+          return;
+        }
+      }
+
+      // 5. If navigating another tab (Members, Payments, Schemes, Calendar, Reports), return to Dashboard
+      if (activeTab !== 'dashboard') {
+        setActiveTab('dashboard');
+        return;
+      }
+
+      // 6. Only exit the app if user is on the main Dashboard with no open modals
+      CapApp.exitApp();
     }).then((handle) => {
       removeListener = () => handle.remove();
     });
