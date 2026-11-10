@@ -199,6 +199,13 @@ export function App() {
     }
   }, []);
 
+  // Guard: Members and native mobile users should never be on 'download' tab
+  useEffect(() => {
+    if (activeTab === 'download' && (user?.role === 'MEMBER' || Capacitor.isNativePlatform())) {
+      setActiveTab('dashboard');
+    }
+  }, [user, activeTab]);
+
   // Android Hardware Back Button Handling
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
@@ -623,7 +630,9 @@ export function App() {
     { id: 'notifications', label: lang === 'ta' ? 'அறிவிப்புகள்' : 'Notifications', icon: Bell, roles: ['ADMIN', 'STAFF', 'MEMBER'], badge: unreadCount },
     { id: 'staff', label: lang === 'ta' ? 'பணியாளர்கள் & அனுமதிகள்' : 'Staff & Roles', icon: ShieldCheck, roles: ['ADMIN'] },
     { id: 'audit', label: lang === 'ta' ? 'தணிக்கை பதிவு' : 'Audit Trail', icon: History, roles: ['ADMIN'] },
-    { id: 'download', label: lang === 'ta' ? 'மொபைல் ஆப்' : 'Download Mobile App', icon: Smartphone, roles: ['ADMIN', 'STAFF', 'MEMBER'] },
+    ...(!Capacitor.isNativePlatform() && user.role === 'ADMIN'
+      ? [{ id: 'download', label: lang === 'ta' ? 'மொபைல் ஆப்' : 'Download Mobile App', icon: Smartphone, roles: ['ADMIN'] }]
+      : []),
     { id: 'settings', label: lang === 'ta' ? 'அமைப்புகள்' : 'Settings', icon: SettingsIcon, roles: ['ADMIN', 'STAFF'] },
   ].filter((item) => item.roles.includes(user.role));
 
@@ -1012,8 +1021,8 @@ export function App() {
 
             {/* Right: Quick Controls & Profile */}
             <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-              {/* Download Mobile App Button (Hidden inside APK) */}
-              {!Capacitor.isNativePlatform() && (
+              {/* Download Mobile App Button (Hidden inside APK and hidden for Members) */}
+              {!Capacitor.isNativePlatform() && user?.role === 'ADMIN' && (
                 <button
                   onClick={() => setActiveTab('download')}
                   title={lang === 'ta' ? 'மொபைல் ஆப் பதிவிறக்கம் (Android & iOS)' : 'Download Mobile App (Android & iOS)'}
