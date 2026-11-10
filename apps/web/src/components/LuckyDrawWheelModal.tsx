@@ -327,6 +327,35 @@ export const LuckyDrawWheelModal: React.FC<LuckyDrawProps> = ({
     };
   }, [schemeDetails]);
 
+  // Role permissions: only ADMIN can spin the lucky draw wheel
+  const isAdmin = user?.role === 'ADMIN';
+
+  // Selected round details from schemeDetails
+  const selectedRound = useMemo(() => {
+    if (!schemeDetails || !schemeDetails.collectionRounds) return null;
+    return schemeDetails.collectionRounds.find((r: any) => r.roundNumber === selectedRoundNumber);
+  }, [schemeDetails, selectedRoundNumber]);
+
+  // Determine if the selected round has a declared winner (either just spun or saved in DB)
+  const roundHasWinner = Boolean(
+    winner ||
+    selectedRound?.payoutRecipientName ||
+    selectedRound?.payoutRecipientMemberId
+  );
+
+  const currentWinnerName = winner?.member?.fullName || selectedRound?.payoutRecipientName || '';
+  const currentWinnerMemberNo = winner?.member?.memberNumber || selectedRound?.payoutRecipientMemberNumber || '';
+  const currentWinnerSlot = winner?.slotNumber || selectedRound?.payoutRecipientSlotNumber || 1;
+  const currentWinnerNet = selectedRound?.netPayoutPaise || payoutCalculation.netPayoutPaise;
+  const currentWinnerStatus = selectedRound?.payoutStatus || (voucherPrepared ? 'PENDING_APPROVAL' : 'DRAW_ANNOUNCED');
+  const currentWinnerAddress = winner?.member?.address || selectedRound?.payoutRecipientAddress || '';
+
+  // Clear transient winner state when switching rounds
+  useEffect(() => {
+    setWinner(null);
+    setShowWinnerModal(false);
+  }, [selectedRoundNumber]);
+
   // Draw the Wheel Canvas
   const drawWheel = (currentAngle: number, flapperAngle: number = 0) => {
     const canvas = canvasRef.current;
@@ -699,6 +728,15 @@ export const LuckyDrawWheelModal: React.FC<LuckyDrawProps> = ({
 
   // Spin the Wheel with physics & suspense easing
   const startSpin = () => {
+    if (!isAdmin) {
+      showToast(
+        isTa
+          ? 'நிர்வாகிகளுக்கு மட்டுமே குலுக்கல் சக்கரத்தை சுழற்ற அனுமதி உண்டு'
+          : 'Only Administrator has permission to spin the lucky draw wheel',
+        'error'
+      );
+      return;
+    }
     if (isSpinning) return;
     if (eligibleMembers.length === 0) {
       showToast(isTa ? 'குலுக்கலுக்கு தகுதியான உறுப்பினர்கள் இல்லை' : 'No eligible members remaining for draw', 'error');
@@ -1043,39 +1081,199 @@ export const LuckyDrawWheelModal: React.FC<LuckyDrawProps> = ({
             <canvas ref={canvasRef} className="block drop-shadow-2xl transition-transform" />
           </div>
 
-          {/* Action Trigger Button */}
-          <div className="mt-4 w-full max-w-md flex flex-col items-center gap-3">
-            <button
-              onClick={startSpin}
-              disabled={isSpinning || eligibleMembers.length === 0}
-              className={`w-full py-4 px-6 rounded-2xl font-black text-base transition-all transform active:scale-95 flex items-center justify-center gap-3 shadow-xl ${
-                isSpinning
-                  ? 'bg-slate-400 text-white cursor-not-allowed opacity-90'
-                  : eligibleMembers.length === 0
-                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 hover:from-amber-600 hover:to-red-600 text-white shadow-orange-500/30 hover:shadow-2xl hover:-translate-y-0.5'
-              }`}
-            >
-              {isSpinning ? (
-                <>
-                  <RotateCw className="w-6 h-6 animate-spin text-white" />
-                  <span>{isTa ? 'குலுக்கல் சுழல்கிறது...!' : 'Spinning Wheel...!'}</span>
-                </>
-              ) : (
-                <>
-                  <Flame className="w-6 h-6 text-yellow-300 animate-pulse" />
-                  <span>
-                    {isTa ? 'குலுக்கல் சக்கரத்தை சுழற்றுக! (SPIN)' : 'Spin Lucky Draw Wheel (SPIN)'}
-                  </span>
-                </>
-              )}
-            </button>
+          {/* Action Trigger Button & Member Results View */}
+          <div className="mt-4 w-full max-w-lg flex flex-col items-center gap-3">
+            {!isAdmin ? (
+              // MEMBER VIEW: Cannot spin, can view live / round result
+              roundHasWinner ? (
+                <div className="w-full p-5 rounded-2xl bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 text-white shadow-xl shadow-amber-500/25 border-2 border-amber-300 relative overflow-hidden animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between border-b border-white/20 pb-2.5 mb-3">
+                    <div className="flex items-center gap-2">
+                      <Trophy className="w-5 h-5 text-yellow-200 animate-bounce" />
+                      <span className="font-black text-sm uppercase tracking-wider">
+                        {isTa
+                          ? `தவணை #${selectedRoundNumber} குலுக்கல் வெற்றியாளர்!`
+                          : `Round #${selectedRoundNumber} Lucky Draw Winner!`}
+                      </span>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-white/25 text-[10px] font-bold uppercase backdrop-blur-sm">
+                      {isTa ? 'வெற்றி அறிவிப்பு' : 'Winner Declared'}
+                    </span>
+                  </div>
 
-            <span className="text-[11px] text-slate-400 font-medium text-center">
-              {isTa
-                ? 'குறிப்பு: ஏற்கனவே வென்றவர்கள் தானாகவே நீக்கப்பட்டுள்ளனர். சுழன்றதும் வெற்றியாளருக்கு உடனடி பட்டுவாடா வவுச்சர் உருவாகும்.'
-                : 'Note: Members who previously won are automatically excluded. Winning grants prompt voucher creation.'}
-            </span>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="space-y-1">
+                      <span className="text-xl font-black block leading-tight text-white drop-shadow-sm">
+                        {currentWinnerName}
+                      </span>
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-amber-100 font-medium">
+                        <span className="px-2 py-0.5 rounded bg-black/20 font-mono font-bold">
+                          {currentWinnerMemberNo}
+                        </span>
+                        <span>•</span>
+                        <span>{isTa ? `டோக்கன் எண்: #${currentWinnerSlot}` : `Token #${currentWinnerSlot}`}</span>
+                        {currentWinnerAddress && (
+                          <>
+                            <span>•</span>
+                            <span className="truncate max-w-[180px]">{currentWinnerAddress}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <span className="text-[10px] uppercase font-bold text-amber-100 block">
+                        {isTa ? 'பரிசுத் தொகை' : 'Net Prize'}
+                      </span>
+                      <span className="text-xl font-black text-yellow-200">
+                        {formatINR(currentWinnerNet)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-3.5 pt-2.5 border-t border-white/20 flex items-center justify-between text-xs">
+                    <span className="text-[11px] text-amber-100">
+                      {isTa ? 'கோவில் சீட்டு குலுக்கல் முடிவுகள் முறைப்படி உறுதி செய்யப்பட்டது.' : 'Official temple chit lucky draw result confirmed.'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setWinner(
+                          winner || {
+                            member: {
+                              fullName: currentWinnerName,
+                              memberNumber: currentWinnerMemberNo,
+                              address: currentWinnerAddress,
+                              phone: '',
+                            },
+                            slotNumber: currentWinnerSlot,
+                          }
+                        );
+                        setShowWinnerModal(true);
+                      }}
+                      className="px-3.5 py-1.5 rounded-xl bg-white text-orange-600 hover:bg-amber-50 font-bold text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-orange-500" />
+                      <span>{isTa ? 'முழு விபரம்' : 'View Full Details'}</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-sm text-center space-y-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 text-xs font-bold">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>{isTa ? 'நேரலை குலுக்கல் முறை (Live Draw Mode)' : 'Live Lucky Draw Mode'}</span>
+                  </div>
+                  <p className="text-sm font-bold text-slate-800 dark:text-white">
+                    {isTa
+                      ? 'நிர்வாகி மட்டுமே குலுக்கல் சக்கரத்தை சுழற்ற முடியும்'
+                      : 'Only Administrator can spin the Lucky Draw wheel'}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+                    {isTa
+                      ? 'கோவில் சீட்டு கூட்டத்தில் நிர்வாகி குலுக்கியவுடன் வெற்றியாளரின் பெயர், டோக்கன் மற்றும் பரிசுத் தொகை இங்கு தானாகத் தோன்றும்.'
+                      : 'During the monthly temple meeting, the admin will spin this wheel. The winning member and payout voucher will appear here immediately.'}
+                  </p>
+                  <div className="pt-2 flex items-center justify-center gap-4 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                    <span>👥 {isTa ? `குலுக்கலில் உள்ளவர்கள்:` : `Eligible:`} <strong className="text-blue-600">{eligibleMembers.length}</strong></span>
+                    <span>•</span>
+                    <span>💰 {isTa ? `பரிசுத் தொகை:` : `Prize Pool:`} <strong className="text-emerald-600">{formatINR(payoutCalculation.netPayoutPaise)}</strong></span>
+                  </div>
+                </div>
+              )
+            ) : (
+              // ADMIN VIEW: Can spin or manage winner
+              <>
+                {roundHasWinner ? (
+                  <div className="w-full space-y-2.5">
+                    <div className="w-full p-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Trophy className="w-7 h-7 text-yellow-200 shrink-0" />
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-100 block">
+                            {isTa ? `தவணை #${selectedRoundNumber} குலுக்கல் வெற்றியாளர்` : `Round #${selectedRoundNumber} Winner`}
+                          </span>
+                          <span className="text-base font-black text-white">{currentWinnerName}</span>
+                          <span className="text-xs text-amber-100 font-mono block">
+                            {currentWinnerMemberNo} • {isTa ? `டோக்கன் #${currentWinnerSlot}` : `Token #${currentWinnerSlot}`}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] font-bold uppercase text-amber-100 block">{isTa ? 'பரிசு' : 'Net Prize'}</span>
+                        <span className="text-base font-black text-yellow-200">{formatINR(currentWinnerNet)}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setWinner(
+                            winner || {
+                              member: {
+                                fullName: currentWinnerName,
+                                memberNumber: currentWinnerMemberNo,
+                                address: currentWinnerAddress,
+                                phone: '',
+                              },
+                              slotNumber: currentWinnerSlot,
+                            }
+                          );
+                          setShowWinnerModal(true);
+                        }}
+                        className="flex-1 py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <FileCheck2 className="w-4 h-4" />
+                        <span>{isTa ? 'வவுச்சர் விபரம் / பட்டுவாடா' : 'View Voucher / Disburse'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={startSpin}
+                        disabled={isSpinning || eligibleMembers.length === 0}
+                        className="py-3 px-4 rounded-xl border border-orange-300 bg-orange-50 hover:bg-orange-100 text-orange-700 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                        title={isTa ? 'மீண்டும் சுழற்றுக' : 'Re-spin Wheel'}
+                      >
+                        <RotateCw className={`w-4 h-4 ${isSpinning ? 'animate-spin' : ''}`} />
+                        <span>{isTa ? 'மறுசுழற்சி (Re-spin)' : 'Re-spin'}</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={startSpin}
+                    disabled={isSpinning || eligibleMembers.length === 0}
+                    className={`w-full py-4 px-6 rounded-2xl font-black text-base transition-all transform active:scale-95 flex items-center justify-center gap-3 shadow-xl cursor-pointer ${
+                      isSpinning
+                        ? 'bg-slate-400 text-white cursor-not-allowed opacity-90'
+                        : eligibleMembers.length === 0
+                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 hover:from-amber-600 hover:to-red-600 text-white shadow-orange-500/30 hover:shadow-2xl hover:-translate-y-0.5'
+                    }`}
+                  >
+                    {isSpinning ? (
+                      <>
+                        <RotateCw className="w-6 h-6 animate-spin text-white" />
+                        <span>{isTa ? 'குலுக்கல் சுழல்கிறது...!' : 'Spinning Wheel...!'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Flame className="w-6 h-6 text-yellow-300 animate-pulse" />
+                        <span>
+                          {isTa ? 'குலுக்கல் சக்கரத்தை சுழற்றுக! (SPIN)' : 'Spin Lucky Draw Wheel (SPIN)'}
+                        </span>
+                      </>
+                    )}
+                  </button>
+                )}
+
+                <span className="text-[11px] text-slate-400 font-medium text-center">
+                  {isTa
+                    ? 'குறிப்பு: நிர்வாகி மட்டுமே சுழற்ற முடியும். ஏற்கனவே வென்றவர்கள் தானாகவே நீக்கப்பட்டுள்ளனர்.'
+                    : 'Note: Only Admin can spin. Previously won members are automatically excluded.'}
+                </span>
+              </>
+            )}
           </div>
         </div>
 
@@ -1135,8 +1333,10 @@ export const LuckyDrawWheelModal: React.FC<LuckyDrawProps> = ({
                       </span>
                     </div>
                   </div>
-                  <span className="text-[10px] font-mono text-slate-500 font-medium">
-                    {m.member?.phone}
+                  <span className="text-[10px] font-mono text-slate-500 font-medium truncate max-w-[120px]">
+                    {m.member?.phone && !m.member?.phone.startsWith('98401000')
+                      ? m.member?.phone
+                      : (m.member?.address || (isTa ? `டோக்கன் #${m.slotNumber}` : `Token #${m.slotNumber}`))}
                   </span>
                 </div>
               ))

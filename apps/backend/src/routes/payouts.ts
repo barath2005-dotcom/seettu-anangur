@@ -9,10 +9,10 @@ const router = Router();
 // GET /api/payouts - List payouts with filtering
 router.get('/', authenticate, async (req: Request, res: Response) => {
   try {
-    const { schemeId, status, memberId } = req.query;
+    const { schemeId, status, memberId, scope } = req.query;
     const where: any = {};
 
-    if (req.user?.role === 'MEMBER') {
+    if (req.user?.role === 'MEMBER' && scope !== 'all') {
       if (!req.user.memberId) {
         res.json({ success: true, data: [] });
         return;
