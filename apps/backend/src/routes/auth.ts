@@ -296,6 +296,14 @@ router.get('/me', authenticate, async (req: Request, res: Response) => {
       return;
     }
 
+    let member = user.member;
+    if (!member && user.memberId) {
+      member = await prisma.member.findUnique({ where: { id: user.memberId } });
+    }
+    if (!member && user.phone) {
+      member = await prisma.member.findFirst({ where: { phone: user.phone } });
+    }
+
     res.json({
       success: true,
       data: {
@@ -304,8 +312,8 @@ router.get('/me', authenticate, async (req: Request, res: Response) => {
         name: user.name,
         role: user.role,
         phone: user.phone,
-        memberId: user.memberId,
-        member: user.member,
+        memberId: user.memberId || member?.id || null,
+        member,
         isActive: user.isActive,
         createdAt: user.createdAt.toISOString(),
         updatedAt: user.updatedAt.toISOString(),
@@ -313,6 +321,90 @@ router.get('/me', authenticate, async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     res.status(500).json({ success: false, error: 'Failed to fetch user profile' });
+  }
+});
+
+// PUT /api/auth/profile - Update current user / member profile (mobile number, email, address)
+router.put('/profile', authenticate, async (req: Request, res: Response) => {
+  try {
+    const { phone, email, address, name } = req.body;
+
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.id },
+      include: { member: true },
+    });
+
+    if (!user) {
+      res.status(404).json({ success: false, error: 'User not found' });
+      return;
+    }
+
+    // Determine linked member
+    let memberId = user.memberId;
+    if (!memberId && user.member?.id) {
+      memberId = user.member.id;
+    }
+    if (!memberId && user.phone) {
+      const found = await prisma.member.findFirst({ where: { phone: user.phone } });
+      if (found) memberId = found.id;
+    }
+
+    // Update user record
+    const userUpdateData: any = {};
+    if (phone !== undefined) userUpdateData.phone = phone ? phone.trim() : null;
+    if (email !== undefined && email.trim()) userUpdateData.email = email.trim();
+    if (name !== undefined && name.trim()) userUpdateData.name = name.trim();
+
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: userUpdateData,
+    });
+
+    // Update member record if linked
+    let updatedMember = null;
+    if (memberId) {
+      const memberUpdateData: any = {};
+      if (phone !== undefined) memberUpdateData.phone = phone ? phone.trim() : undefined;
+      if (email !== undefined) memberUpdateData.email = email ? email.trim() : null;
+      if (address !== undefined) memberUpdateData.address = address ? address.trim() : null;
+
+      updatedMember = await prisma.member.update({
+        where: { id: memberId },
+        data: memberUpdateData,
+      });
+
+      // Audit log
+      await prisma.auditLog.create({
+        data: {
+          userId: user.id,
+          action: 'UPDATE_MEMBER_PROFILE',
+          entityType: 'Member',
+          entityId: memberId,
+          details: JSON.stringify({ phone, email, address }),
+          ipAddress: req.ip || req.socket.remoteAddress,
+        },
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        role: updatedUser.role,
+        phone: updatedUser.phone,
+        memberId: updatedUser.memberId || memberId || null,
+        member: updatedMember || user.member,
+        isActive: updatedUser.isActive,
+        createdAt: updatedUser.createdAt.toISOString(),
+        updatedAt: updatedUser.updatedAt.toISOString(),
+      },
+    });
+  } catch (err: any) {
+    console.error('Update profile error:', err);
+    res.status(500).json({ success: false, error: err?.message || 'Failed to update profile' });
   }
 });
 

@@ -270,19 +270,46 @@ router.post('/', authenticate, requireRole('ADMIN', 'STAFF'), validateBody(Membe
   }
 });
 
-// PUT /api/members/:id - Update member (Admin & Staff)
-router.put('/:id', authenticate, requireRole('ADMIN', 'STAFF'), validateBody(MemberUpdateSchema), async (req: Request, res: Response) => {
+// PUT /api/members/:id - Update member (Admin, Staff, or self member)
+router.put('/:id', authenticate, async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const updateData = { ...req.body };
-    if (updateData.dateJoined) {
-      updateData.dateJoined = new Date(updateData.dateJoined);
+    const isSelf = req.user?.memberId === id;
+    if (req.user?.role !== 'ADMIN' && req.user?.role !== 'STAFF' && !isSelf) {
+      res.status(403).json({ success: false, error: 'Unauthorized to edit this member profile' });
+      return;
+    }
+
+    const { fullName, phone, email, address, status, notes, dateJoined } = req.body;
+    const updateData: any = {};
+    if (phone !== undefined) updateData.phone = phone ? String(phone).trim() : undefined;
+    if (email !== undefined) updateData.email = email && String(email).trim() ? String(email).trim() : null;
+    if (address !== undefined) updateData.address = address && String(address).trim() ? String(address).trim() : null;
+
+    if (req.user?.role === 'ADMIN' || req.user?.role === 'STAFF') {
+      if (fullName) updateData.fullName = fullName.trim();
+      if (status) updateData.status = status;
+      if (notes !== undefined) updateData.notes = notes;
+      if (dateJoined) updateData.dateJoined = new Date(dateJoined);
     }
 
     const member = await prisma.member.update({
       where: { id },
       data: updateData,
     });
+
+    // Also update linked user's phone & email if present
+    if (phone || email !== undefined) {
+      const userUpdate: any = {};
+      if (phone) userUpdate.phone = String(phone).trim();
+      if (email !== undefined && email) userUpdate.email = String(email).trim();
+      if (Object.keys(userUpdate).length > 0) {
+        await prisma.user.updateMany({
+          where: { OR: [{ memberId: id }, { id: member.userId || '' }] },
+          data: userUpdate,
+        }).catch(() => {});
+      }
+    }
 
     // Audit log
     await prisma.auditLog.create({
@@ -302,7 +329,7 @@ router.put('/:id', authenticate, requireRole('ADMIN', 'STAFF'), validateBody(Mem
       message: 'Member updated successfully',
     });
   } catch (err: any) {
-    res.status(500).json({ success: false, error: 'Failed to update member' });
+    res.status(500).json({ success: false, error: err?.message || 'Failed to update member' });
   }
 });
 

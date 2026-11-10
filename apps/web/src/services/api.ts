@@ -93,6 +93,11 @@ export const api = {
       body: JSON.stringify(credentials),
     }),
   getMe: () => apiFetch<{ success: boolean; data: any }>('/auth/me'),
+  updateProfile: (data: { phone?: string; email?: string; address?: string; name?: string }) =>
+    apiFetch<{ success: boolean; data: any; message: string }>('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
 
   // Dashboard
   getDashboard: () => apiFetch<{ success: boolean; data: any }>('/dashboard'),

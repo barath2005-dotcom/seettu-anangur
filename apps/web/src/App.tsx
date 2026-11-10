@@ -41,6 +41,13 @@ import {
   Smartphone,
   Sparkles,
   RefreshCw,
+  User,
+  MapPin,
+  Mail,
+  Edit3,
+  Loader2,
+  Save,
+  Phone,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -60,6 +67,7 @@ import { MonthlyEntryScreen } from './components/MonthlyEntryScreen';
 import { DownloadAppScreen } from './components/DownloadAppScreen';
 import { AppUpdateModal } from './components/AppUpdateModal';
 import { LuckyDrawWheelModal } from './components/LuckyDrawWheelModal';
+import { MemberProfileModal } from './components/MemberProfileModal';
 import { checkAppUpdate, AppUpdateInfo, CURRENT_APP_VERSION, downloadAndInstallApk } from './services/appUpdate';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
@@ -118,6 +126,8 @@ export function App() {
     return null;
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const handleOpenMonthlyReport = (chitNo: string, date: string) => {
     setReportTarget({ chitNo, date });
@@ -711,6 +721,19 @@ export function App() {
         onCheckAgain={() => handleCheckUpdate(true)}
       />
 
+      {/* Member Profile Modal (View & Edit Phone, Email, Address saved to DB) */}
+      {showProfileModal && (
+        <MemberProfileModal
+          user={user}
+          lang={lang}
+          onClose={() => setShowProfileModal(false)}
+          onSaveSuccess={(updatedUser) => {
+            setUser(updatedUser);
+          }}
+          showToast={showToast}
+        />
+      )}
+
       {/* Desktop Sidebar Navigation (Exact Match to Reference Mockup) */}
       <aside className="hidden lg:flex w-[295px] h-full bg-[#07142A] text-white border-r border-blue-950/60 flex-col justify-between shrink-0 relative overflow-hidden select-none">
         {/* Full Authentic Background with Gopuram & Waves (Image 1 reference) */}
@@ -1148,15 +1171,87 @@ export function App() {
                 )}
               </button>
 
-              {/* User Profile Avatar */}
-              <div className="flex items-center gap-1.5 pl-0.5 sm:pl-2">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-                  {user.name.slice(0, 2).toUpperCase()}
-                </div>
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 hidden sm:inline truncate max-w-[120px]">
-                  {user.name}
-                </span>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:inline" />
+              {/* User Profile Avatar with Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center gap-1.5 pl-0.5 sm:pl-2 py-1 px-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer group"
+                  aria-label="User profile menu"
+                >
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs group-hover:ring-2 group-hover:ring-blue-400 transition-all">
+                    {user.name.slice(0, 2).toUpperCase()}
+                  </div>
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 hidden sm:inline truncate max-w-[120px]">
+                    {user.name}
+                  </span>
+                  <ChevronDown className={`w-3.5 h-3.5 text-slate-400 hidden sm:inline transition-transform duration-200 ${userMenuOpen ? 'rotate-180 text-blue-600' : ''}`} />
+                </button>
+
+                {/* Dropdown Menu */}
+                {userMenuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setUserMenuOpen(false)}
+                    />
+                    <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#111C2E] rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 z-50 p-2 animate-in fade-in slide-in-from-top-2 duration-150">
+                      {/* User Header in Dropdown */}
+                      <div className="p-3 border-b border-slate-100 dark:border-slate-800 mb-1">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-sm">
+                            {user.name.slice(0, 2).toUpperCase()}
+                          </div>
+                          <div className="overflow-hidden">
+                            <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                              {user.name}
+                            </h4>
+                            <span className="text-[10px] font-mono text-slate-400 block truncate">
+                              {user.member?.memberNumber || user.email}
+                            </span>
+                          </div>
+                        </div>
+                        <span className="mt-2 inline-block px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                          {user.role === 'ADMIN' ? 'நிர்வாகி (Admin)' : user.role === 'STAFF' ? 'பணியாளர் (Staff)' : 'உறுப்பினர் (Member)'}
+                        </span>
+                      </div>
+
+                      {/* Dropdown Actions */}
+                      <button
+                        onClick={() => {
+                          setUserMenuOpen(false);
+                          setShowProfileModal(true);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-left cursor-pointer"
+                      >
+                        <User className="w-4 h-4 text-blue-600" />
+                        <span>{lang === 'ta' ? 'சுயவிவரம் (Profile)' : 'Member Profile'}</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          handleLanguageChange(lang === 'ta' ? 'en' : 'ta');
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left cursor-pointer"
+                      >
+                        <Languages className="w-4 h-4 text-slate-400" />
+                        <span>{lang === 'ta' ? 'English-க்கு மாறுக' : 'தமிழுக்கு மாறுக'}</span>
+                      </button>
+
+                      <div className="border-t border-slate-100 dark:border-slate-800 my-1" />
+
+                      <button
+                        onClick={() => {
+                          setUserMenuOpen(false);
+                          handleLogout();
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors text-left cursor-pointer"
+                      >
+                        <LogOut className="w-4 h-4 text-rose-500" />
+                        <span>{t.signOut}</span>
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -2459,11 +2554,15 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Selection & Delete States
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Profile Edit states inside Member Details Modal
+  const [isEditingSelectedMember, setIsEditingSelectedMember] = useState(false);
+  const [memberEditForm, setMemberEditForm] = useState({ phone: '', email: '', address: '' });
+  const [isSavingMember, setIsSavingMember] = useState(false);
 
   const [newMember, setNewMember] = useState({
     memberNumber: '',
@@ -2668,9 +2767,55 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
   const handleViewProfile = async (id: string) => {
     try {
       const res = await api.getMember(id);
-      if (res.success) setSelectedMember(res.data);
+      if (res.success) {
+        setSelectedMember(res.data);
+        setMemberEditForm({
+          phone: res.data.phone || '',
+          email: res.data.email || '',
+          address: res.data.address || '',
+        });
+        setIsEditingSelectedMember(false);
+      }
     } catch (err: any) {
       showToast(err.message, 'error');
+    }
+  };
+
+  const handleSaveMemberDetails = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedMember) return;
+    if (!memberEditForm.phone.trim()) {
+      showToast(lang === 'ta' ? 'கைபேசி எண் கட்டாயம் தேவை' : 'Phone number is required', 'error');
+      return;
+    }
+    setIsSavingMember(true);
+    try {
+      const res = await api.updateMember(selectedMember.id, {
+        phone: memberEditForm.phone.trim(),
+        email: memberEditForm.email.trim(),
+        address: memberEditForm.address.trim(),
+      });
+      if (res.success) {
+        setSelectedMember((prev: any) => ({
+          ...prev,
+          phone: memberEditForm.phone.trim(),
+          email: memberEditForm.email.trim(),
+          address: memberEditForm.address.trim(),
+        }));
+        showToast(
+          lang === 'ta'
+            ? 'உறுப்பினர் தொடர்பு விவரங்கள் (போன், மின்னஞ்சல், முகவரி) வெற்றிகரமாக சேமிக்கப்பட்டது!'
+            : 'Member details (phone, email, address) saved successfully!'
+        );
+        setIsEditingSelectedMember(false);
+        loadMembers(currentPage, pageSize);
+      } else {
+        showToast(res.message || 'Failed to update member', 'error');
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Error updating member', 'error');
+    } finally {
+      setIsSavingMember(false);
     }
   };
 
@@ -3085,15 +3230,160 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
               <div>
                 <h3 className="text-lg font-bold text-slate-900">{selectedMember.fullName}</h3>
                 <span className="text-xs font-mono font-medium text-slate-500">
-                  {t.memberId}: {selectedMember.memberNumber} • {selectedMember.phone}
+                  {t.memberId}: {selectedMember.memberNumber}
                 </span>
               </div>
-              <button onClick={() => setSelectedMember(null)} className="p-1 text-slate-400 hover:text-slate-600" aria-label="Close">
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                {!isEditingSelectedMember && (user.role === 'ADMIN' || user.role === 'STAFF') && (
+                  <button
+                    onClick={() => {
+                      setMemberEditForm({
+                        phone: selectedMember.phone || '',
+                        email: selectedMember.email || '',
+                        address: selectedMember.address || '',
+                      });
+                      setIsEditingSelectedMember(true);
+                    }}
+                    className="px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Edit3 className="w-3.5 h-3.5 text-blue-600" />
+                    <span>{lang === 'ta' ? 'விவரங்களை திருத்து' : 'Edit Contact'}</span>
+                  </button>
+                )}
+                <button onClick={() => setSelectedMember(null)} className="p-1 text-slate-400 hover:text-slate-600" aria-label="Close">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
+              {/* Member Contact & Address Card (View or Edit mode) */}
+              {isEditingSelectedMember ? (
+                <form onSubmit={handleSaveMemberDetails} className="p-4 rounded-2xl bg-blue-50/60 border border-blue-200/80 space-y-3 text-xs animate-in fade-in duration-150">
+                  <div className="flex items-center justify-between border-b border-blue-200/60 pb-2">
+                    <span className="font-bold text-blue-900 flex items-center gap-1.5">
+                      <User className="w-4 h-4 text-blue-600" />
+                      {lang === 'ta' ? 'தொடர்பு விவரங்களை புதுப்பித்தல்' : 'Update Member Contact Details'}
+                    </span>
+                    <span className="text-[10px] text-blue-700 font-medium">
+                      {lang === 'ta' ? 'தரவுத்தளத்தில் நேரடியாக பதியும்' : 'Saves directly to database'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                        {lang === 'ta' ? 'கைபேசி எண் (Phone) *' : 'Mobile Phone *'}
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        value={memberEditForm.phone}
+                        onChange={(e) => setMemberEditForm({ ...memberEditForm, phone: e.target.value })}
+                        placeholder="9840100001"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                        {lang === 'ta' ? 'மின்னஞ்சல் (Email)' : 'Email Address'}
+                      </label>
+                      <input
+                        type="email"
+                        value={memberEditForm.email}
+                        onChange={(e) => setMemberEditForm({ ...memberEditForm, email: e.target.value })}
+                        placeholder="member@seettu.com"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                      {lang === 'ta' ? 'வசிப்பிட முகவரி (Address) *' : 'Residential Address *'}
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={memberEditForm.address}
+                      onChange={(e) => setMemberEditForm({ ...memberEditForm, address: e.target.value })}
+                      placeholder={lang === 'ta' ? 'எ.கா: ஆனங்கூர், நாமக்கல்' : 'e.g. Anangur, Namakkal'}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-medium text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingSelectedMember(false)}
+                      disabled={isSavingMember}
+                      className="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 font-semibold text-xs transition-colors"
+                    >
+                      {lang === 'ta' ? 'ரத்து' : 'Cancel'}
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSavingMember}
+                      className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-colors shadow-sm flex items-center gap-1.5"
+                    >
+                      {isSavingMember ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>{lang === 'ta' ? 'சேமிக்கப்படுகிறது...' : 'Saving...'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-3.5 h-3.5" />
+                          <span>{lang === 'ta' ? 'சேமிக்கவும்' : 'Save Changes'}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
+                  <div className="flex items-center justify-between border-b border-slate-200/60 pb-1.5">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                      {lang === 'ta' ? 'தொடர்பு & முகவரி விவரங்கள்' : 'Contact & Address Information'}
+                    </span>
+                    <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                      {selectedMember.status}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div className="flex items-start gap-2">
+                      <Phone className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="text-[10px] text-slate-400 block uppercase font-bold">{lang === 'ta' ? 'கைபேசி எண்' : 'Mobile Phone'}</span>
+                        <a href={`tel:${selectedMember.phone}`} className="font-bold text-blue-600 hover:underline">
+                          +91 {selectedMember.phone}
+                        </a>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2">
+                      <Mail className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                      <div className="overflow-hidden">
+                        <span className="text-[10px] text-slate-400 block uppercase font-bold">{lang === 'ta' ? 'மின்னஞ்சல்' : 'Email Address'}</span>
+                        <span className="font-medium text-slate-700 truncate block">
+                          {selectedMember.email || (lang === 'ta' ? '— பதிவு செய்யப்படவில்லை' : '— Not provided')}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2 pt-1 border-t border-slate-200/60">
+                    <MapPin className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="text-[10px] text-slate-400 block uppercase font-bold">{lang === 'ta' ? 'வசிப்பிட முகவரி / ஊர்' : 'Residential Address'}</span>
+                      <span className="font-medium text-slate-800">
+                        {selectedMember.address || (lang === 'ta' ? '— முகவரி விபரம் இல்லை' : '— No address recorded')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4">
                 <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
                   <span className="text-xs font-semibold text-emerald-800 uppercase">{t.totalContributed}</span>

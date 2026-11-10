@@ -15,7 +15,7 @@ export const MemberCreateSchema = z.object({
   memberNumber: z.string().min(2, 'Member number must be at least 2 characters').regex(/^[A-Za-z0-9-_]+$/, 'Member number can only contain letters, numbers, hyphens, and underscores'),
   fullName: z.string().min(2, 'Full name is required'),
   phone: z.string().regex(/^[0-9+ -]{10,15}$/, 'Invalid phone number format'),
-  email: z.string().email('Invalid email format').optional().nullable(),
+  email: z.string().email('Invalid email format').optional().nullable().or(z.literal('')),
   address: z.string().optional().nullable(),
   dateJoined: z.string().optional(),
   status: z.enum(['ACTIVE', 'INACTIVE', 'SUSPENDED']).default('ACTIVE'),
