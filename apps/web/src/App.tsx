@@ -2769,9 +2769,13 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
       const res = await api.getMember(id);
       if (res.success) {
         setSelectedMember(res.data);
+        const rawPhone = res.data.phone || '';
+        const initialPhone = rawPhone.startsWith('98401000') ? '' : rawPhone;
+        const rawEmail = res.data.email || '';
+        const initialEmail = rawEmail.includes('@seettu.com') ? '' : rawEmail;
         setMemberEditForm({
-          phone: res.data.phone || '',
-          email: res.data.email || '',
+          phone: initialPhone,
+          email: initialEmail,
           address: res.data.address || '',
         });
         setIsEditingSelectedMember(false);
@@ -2931,9 +2935,15 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
               <div className="flex items-center justify-between text-xs">
                 <div>
                   <span className="text-[10px] text-slate-400 block uppercase">{t.phoneNumber}</span>
-                  <a href={`tel:${m.phone}`} className="font-semibold text-blue-600 hover:underline">
-                    {m.phone}
-                  </a>
+                  {m.phone ? (
+                    <a href={`tel:${m.phone}`} className="font-semibold text-blue-600 hover:underline">
+                      {m.phone}
+                    </a>
+                  ) : (
+                    <span className="text-slate-400 text-xs italic">
+                      {lang === 'ta' ? 'சேர்க்கப்படவில்லை' : 'Not added'}
+                    </span>
+                  )}
                 </div>
                 <div className="text-right">
                   <span className="text-[10px] text-slate-400 block uppercase">{t.totalContributed}</span>
@@ -3012,9 +3022,15 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
                       {m.address && <p className="text-[11px] text-slate-400 truncate max-w-xs">{m.address}</p>}
                     </td>
                     <td className="py-3.5 px-4 font-medium text-slate-700">
-                      <a href={`tel:${m.phone}`} className="hover:text-blue-600 transition-colors">
-                        {m.phone}
-                      </a>
+                      {m.phone ? (
+                        <a href={`tel:${m.phone}`} className="hover:text-blue-600 transition-colors">
+                          {m.phone}
+                        </a>
+                      ) : (
+                        <span className="text-slate-400 italic">
+                          {lang === 'ta' ? '— சேர்க்கப்படவில்லை' : '— Not added'}
+                        </span>
+                      )}
                     </td>
                     <td className="py-3.5 px-4 font-extrabold text-emerald-600">
                       {formatINR(m.totalContributedPaise || 0)}
@@ -3237,9 +3253,13 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
                 {!isEditingSelectedMember && (user.role === 'ADMIN' || user.role === 'STAFF') && (
                   <button
                     onClick={() => {
+                      const rawPhone = selectedMember.phone || '';
+                      const initialPhone = rawPhone.startsWith('98401000') ? '' : rawPhone;
+                      const rawEmail = selectedMember.email || '';
+                      const initialEmail = rawEmail.includes('@seettu.com') ? '' : rawEmail;
                       setMemberEditForm({
-                        phone: selectedMember.phone || '',
-                        email: selectedMember.email || '',
+                        phone: initialPhone,
+                        email: initialEmail,
                         address: selectedMember.address || '',
                       });
                       setIsEditingSelectedMember(true);
@@ -3280,7 +3300,7 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
                         required
                         value={memberEditForm.phone}
                         onChange={(e) => setMemberEditForm({ ...memberEditForm, phone: e.target.value })}
-                        placeholder="9840100001"
+                        placeholder="9842123456"
                         className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       />
                     </div>
@@ -3292,7 +3312,7 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
                         type="email"
                         value={memberEditForm.email}
                         onChange={(e) => setMemberEditForm({ ...memberEditForm, email: e.target.value })}
-                        placeholder="member@seettu.com"
+                        placeholder="member@gmail.com"
                         className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       />
                     </div>
@@ -3355,9 +3375,15 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
                       <Phone className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
                       <div>
                         <span className="text-[10px] text-slate-400 block uppercase font-bold">{lang === 'ta' ? 'கைபேசி எண்' : 'Mobile Phone'}</span>
-                        <a href={`tel:${selectedMember.phone}`} className="font-bold text-blue-600 hover:underline">
-                          +91 {selectedMember.phone}
-                        </a>
+                        {selectedMember.phone && !selectedMember.phone.startsWith('98401000') ? (
+                          <a href={`tel:${selectedMember.phone}`} className="font-bold text-blue-600 hover:underline">
+                            +91 {selectedMember.phone}
+                          </a>
+                        ) : (
+                          <span className="font-medium text-slate-400 italic">
+                            {lang === 'ta' ? '— பதிவு செய்யப்படவில்லை' : '— Not added'}
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -3366,7 +3392,9 @@ function MembersScreen({ user, lang, showToast }: { user: any; lang: SupportedLa
                       <div className="overflow-hidden">
                         <span className="text-[10px] text-slate-400 block uppercase font-bold">{lang === 'ta' ? 'மின்னஞ்சல்' : 'Email Address'}</span>
                         <span className="font-medium text-slate-700 truncate block">
-                          {selectedMember.email || (lang === 'ta' ? '— பதிவு செய்யப்படவில்லை' : '— Not provided')}
+                          {selectedMember.email && !selectedMember.email.includes('@seettu.com') && !selectedMember.email.includes('@seettu.local')
+                            ? selectedMember.email
+                            : (lang === 'ta' ? '— பதிவு செய்யப்படவில்லை' : '— Not provided')}
                         </span>
                       </div>
                     </div>

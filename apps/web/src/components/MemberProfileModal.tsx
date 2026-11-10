@@ -35,10 +35,13 @@ export const MemberProfileModal: React.FC<MemberProfileModalProps> = ({
 
   // Extract initial values from user and user.member
   const member = user?.member || {};
-  const [phone, setPhone] = useState(member?.phone || user?.phone || '');
-  const [email, setEmail] = useState(
-    member?.email || (user?.email && !user.email.endsWith('@seettu.local') ? user.email : '')
-  );
+  const rawPhone = member?.phone || user?.phone || '';
+  const initialPhone = rawPhone.startsWith('98401000') ? '' : rawPhone;
+  const rawEmail = member?.email || (user?.email && !user.email.endsWith('@seettu.local') ? user.email : '');
+  const initialEmail = rawEmail.includes('@seettu.com') ? '' : rawEmail;
+
+  const [phone, setPhone] = useState(initialPhone);
+  const [email, setEmail] = useState(initialEmail);
   const [address, setAddress] = useState(member?.address || '');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -182,7 +185,7 @@ export const MemberProfileModal: React.FC<MemberProfileModalProps> = ({
                 maxLength={15}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="9840100001"
+                placeholder="9842123456"
                 className="w-full pl-12 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
               />
             </div>
@@ -206,7 +209,7 @@ export const MemberProfileModal: React.FC<MemberProfileModalProps> = ({
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="palanisamy.blr@seettu.com"
+              placeholder="member@gmail.com"
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
             />
             <span className="text-[10px] text-slate-400 block">
