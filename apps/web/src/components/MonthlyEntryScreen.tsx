@@ -87,19 +87,10 @@ function getStoredSavedReports(): any[] {
     const raw = localStorage.getItem(SAVED_REGISTRY_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) return parsed;
     }
   } catch (e) {}
-  return [
-    {
-      chitNo: '08',
-      date: '25.10.26',
-      count: 78,
-      totalAmount: 780000,
-      totalCommission: 0,
-      isSaved: true,
-    },
-  ];
+  return [];
 }
 
 export function MonthlyEntryScreen({
@@ -134,7 +125,7 @@ export function MonthlyEntryScreen({
         if (parsed.date) return parsed.date;
       }
     } catch (e) {}
-    return '25.10.26';
+    return '25.01.27';
   };
 
   const [chitNo, setChitNo] = useState<string>(getInitialChit);
