@@ -9,5 +9,7 @@ export const config = {
   accessTokenExpiry: process.env.ACCESS_TOKEN_EXPIRY || '15m',
   refreshTokenExpiry: process.env.REFRESH_TOKEN_EXPIRY || '7d',
   corsOrigin: process.env.CORS_ORIGIN || '*',
-  databaseUrl: process.env.DATABASE_URL || 'file:./dev.db',
+  databaseUrl:
+    process.env.DATABASE_URL ||
+    'postgresql://postgres.vwkmsxgirciqihnzlmoy:seettu%409715560910@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true',
 };
