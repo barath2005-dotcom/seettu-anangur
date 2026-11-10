@@ -39,8 +39,42 @@ app.get('/api/health', (req, res) => {
     timezone: 'Asia/Kolkata',
     service: 'Sri Pattanathu Mariamman Anangur Seettu API',
     organization: 'ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர் சீட்டு குழு',
-    version: '1.0.0',
+    version: '1.0.1',
   });
+});
+
+// App Update & Version Check
+const LATEST_APP_VERSION = '1.0.1';
+const LATEST_BUILD_CODE = 2;
+const LATEST_APK_GITHUB_URL = 'https://github.com/barath2005-dotcom/seettu-anangur/releases/latest/download/Sri-Pattanathu-Mariamman.apk';
+
+app.get('/api/app-update', (req, res) => {
+  res.json({
+    latestVersion: LATEST_APP_VERSION,
+    versionCode: LATEST_BUILD_CODE,
+    releaseDate: '2026-11-10',
+    minRequiredVersion: '1.0.0',
+    apkUrl: LATEST_APK_GITHUB_URL,
+    directDownloadUrl: 'https://seettu-anangur.vercel.app/api/app-update/download',
+    changelog: {
+      ta: [
+        'நிலைப்பட்டை மற்றும் கேமரா பஞ்ச்-ஹோல் இடைவெளி சரிசெய்யப்பட்டது',
+        'மொபைல் திரைக்கு ஏற்ற 2-அடுக்கு தலைப்பு அமைப்பு (2-Tier Header)',
+        'நேரடி ஆப் புதுப்பிப்பு வசதி (One-Tap In-App Update)',
+        'செயல்திறன் மற்றும் பாதுகாப்பு மேம்பாடுகள்'
+      ],
+      en: [
+        'Fixed camera punch-hole cutout and status bar safe-area clearance',
+        'Optimized 2-tier mobile header for all smartphone screens',
+        'One-tap in-app APK update system with direct download',
+        'Performance enhancements and stability updates'
+      ]
+    }
+  });
+});
+
+app.get('/api/app-update/download', (req, res) => {
+  res.redirect(302, LATEST_APK_GITHUB_URL);
 });
 
 // Mount Routes

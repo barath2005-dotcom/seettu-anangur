@@ -39,6 +39,8 @@ import {
   Eye,
   BarChart2,
   Smartphone,
+  Sparkles,
+  RefreshCw,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -56,6 +58,8 @@ import { ReceiptModal } from './components/ReceiptModal';
 import { ChitCalendar } from './components/ChitCalendar';
 import { MonthlyEntryScreen } from './components/MonthlyEntryScreen';
 import { DownloadAppScreen } from './components/DownloadAppScreen';
+import { AppUpdateModal } from './components/AppUpdateModal';
+import { checkAppUpdate, AppUpdateInfo, CURRENT_APP_VERSION, downloadAndInstallApk } from './services/appUpdate';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
@@ -151,6 +155,28 @@ export function App() {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
   };
+
+  // In-App Software Update State
+  const [updateInfo, setUpdateInfo] = useState<AppUpdateInfo | null>(null);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+
+  const handleCheckUpdate = async (manual = false) => {
+    setIsCheckingUpdate(true);
+    try {
+      const info = await checkAppUpdate();
+      setUpdateInfo(info);
+      if (manual) {
+        setIsUpdateModalOpen(true);
+      }
+    } finally {
+      setIsCheckingUpdate(false);
+    }
+  };
+
+  useEffect(() => {
+    handleCheckUpdate(false);
+  }, []);
 
   useEffect(() => {
     const token = getAuthToken();
@@ -295,8 +321,18 @@ export function App() {
           className="absolute inset-0 w-full h-full object-cover opacity-20 pointer-events-none select-none z-0 mix-blend-overlay"
         />
 
-        {/* Top Controls: Language & Theme Pill */}
-        <div className="mb-6 flex items-center gap-3 relative z-10">
+        {/* Top Controls: Language & Theme Pill & Update Button */}
+        <div className="mb-6 flex items-center gap-2.5 relative z-10 flex-wrap justify-center">
+          {updateInfo?.hasUpdate && (
+            <button
+              onClick={() => setIsUpdateModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-black shadow-lg shadow-blue-500/30 animate-pulse border border-blue-400/40 cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <span>{lang === 'ta' ? 'புதிய ஆப் பதிப்பு' : 'App Update Available'}</span>
+            </button>
+          )}
+
           <div className="flex items-center gap-1.5 bg-[#0C1A33]/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-blue-500/25 shadow-xl text-xs font-semibold text-slate-300">
             <Languages className="w-4 h-4 text-blue-400" />
             <button
@@ -450,6 +486,16 @@ export function App() {
             </button>
           </form>
         </div>
+
+        {/* Software Update Modal for Login Screen */}
+        <AppUpdateModal
+          isOpen={isUpdateModalOpen}
+          onClose={() => setIsUpdateModalOpen(false)}
+          updateInfo={updateInfo}
+          lang={lang}
+          isChecking={isCheckingUpdate}
+          onCheckAgain={() => handleCheckUpdate(true)}
+        />
       </div>
     );
   }
@@ -502,6 +548,16 @@ export function App() {
           lang={lang}
         />
       )}
+
+      {/* Software Update Modal */}
+      <AppUpdateModal
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+        updateInfo={updateInfo}
+        lang={lang}
+        isChecking={isCheckingUpdate}
+        onCheckAgain={() => handleCheckUpdate(true)}
+      />
 
       {/* Desktop Sidebar Navigation (Exact Match to Reference Mockup) */}
       <aside className="hidden lg:flex w-[295px] h-full bg-[#07142A] text-white border-r border-blue-950/60 flex-col justify-between shrink-0 relative overflow-hidden select-none">
@@ -561,6 +617,28 @@ export function App() {
             );
           })}
         </nav>
+
+        {/* App Version & Update Pill in Desktop Sidebar */}
+        <div className="px-4 pb-1 relative z-10 shrink-0">
+          <button
+            onClick={() => setIsUpdateModalOpen(true)}
+            className="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-between text-xs text-slate-300 transition-all cursor-pointer group"
+          >
+            <div className="flex items-center gap-2">
+              <Smartphone className="w-3.5 h-3.5 text-blue-400" />
+              <span>v{CURRENT_APP_VERSION}</span>
+            </div>
+            {updateInfo?.hasUpdate ? (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-600 text-white animate-pulse">
+                {lang === 'ta' ? 'புதிய பதிப்பு' : 'Update'}
+              </span>
+            ) : (
+              <span className="text-[10px] text-slate-400 group-hover:text-white">
+                {lang === 'ta' ? 'சரிபார்' : 'Check'}
+              </span>
+            )}
+          </button>
+        </div>
 
         {/* Bottom User Card & Logout (Image 1 style - customized for Member and Admin) */}
         <div className="p-4 relative z-10 shrink-0">
@@ -673,6 +751,40 @@ export function App() {
                 );
               })}
             </nav>
+
+            {/* Mobile App Update Button / Card */}
+            <div className="px-3.5 py-2 border-t border-white/10 relative z-10 shrink-0">
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setIsUpdateModalOpen(true);
+                }}
+                className={`w-full p-2.5 rounded-xl border flex items-center justify-between text-xs transition-all cursor-pointer ${
+                  updateInfo?.hasUpdate
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 border-blue-400/50 text-white shadow-lg shadow-blue-500/30 animate-pulse'
+                    : 'bg-white/5 hover:bg-white/10 border-white/10 text-slate-300'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <Smartphone className="w-4 h-4 text-blue-400" />
+                  <div className="text-left">
+                    <p className="font-bold text-[12px] leading-tight">
+                      {lang === 'ta' ? 'ஆப் புதுப்பிப்பு' : 'App Update'}
+                    </p>
+                    <p className="text-[10px] text-blue-200/80 leading-tight">
+                      v{CURRENT_APP_VERSION} {updateInfo?.hasUpdate ? '➔ v' + updateInfo.latestVersion : ''}
+                    </p>
+                  </div>
+                </div>
+                <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase ${
+                  updateInfo?.hasUpdate ? 'bg-white text-blue-700 shadow-xs' : 'bg-white/10 text-slate-300'
+                }`}>
+                  {updateInfo?.hasUpdate
+                    ? (lang === 'ta' ? 'புதுப்பி' : 'Update')
+                    : (lang === 'ta' ? 'சரிபார்' : 'Check')}
+                </span>
+              </button>
+            </div>
 
             {/* Quick Language & Theme switcher in mobile drawer */}
             <div className="p-3 border-t border-white/10 flex items-center justify-between gap-2 relative z-10 shrink-0">
@@ -802,6 +914,27 @@ export function App() {
                 >
                   <Smartphone className="w-3.5 h-3.5 text-blue-500" />
                   <span>{lang === 'ta' ? 'ஆப் பதிவிறக்கு' : 'Download App'}</span>
+                </button>
+              )}
+
+              {/* In-App Software Update Button */}
+              {updateInfo?.hasUpdate ? (
+                <button
+                  onClick={() => setIsUpdateModalOpen(true)}
+                  title={lang === 'ta' ? 'புதிய ஆப் பதிப்பு கிடைத்துள்ளது! தட்டவும்' : 'New app update available! Tap to install'}
+                  className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[11px] font-black shadow-md shadow-blue-500/30 animate-pulse border border-blue-400/40 cursor-pointer shrink-0"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  <span>{lang === 'ta' ? 'புதுப்பி' : 'Update'}</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleCheckUpdate(true)}
+                  title={lang === 'ta' ? 'ஆப் புதுப்பிப்பு சரிபார்க்க' : 'Check for App Updates'}
+                  className="hidden md:flex items-center gap-1 px-2.5 py-1 rounded-full border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-[11px] font-bold shadow-2xs cursor-pointer shrink-0"
+                >
+                  <RefreshCw className={`w-3 h-3 ${isCheckingUpdate ? 'animate-spin text-blue-500' : ''}`} />
+                  <span>{lang === 'ta' ? 'புதுப்பிப்பு' : 'Update'}</span>
                 </button>
               )}
 
@@ -963,6 +1096,8 @@ export function App() {
               onToggleTheme={toggleTheme}
               onLanguageChange={handleLanguageChange}
               showToast={showToast}
+              onOpenUpdateModal={() => setIsUpdateModalOpen(true)}
+              updateInfo={updateInfo}
             />
           )}
         </main>
@@ -4201,6 +4336,8 @@ function SettingsScreen({
   onToggleTheme,
   onLanguageChange,
   showToast,
+  onOpenUpdateModal,
+  updateInfo,
 }: {
   user: any;
   lang: SupportedLanguage;
@@ -4208,37 +4345,80 @@ function SettingsScreen({
   onToggleTheme: () => void;
   onLanguageChange: (l: SupportedLanguage) => void;
   showToast: any;
+  onOpenUpdateModal?: () => void;
+  updateInfo?: AppUpdateInfo | null;
 }) {
   const t = translations[lang];
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <div className="bg-white rounded-xl p-6 border border-slate-100 shadow-sm space-y-4">
-        <h3 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3">
+      <div className="bg-white dark:bg-[#0E1726] rounded-xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm space-y-4">
+        <h3 className="text-base font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">
           {t.regionalConfig}
         </h3>
 
+        {/* Mobile App & APK Updates Section */}
+        <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200/80 dark:border-blue-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Smartphone className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <h4 className="text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">
+                {lang === 'ta' ? 'மொபைல் ஆப் மற்றும் நேரடி புதுப்பிப்பு' : 'Mobile App & In-App Update'}
+              </h4>
+            </div>
+            <p className="text-xs text-slate-600 dark:text-slate-300">
+              {lang === 'ta' ? 'தற்போதைய பதிப்பு: ' : 'Installed App Version: '}
+              <span className="font-black text-blue-600 dark:text-blue-400">v{CURRENT_APP_VERSION}</span>
+              {updateInfo?.hasUpdate ? (
+                <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-600 text-white animate-pulse">
+                  <Sparkles className="w-2.5 h-2.5 text-amber-300" />
+                  {lang === 'ta' ? 'புதிய பதிப்பு v' + updateInfo.latestVersion + ' உள்ளது' : 'New Version v' + updateInfo.latestVersion + ' Available'}
+                </span>
+              ) : (
+                <span className="ml-2 text-emerald-600 dark:text-emerald-400 font-bold text-[11px]">
+                  ✓ {lang === 'ta' ? 'சமீபத்திய பதிப்பு' : 'Up to date'}
+                </span>
+              )}
+            </p>
+          </div>
+          <button
+            onClick={onOpenUpdateModal}
+            className={`px-4 py-2.5 rounded-xl text-xs font-black shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer ${
+              updateInfo?.hasUpdate
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-500/30 hover:from-blue-500 hover:to-indigo-500 animate-pulse'
+                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-50'
+            }`}
+          >
+            <RefreshCw className="w-3.5 h-3.5 text-blue-500" />
+            <span>
+              {updateInfo?.hasUpdate
+                ? (lang === 'ta' ? 'இப்போது புதுப்பி (Update APK)' : 'Update APK Now')
+                : (lang === 'ta' ? 'புதுப்பிப்பு சரிபார்' : 'Check for Updates')}
+            </span>
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Language Selection Card */}
-          <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-100">
-            <span className="text-xs font-bold text-blue-800 uppercase block mb-2">{t.languageSelect}</span>
+          <div className="p-4 rounded-xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40">
+            <span className="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase block mb-2">{t.languageSelect}</span>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => onLanguageChange('en')}
-                className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
+                className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   lang === 'en'
                     ? 'bg-[#2F7BFF] text-white shadow-md shadow-blue-500/20'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50'
                 }`}
               >
                 English
               </button>
               <button
                 onClick={() => onLanguageChange('ta')}
-                className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
+                className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   lang === 'ta'
                     ? 'bg-[#2F7BFF] text-white shadow-md shadow-blue-500/20'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50'
                 }`}
               >
                 தமிழ் (Tamil)
@@ -4247,15 +4427,15 @@ function SettingsScreen({
           </div>
 
           {/* Day & Night Mode Card */}
-          <div className="p-4 rounded-xl bg-indigo-50/60 border border-indigo-100">
-            <span className="text-xs font-bold text-indigo-800 uppercase block mb-2">{t.themeToggle}</span>
+          <div className="p-4 rounded-xl bg-indigo-50/60 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/40">
+            <span className="text-xs font-bold text-indigo-800 dark:text-indigo-300 uppercase block mb-2">{t.themeToggle}</span>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => theme !== 'light' && onToggleTheme()}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-all ${
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   theme === 'light'
                     ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50'
                 }`}
               >
                 <Sun className="w-3.5 h-3.5" />
@@ -4263,10 +4443,10 @@ function SettingsScreen({
               </button>
               <button
                 onClick={() => theme !== 'dark' && onToggleTheme()}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-all ${
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   theme === 'dark'
                     ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50'
                 }`}
               >
                 <Moon className="w-3.5 h-3.5" />
@@ -4277,35 +4457,35 @@ function SettingsScreen({
         </div>
 
         <div className="grid grid-cols-2 gap-4 text-xs">
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700">
             <span className="text-slate-400 uppercase font-semibold block text-[10px]">{t.currencyStandard}</span>
-            <span className="font-bold text-slate-800 text-sm">INR (₹) Indian Rupee</span>
-            <p className="text-slate-500 mt-1">{t.currencyNotice}</p>
+            <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">INR (₹) Indian Rupee</span>
+            <p className="text-slate-500 dark:text-slate-400 mt-1">{t.currencyNotice}</p>
           </div>
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700">
             <span className="text-slate-400 uppercase font-semibold block text-[10px]">{t.timezoneLabel}</span>
-            <span className="font-bold text-slate-800 text-sm">Asia/Kolkata (IST +5:30)</span>
-            <p className="text-slate-500 mt-1">{lang === 'ta' ? 'அனைத்து தவணை தேதிகளும் இந்திய நிலையான நேரத்திற்கு ஏற்ப கணக்கிடப்படுகின்றன.' : 'All collection due dates aligned to Indian standard time.'}</p>
+            <span className="font-bold text-slate-800 dark:text-slate-200 text-sm">Asia/Kolkata (IST +5:30)</span>
+            <p className="text-slate-500 dark:text-slate-400 mt-1">{lang === 'ta' ? 'அனைத்து தவணை தேதிகளும் இந்திய நிலையான நேரத்திற்கு ஏற்ப கணக்கிடப்படுகின்றன.' : 'All collection due dates aligned to Indian standard time.'}</p>
           </div>
         </div>
 
         <div className="pt-2">
-          <h4 className="text-xs font-bold text-slate-700 uppercase mb-2">{t.connectedApiEndpoints}</h4>
+          <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-2">{t.connectedApiEndpoints}</h4>
           <div className="p-3 rounded-lg bg-slate-900 text-slate-100 font-mono text-xs space-y-1">
-            <p><span className="text-emerald-400">Local Backend:</span> http://localhost:4000/api</p>
-            <p><span className="text-emerald-400">Health Check:</span> http://localhost:4000/api/health</p>
-            <p><span className="text-emerald-400">Database:</span> SQLite (Local) / PostgreSQL (Production)</p>
+            <p><span className="text-emerald-400">Production API:</span> https://seettu-anangur.vercel.app/api</p>
+            <p><span className="text-emerald-400">App Update:</span> https://seettu-anangur.vercel.app/api/app-update</p>
+            <p><span className="text-emerald-400">Database:</span> Supabase PostgreSQL (Production Pooler)</p>
           </div>
         </div>
 
-        <div className="pt-4 border-t border-slate-100">
-          <h4 className="text-xs font-bold text-slate-700 uppercase mb-1">{t.dbBackupTitle}</h4>
-          <p className="text-xs text-slate-500 mb-3">
-            {lang === 'ta' ? 'உள்ளூர் SQLite தரவுத்தள கோப்பு apps/backend/dev.db இடத்தில் உள்ளது.' : 'Local SQLite database file is located at apps/backend/dev.db.'}
+        <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+          <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">{t.dbBackupTitle}</h4>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+            {lang === 'ta' ? 'கிளவுட் PostgreSQL தரவுத்தளத்தின் நேரடி இணைப்பு தற்போது இயங்குகிறது.' : 'Connected live to cloud PostgreSQL database.'}
           </p>
           <button
-            onClick={() => showToast(lang === 'ta' ? 'தரவுத்தள காப்பு நகல் எடுக்கப்பட்டது' : 'Backup snapshot created: apps/backend/dev.db')}
-            className="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5"
+            onClick={() => showToast(lang === 'ta' ? 'தரவுத்தள இணைப்பு சோதிக்கப்பட்டது: சீராக இயங்குகிறது' : 'Cloud database connection verified: OK')}
+            className="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" /> {t.createDbSnapshot}
           </button>

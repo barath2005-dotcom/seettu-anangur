@@ -27,8 +27,8 @@ export function DownloadAppScreen({ lang, showToast }: DownloadAppScreenProps) {
   const [showAndroidGuide, setShowAndroidGuide] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
 
-  const vercelDirectApkUrl = '/downloads/Sri-Pattanathu-Mariamman.apk';
-  const githubDirectApkUrl = 'https://github.com/barath2005-dotcom/seettu-anangur/releases/download/mobile-v1.0.0/Sri-Pattanathu-Mariamman.apk';
+  const vercelDirectApkUrl = '/api/app-update/download';
+  const githubDirectApkUrl = 'https://github.com/barath2005-dotcom/seettu-anangur/releases/latest/download/Sri-Pattanathu-Mariamman.apk';
   const githubReleasesUrl = 'https://github.com/barath2005-dotcom/seettu-anangur/releases';
   const githubActionsUrl = 'https://github.com/barath2005-dotcom/seettu-anangur/actions';
   const appWebUrl = typeof window !== 'undefined' ? window.location.origin : 'https://seettu-anangur.vercel.app';
