@@ -2,8 +2,8 @@ import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 import { apiFetch } from './api';
 
-export const CURRENT_APP_VERSION = '1.0.1';
-export const CURRENT_BUILD_NUMBER = 2;
+export const CURRENT_APP_VERSION = '1.0.2';
+export const CURRENT_BUILD_NUMBER = 3;
 
 export interface AppUpdateInfo {
   latestVersion: string;

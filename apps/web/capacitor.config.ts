@@ -5,6 +5,7 @@ const config: CapacitorConfig = {
   appName: 'ஸ்ரீ பட்டணத்து மாரியம்மன்',
   webDir: 'dist',
   server: {
+    url: 'https://seettu-anangur.vercel.app',
     androidScheme: 'https',
     cleartext: true,
   },

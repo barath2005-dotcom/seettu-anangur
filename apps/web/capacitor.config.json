@@ -3,6 +3,7 @@
   "appName": "Sri Pattanathu Mariamman",
   "webDir": "dist",
   "server": {
+    "url": "https://seettu-anangur.vercel.app",
     "androidScheme": "https",
     "cleartext": true
   }

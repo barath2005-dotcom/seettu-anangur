@@ -90,15 +90,17 @@ jobs:
           path: ./app-debug.apk
           retention-days: 30
 
-      - name: Create or Update GitHub Release v1.0.1
+      - name: Create or Update GitHub Release v1.0.2
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: mobile-v1.0.1
-          name: "Sri Pattanathu Mariamman Mobile App v1.0.1"
+          tag_name: mobile-v1.0.2
+          name: "Sri Pattanathu Mariamman Mobile App v1.0.2"
           body: |
             Official Mobile App for Sri Pattanathu Mariamman Anangur Seettu Kuzhu.
-            - Version: 1.0.1 (Build 2)
+            - Version: 1.0.2 (Build 3)
             - Release Date: 2026-11-10
+            - Live over-the-air continuous app updates via production server URL
+            - Web UI cleaned: update buttons hidden on web, active only in mobile APK
             - Fixed camera punch-hole cutout & status bar safe-area clearance
             - Mobile 2-tier responsive header for all smartphones
             - One-tap in-app APK update system with direct download
@@ -111,13 +113,27 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Also Update Legacy Release mobile-v1.0.1
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: mobile-v1.0.1
+          name: "Sri Pattanathu Mariamman Mobile App v1.0.2"
+          body: |
+            Official Mobile App for Sri Pattanathu Mariamman Anangur Seettu Kuzhu (Updated to v1.0.2).
+            - Direct Android APK attached below (`app-debug.apk` and `Sri-Pattanathu-Mariamman.apk`).
+          files: |
+            ./app-debug.apk
+            ./Sri-Pattanathu-Mariamman.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Also Update Legacy Release mobile-v1.0.0
         uses: softprops/action-gh-release@v2
         with:
           tag_name: mobile-v1.0.0
-          name: "Sri Pattanathu Mariamman Mobile App v1.0.1 (Latest)"
+          name: "Sri Pattanathu Mariamman Mobile App v1.0.2 (Latest)"
           body: |
-            Official Mobile App for Sri Pattanathu Mariamman Anangur Seettu Kuzhu (Updated to v1.0.1).
+            Official Mobile App for Sri Pattanathu Mariamman Anangur Seettu Kuzhu (Updated to v1.0.2).
             - Direct Android APK attached below (`app-debug.apk` and `Sri-Pattanathu-Mariamman.apk`).
             - iOS users can install via Safari -> Add to Home Screen from https://seettu-anangur.vercel.app.
           files: |

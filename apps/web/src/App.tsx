@@ -162,11 +162,13 @@ export function App() {
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
 
   const handleCheckUpdate = async (manual = false) => {
+    // Only check or notify if native mobile platform, unless manually clicked
+    if (!Capacitor.isNativePlatform() && !manual) return;
     setIsCheckingUpdate(true);
     try {
       const info = await checkAppUpdate();
       setUpdateInfo(info);
-      if (manual) {
+      if (manual || (Capacitor.isNativePlatform() && info?.hasUpdate)) {
         setIsUpdateModalOpen(true);
       }
     } finally {
@@ -378,33 +380,34 @@ export function App() {
           className="absolute inset-0 w-full h-full object-cover opacity-20 pointer-events-none select-none z-0 mix-blend-overlay"
         />
 
-        {/* Top Controls: Language & Theme Pill & Update Button */}
+        {/* Top Controls: Language & Theme Pill & Update Button (Mobile APK only) */}
         <div className="mb-6 flex items-center gap-2.5 relative z-10 flex-wrap justify-center">
-          {/* In-App Version & Update Pill */}
-          <button
-            onClick={() => setIsUpdateModalOpen(true)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold transition-all shadow-xl backdrop-blur-md cursor-pointer ${
-              updateInfo?.hasUpdate
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-400 shadow-blue-500/30 animate-pulse font-black'
-                : 'border-blue-500/25 bg-[#0C1A33]/80 text-blue-200 hover:text-white'
-            }`}
-            title={lang === 'ta' ? 'ஆப் பதிப்பு விவரங்கள் மற்றும் புதுப்பிப்பு' : 'App Version & Updates'}
-          >
-            {updateInfo?.hasUpdate ? (
-              <>
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>{lang === 'ta' ? 'புதிய ஆப் பதிப்பு உள்ளது' : 'App Update Available'}</span>
-              </>
-            ) : (
-              <>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                <span className="font-mono font-bold">v{CURRENT_APP_VERSION}</span>
-                <span className="text-[10px] text-emerald-300/80 font-medium">
-                  {lang === 'ta' ? '(சமீபத்தியது)' : '(Latest)'}
-                </span>
-              </>
-            )}
-          </button>
+          {Capacitor.isNativePlatform() && (
+            <button
+              onClick={() => setIsUpdateModalOpen(true)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold transition-all shadow-xl backdrop-blur-md cursor-pointer ${
+                updateInfo?.hasUpdate
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-400 shadow-blue-500/30 animate-pulse font-black'
+                  : 'border-blue-500/25 bg-[#0C1A33]/80 text-blue-200 hover:text-white'
+              }`}
+              title={lang === 'ta' ? 'ஆப் பதிப்பு விவரங்கள் மற்றும் புதுப்பிப்பு' : 'App Version & Updates'}
+            >
+              {updateInfo?.hasUpdate ? (
+                <>
+                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                  <span>{lang === 'ta' ? 'புதிய ஆப் பதிப்பு உள்ளது' : 'App Update Available'}</span>
+                </>
+              ) : (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  <span className="font-mono font-bold">v{CURRENT_APP_VERSION}</span>
+                  <span className="text-[10px] text-emerald-300/80 font-medium">
+                    {lang === 'ta' ? '(சமீபத்தியது)' : '(Latest)'}
+                  </span>
+                </>
+              )}
+            </button>
+          )}
 
 
           <div className="flex items-center gap-1.5 bg-[#0C1A33]/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-blue-500/25 shadow-xl text-xs font-semibold text-slate-300">
@@ -559,29 +562,31 @@ export function App() {
                 : (lang === 'ta' ? 'உறுப்பினராக உள்நுழைக' : 'Sign In as Member')}
             </button>
 
-            {/* Version & Update Indicator inside Card */}
-            <div className="mt-5 pt-3.5 border-t border-blue-500/20 flex items-center justify-between text-[11px] text-blue-200/70">
-              <span className="font-medium">
-                {lang === 'ta' ? 'அதிகாரப்பூர்வ பதிப்பு' : 'Official Release'}
-              </span>
-              <button
-                type="button"
-                onClick={() => setIsUpdateModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md hover:bg-white/5 transition-colors cursor-pointer group"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                <span className="font-mono font-bold text-white group-hover:text-blue-300">v{CURRENT_APP_VERSION}</span>
-                {updateInfo?.hasUpdate ? (
-                  <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-blue-600 text-white uppercase animate-pulse">
-                    {lang === 'ta' ? 'புதிய பதிப்பு' : 'Update'}
-                  </span>
-                ) : (
-                  <span className="text-emerald-400 text-[10px] font-semibold">
-                    {lang === 'ta' ? 'சமீபத்தியது' : 'Latest'}
-                  </span>
-                )}
-              </button>
-            </div>
+            {/* Version & Update Indicator inside Card (Mobile APK only) */}
+            {Capacitor.isNativePlatform() && (
+              <div className="mt-5 pt-3.5 border-t border-blue-500/20 flex items-center justify-between text-[11px] text-blue-200/70">
+                <span className="font-medium">
+                  {lang === 'ta' ? 'அதிகாரப்பூர்வ பதிப்பு' : 'Official Release'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsUpdateModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md hover:bg-white/5 transition-colors cursor-pointer group"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  <span className="font-mono font-bold text-white group-hover:text-blue-300">v{CURRENT_APP_VERSION}</span>
+                  {updateInfo?.hasUpdate ? (
+                    <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-blue-600 text-white uppercase animate-pulse">
+                      {lang === 'ta' ? 'புதிய பதிப்பு' : 'Update'}
+                    </span>
+                  ) : (
+                    <span className="text-emerald-400 text-[10px] font-semibold">
+                      {lang === 'ta' ? 'சமீபத்தியது' : 'Latest'}
+                    </span>
+                  )}
+                </button>
+              </div>
+            )}
           </form>
         </div>
 
@@ -716,27 +721,29 @@ export function App() {
           })}
         </nav>
 
-        {/* App Version & Update Pill in Desktop Sidebar */}
-        <div className="px-4 pb-1 relative z-10 shrink-0">
-          <button
-            onClick={() => setIsUpdateModalOpen(true)}
-            className="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-between text-xs text-slate-300 transition-all cursor-pointer group"
-          >
-            <div className="flex items-center gap-2">
-              <Smartphone className="w-3.5 h-3.5 text-blue-400" />
-              <span>v{CURRENT_APP_VERSION}</span>
-            </div>
-            {updateInfo?.hasUpdate ? (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-600 text-white animate-pulse">
-                {lang === 'ta' ? 'புதிய பதிப்பு' : 'Update'}
-              </span>
-            ) : (
-              <span className="text-[10px] text-slate-400 group-hover:text-white">
-                {lang === 'ta' ? 'சரிபார்' : 'Check'}
-              </span>
-            )}
-          </button>
-        </div>
+        {/* App Version & Update Pill in Sidebar (Mobile APK only) */}
+        {Capacitor.isNativePlatform() && (
+          <div className="px-4 pb-1 relative z-10 shrink-0">
+            <button
+              onClick={() => setIsUpdateModalOpen(true)}
+              className="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-between text-xs text-slate-300 transition-all cursor-pointer group"
+            >
+              <div className="flex items-center gap-2">
+                <Smartphone className="w-3.5 h-3.5 text-blue-400" />
+                <span>v{CURRENT_APP_VERSION}</span>
+              </div>
+              {updateInfo?.hasUpdate ? (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-600 text-white animate-pulse">
+                  {lang === 'ta' ? 'புதிய பதிப்பு' : 'Update'}
+                </span>
+              ) : (
+                <span className="text-[10px] text-slate-400 group-hover:text-white">
+                  {lang === 'ta' ? 'சரிபார்' : 'Check'}
+                </span>
+              )}
+            </button>
+          </div>
+        )}
 
         {/* Bottom User Card & Logout (Image 1 style - customized for Member and Admin) */}
         <div className="p-4 relative z-10 shrink-0">
@@ -1021,25 +1028,27 @@ export function App() {
                 </button>
               )}
 
-              {/* In-App Software Version & Update Button */}
-              {updateInfo?.hasUpdate ? (
-                <button
-                  onClick={() => setIsUpdateModalOpen(true)}
-                  title={lang === 'ta' ? 'புதிய ஆப் பதிப்பு கிடைத்துள்ளது! தட்டவும்' : 'New app update available! Tap to install'}
-                  className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[11px] font-black shadow-md shadow-blue-500/30 animate-pulse border border-blue-400/40 cursor-pointer shrink-0"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                  <span>{lang === 'ta' ? 'புதுப்பி' : 'Update'}</span>
-                </button>
-              ) : (
-                <button
-                  onClick={() => setIsUpdateModalOpen(true)}
-                  title={lang === 'ta' ? `செயலி பதிப்பு v${CURRENT_APP_VERSION} (சமீபத்தியது) - விவரங்களுக்கு தட்டவும்` : `App v${CURRENT_APP_VERSION} (Latest) - Tap for info`}
-                  className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-full border border-emerald-500/30 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-[10px] sm:text-[11px] font-bold shadow-2xs cursor-pointer shrink-0 transition-all"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                  <span className="font-mono font-black">v{CURRENT_APP_VERSION}</span>
-                </button>
+              {/* In-App Software Version & Update Button (Mobile APK only) */}
+              {Capacitor.isNativePlatform() && (
+                updateInfo?.hasUpdate ? (
+                  <button
+                    onClick={() => setIsUpdateModalOpen(true)}
+                    title={lang === 'ta' ? 'புதிய ஆப் பதிப்பு கிடைத்துள்ளது! தட்டவும்' : 'New app update available! Tap to install'}
+                    className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[11px] font-black shadow-md shadow-blue-500/30 animate-pulse border border-blue-400/40 cursor-pointer shrink-0"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                    <span>{lang === 'ta' ? 'புதுப்பி' : 'Update'}</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setIsUpdateModalOpen(true)}
+                    title={lang === 'ta' ? `செயலி பதிப்பு v${CURRENT_APP_VERSION} (சமீபத்தியது) - விவரங்களுக்கு தட்டவும்` : `App v${CURRENT_APP_VERSION} (Latest) - Tap for info`}
+                    className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-full border border-emerald-500/30 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-[10px] sm:text-[11px] font-bold shadow-2xs cursor-pointer shrink-0 transition-all"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span className="font-mono font-black">v{CURRENT_APP_VERSION}</span>
+                  </button>
+                )
               )}
 
               {/* Bilingual Switcher [EN | தமிழ்] */}
@@ -4505,46 +4514,48 @@ function SettingsScreen({
           {t.regionalConfig}
         </h3>
 
-        {/* Mobile App & APK Updates Section */}
-        <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200/80 dark:border-blue-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Smartphone className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              <h4 className="text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">
-                {lang === 'ta' ? 'மொபைல் ஆப் மற்றும் நேரடி புதுப்பிப்பு' : 'Mobile App & In-App Update'}
-              </h4>
+        {/* Mobile App & APK Updates Section (Mobile APK only) */}
+        {Capacitor.isNativePlatform() && (
+          <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200/80 dark:border-blue-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Smartphone className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <h4 className="text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">
+                  {lang === 'ta' ? 'மொபைல் ஆப் மற்றும் நேரடி புதுப்பிப்பு' : 'Mobile App & In-App Update'}
+                </h4>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-slate-300">
+                {lang === 'ta' ? 'தற்போதைய பதிப்பு: ' : 'Installed App Version: '}
+                <span className="font-black text-blue-600 dark:text-blue-400">v{CURRENT_APP_VERSION}</span>
+                {updateInfo?.hasUpdate ? (
+                  <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-600 text-white animate-pulse">
+                    <Sparkles className="w-2.5 h-2.5 text-amber-300" />
+                    {lang === 'ta' ? 'புதிய பதிப்பு v' + updateInfo.latestVersion + ' உள்ளது' : 'New Version v' + updateInfo.latestVersion + ' Available'}
+                  </span>
+                ) : (
+                  <span className="ml-2 text-emerald-600 dark:text-emerald-400 font-bold text-[11px]">
+                    ✓ {lang === 'ta' ? 'சமீபத்திய பதிப்பு' : 'Up to date'}
+                  </span>
+                )}
+              </p>
             </div>
-            <p className="text-xs text-slate-600 dark:text-slate-300">
-              {lang === 'ta' ? 'தற்போதைய பதிப்பு: ' : 'Installed App Version: '}
-              <span className="font-black text-blue-600 dark:text-blue-400">v{CURRENT_APP_VERSION}</span>
-              {updateInfo?.hasUpdate ? (
-                <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-600 text-white animate-pulse">
-                  <Sparkles className="w-2.5 h-2.5 text-amber-300" />
-                  {lang === 'ta' ? 'புதிய பதிப்பு v' + updateInfo.latestVersion + ' உள்ளது' : 'New Version v' + updateInfo.latestVersion + ' Available'}
-                </span>
-              ) : (
-                <span className="ml-2 text-emerald-600 dark:text-emerald-400 font-bold text-[11px]">
-                  ✓ {lang === 'ta' ? 'சமீபத்திய பதிப்பு' : 'Up to date'}
-                </span>
-              )}
-            </p>
+            <button
+              onClick={onOpenUpdateModal}
+              className={`px-4 py-2.5 rounded-xl text-xs font-black shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                updateInfo?.hasUpdate
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-500/30 hover:from-blue-500 hover:to-indigo-500 animate-pulse'
+                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-blue-500" />
+              <span>
+                {updateInfo?.hasUpdate
+                  ? (lang === 'ta' ? 'இப்போது புதுப்பி (Update APK)' : 'Update APK Now')
+                  : (lang === 'ta' ? 'புதுப்பிப்பு சரிபார்' : 'Check for Updates')}
+              </span>
+            </button>
           </div>
-          <button
-            onClick={onOpenUpdateModal}
-            className={`px-4 py-2.5 rounded-xl text-xs font-black shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer ${
-              updateInfo?.hasUpdate
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-500/30 hover:from-blue-500 hover:to-indigo-500 animate-pulse'
-                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-50'
-            }`}
-          >
-            <RefreshCw className="w-3.5 h-3.5 text-blue-500" />
-            <span>
-              {updateInfo?.hasUpdate
-                ? (lang === 'ta' ? 'இப்போது புதுப்பி (Update APK)' : 'Update APK Now')
-                : (lang === 'ta' ? 'புதுப்பிப்பு சரிபார்' : 'Check for Updates')}
-            </span>
-          </button>
-        </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Language Selection Card */}

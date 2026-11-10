@@ -39,13 +39,13 @@ app.get('/api/health', (req, res) => {
     timezone: 'Asia/Kolkata',
     service: 'Sri Pattanathu Mariamman Anangur Seettu API',
     organization: 'ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர் சீட்டு குழு',
-    version: '1.0.1',
+    version: '1.0.2',
   });
 });
 
 // App Update & Version Check
-const LATEST_APP_VERSION = '1.0.1';
-const LATEST_BUILD_CODE = 2;
+const LATEST_APP_VERSION = '1.0.2';
+const LATEST_BUILD_CODE = 3;
 const LATEST_APK_GITHUB_URL = 'https://github.com/barath2005-dotcom/seettu-anangur/releases/latest/download/Sri-Pattanathu-Mariamman.apk';
 
 app.get('/api/app-update', (req, res) => {
