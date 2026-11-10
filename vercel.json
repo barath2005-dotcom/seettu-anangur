@@ -3,6 +3,13 @@
   "buildCommand": "npm run build:shared && npm run build:backend && npm --workspace=@seettu/web run build",
   "outputDirectory": "apps/web/dist",
   "framework": "vite",
+  "redirects": [
+    {
+      "source": "/downloads/Sri-Pattanathu-Mariamman.apk",
+      "destination": "https://github.com/barath2005-dotcom/seettu-anangur/releases/latest/download/Sri-Pattanathu-Mariamman.apk",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",

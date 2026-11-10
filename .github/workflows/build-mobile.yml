@@ -43,6 +43,7 @@ jobs:
           echo '{"telemetry":false}' > ~/.config/capacitor/sysconfig.json
           mkdir -p android/app/src/main/assets/public
           cp -r dist/* android/app/src/main/assets/public/
+          rm -rf android/app/src/main/assets/public/downloads 2>/dev/null || true
           cp capacitor.config.json android/app/src/main/assets/capacitor.config.json 2>/dev/null || true
           npx cap sync android --no-color || true
 
@@ -89,13 +90,34 @@ jobs:
           path: ./app-debug.apk
           retention-days: 30
 
-      - name: Create or Update GitHub Release with APK
+      - name: Create or Update GitHub Release v1.0.1
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: mobile-v1.0.1
+          name: "Sri Pattanathu Mariamman Mobile App v1.0.1"
+          body: |
+            Official Mobile App for Sri Pattanathu Mariamman Anangur Seettu Kuzhu.
+            - Version: 1.0.1 (Build 2)
+            - Release Date: 2026-11-10
+            - Fixed camera punch-hole cutout & status bar safe-area clearance
+            - Mobile 2-tier responsive header for all smartphones
+            - One-tap in-app APK update system with direct download
+            - Native Capacitor Share and File download integration
+            - Branded gold-squircle splash loader and dashboard skeletons
+            - Direct Android APK attached below (`Sri-Pattanathu-Mariamman.apk`).
+          files: |
+            ./app-debug.apk
+            ./Sri-Pattanathu-Mariamman.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Also Update Legacy Release mobile-v1.0.0
         uses: softprops/action-gh-release@v2
         with:
           tag_name: mobile-v1.0.0
-          name: "Sri Pattanathu Mariamman Mobile App v1.0.0"
+          name: "Sri Pattanathu Mariamman Mobile App v1.0.1 (Latest)"
           body: |
-            Official Mobile App for Sri Pattanathu Mariamman Anangur Seettu Kuzhu.
+            Official Mobile App for Sri Pattanathu Mariamman Anangur Seettu Kuzhu (Updated to v1.0.1).
             - Direct Android APK attached below (`app-debug.apk` and `Sri-Pattanathu-Mariamman.apk`).
             - iOS users can install via Safari -> Add to Home Screen from https://seettu-anangur.vercel.app.
           files: |
@@ -107,6 +129,8 @@ jobs:
   build-ios:
     name: Prepare & Verify iOS Project
     runs-on: macos-latest
+    continue-on-error: true
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

@@ -380,15 +380,32 @@ export function App() {
 
         {/* Top Controls: Language & Theme Pill & Update Button */}
         <div className="mb-6 flex items-center gap-2.5 relative z-10 flex-wrap justify-center">
-          {updateInfo?.hasUpdate && (
-            <button
-              onClick={() => setIsUpdateModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-black shadow-lg shadow-blue-500/30 animate-pulse border border-blue-400/40 cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>{lang === 'ta' ? 'புதிய ஆப் பதிப்பு' : 'App Update Available'}</span>
-            </button>
-          )}
+          {/* In-App Version & Update Pill */}
+          <button
+            onClick={() => setIsUpdateModalOpen(true)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold transition-all shadow-xl backdrop-blur-md cursor-pointer ${
+              updateInfo?.hasUpdate
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-400 shadow-blue-500/30 animate-pulse font-black'
+                : 'border-blue-500/25 bg-[#0C1A33]/80 text-blue-200 hover:text-white'
+            }`}
+            title={lang === 'ta' ? 'ஆப் பதிப்பு விவரங்கள் மற்றும் புதுப்பிப்பு' : 'App Version & Updates'}
+          >
+            {updateInfo?.hasUpdate ? (
+              <>
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <span>{lang === 'ta' ? 'புதிய ஆப் பதிப்பு உள்ளது' : 'App Update Available'}</span>
+              </>
+            ) : (
+              <>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <span className="font-mono font-bold">v{CURRENT_APP_VERSION}</span>
+                <span className="text-[10px] text-emerald-300/80 font-medium">
+                  {lang === 'ta' ? '(சமீபத்தியது)' : '(Latest)'}
+                </span>
+              </>
+            )}
+          </button>
+
 
           <div className="flex items-center gap-1.5 bg-[#0C1A33]/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-blue-500/25 shadow-xl text-xs font-semibold text-slate-300">
             <Languages className="w-4 h-4 text-blue-400" />
@@ -541,6 +558,30 @@ export function App() {
                 ? (lang === 'ta' ? 'நிர்வாகியாக உள்நுழைக' : 'Sign In as Admin')
                 : (lang === 'ta' ? 'உறுப்பினராக உள்நுழைக' : 'Sign In as Member')}
             </button>
+
+            {/* Version & Update Indicator inside Card */}
+            <div className="mt-5 pt-3.5 border-t border-blue-500/20 flex items-center justify-between text-[11px] text-blue-200/70">
+              <span className="font-medium">
+                {lang === 'ta' ? 'அதிகாரப்பூர்வ பதிப்பு' : 'Official Release'}
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsUpdateModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md hover:bg-white/5 transition-colors cursor-pointer group"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <span className="font-mono font-bold text-white group-hover:text-blue-300">v{CURRENT_APP_VERSION}</span>
+                {updateInfo?.hasUpdate ? (
+                  <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-blue-600 text-white uppercase animate-pulse">
+                    {lang === 'ta' ? 'புதிய பதிப்பு' : 'Update'}
+                  </span>
+                ) : (
+                  <span className="text-emerald-400 text-[10px] font-semibold">
+                    {lang === 'ta' ? 'சமீபத்தியது' : 'Latest'}
+                  </span>
+                )}
+              </button>
+            </div>
           </form>
         </div>
 
@@ -758,9 +799,15 @@ export function App() {
                   />
                 </div>
                 <div className="mt-3">
-                  <h2 className="font-extrabold text-white text-[14px] leading-tight">
-                    {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன்' : 'Sri Pattanathu Mariamman'}
-                  </h2>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <h2 className="font-extrabold text-white text-[14px] leading-tight">
+                      {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன்' : 'Sri Pattanathu Mariamman'}
+                    </h2>
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-mono">
+                      <span className="w-1 h-1 rounded-full bg-emerald-400"></span>
+                      v{CURRENT_APP_VERSION}
+                    </span>
+                  </div>
                   <p className="text-[11.5px] text-blue-200/70 font-medium mt-0.5">
                     {lang === 'ta' ? 'ஆனங்கூர் சீட்டு குழு' : 'Anangur Seettu Kuzhu'}
                   </p>
@@ -974,7 +1021,7 @@ export function App() {
                 </button>
               )}
 
-              {/* In-App Software Update Button */}
+              {/* In-App Software Version & Update Button */}
               {updateInfo?.hasUpdate ? (
                 <button
                   onClick={() => setIsUpdateModalOpen(true)}
@@ -986,12 +1033,12 @@ export function App() {
                 </button>
               ) : (
                 <button
-                  onClick={() => handleCheckUpdate(true)}
-                  title={lang === 'ta' ? 'ஆப் புதுப்பிப்பு சரிபார்க்க' : 'Check for App Updates'}
-                  className="hidden md:flex items-center gap-1 px-2.5 py-1 rounded-full border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-[11px] font-bold shadow-2xs cursor-pointer shrink-0"
+                  onClick={() => setIsUpdateModalOpen(true)}
+                  title={lang === 'ta' ? `செயலி பதிப்பு v${CURRENT_APP_VERSION} (சமீபத்தியது) - விவரங்களுக்கு தட்டவும்` : `App v${CURRENT_APP_VERSION} (Latest) - Tap for info`}
+                  className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-full border border-emerald-500/30 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-[10px] sm:text-[11px] font-bold shadow-2xs cursor-pointer shrink-0 transition-all"
                 >
-                  <RefreshCw className={`w-3 h-3 ${isCheckingUpdate ? 'animate-spin text-blue-500' : ''}`} />
-                  <span>{lang === 'ta' ? 'புதுப்பிப்பு' : 'Update'}</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  <span className="font-mono font-black">v{CURRENT_APP_VERSION}</span>
                 </button>
               )}
 

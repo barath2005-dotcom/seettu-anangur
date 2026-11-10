@@ -1,8 +1,9 @@
 import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 import { apiFetch } from './api';
 
-export const CURRENT_APP_VERSION = '1.0.0';
-export const CURRENT_BUILD_NUMBER = 1;
+export const CURRENT_APP_VERSION = '1.0.1';
+export const CURRENT_BUILD_NUMBER = 2;
 
 export interface AppUpdateInfo {
   latestVersion: string;
@@ -49,19 +50,16 @@ export function isNewerVersion(current: string, latest: string): boolean {
   }
 }
 
-export function downloadAndInstallApk(apkUrl?: string) {
+export async function downloadAndInstallApk(apkUrl?: string) {
   const url = apkUrl || 'https://seettu-anangur.vercel.app/api/app-update/download';
-  // Open direct download link in external browser/downloader
-  if (Capacitor.isNativePlatform()) {
-    // On native Android Capacitor, opening the external browser triggers the system Download Manager
-    window.open(url, '_system');
-  } else {
-    // In web browser
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'Sri-Pattanathu-Mariamman.apk';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+  try {
+    if (Capacitor.isNativePlatform()) {
+      // Open with native browser to invoke Android's system Download Manager
+      await Browser.open({ url });
+    } else {
+      window.location.href = url;
+    }
+  } catch (e) {
+    window.location.href = url;
   }
 }
