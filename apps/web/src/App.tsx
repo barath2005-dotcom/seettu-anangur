@@ -58,7 +58,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from 'recharts';
-import { api, setAuthTokens, clearAuthTokens, getAuthToken } from './services/api';
+import { api, setAuthTokens, clearAuthTokens, getAuthToken, getCachedUser } from './services/api';
 import { formatINR, formatKolkataDate, translations, SupportedLanguage, getNextPournami, OFFICIAL_78_MEMBERS } from '@seettu/shared';
 import { StatCard } from './components/StatCard';
 import { ReceiptModal } from './components/ReceiptModal';
@@ -105,8 +105,21 @@ export function App() {
   };
 
   // Auth state
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(() => {
+    try {
+      const token = getAuthToken();
+      if (!token) return null;
+      return getCachedUser();
+    } catch {
+      return null;
+    }
+  });
+  const [loading, setLoading] = useState<boolean>(() => {
+    const token = getAuthToken();
+    const cached = getCachedUser();
+    // Only enter loading state if there's a stored access token that needs initial validation without cache
+    return Boolean(token && !cached);
+  });
   const [initSlowWarning, setInitSlowWarning] = useState(false);
   const [activeTab, setActiveTabState] = useState<string>(() => {
     return localStorage.getItem('seettu_active_tab') || 'dashboard';
@@ -194,31 +207,39 @@ export function App() {
 
   useEffect(() => {
     const token = getAuthToken();
-    if (token) {
-      const slowTimer = setTimeout(() => {
-        setInitSlowWarning(true);
-      }, 4500);
-
-      api.getMe()
-        .then((res) => {
-          if (res.success) {
-            setUser(res.data);
-            fetchNotifications();
-          } else {
-            clearAuthTokens();
-          }
-        })
-        .catch((err) => {
-          console.warn('Auth validation failed:', err);
-          clearAuthTokens();
-        })
-        .finally(() => {
-          clearTimeout(slowTimer);
-          setLoading(false);
-        });
-    } else {
+    if (!token) {
       setLoading(false);
+      return;
     }
+
+    const slowTimer = setTimeout(() => {
+      setInitSlowWarning(true);
+    }, 4500);
+
+    api.getMe()
+      .then((res) => {
+        if (res.success && res.data) {
+          setUser(res.data);
+          try {
+            localStorage.setItem('seettu_user', JSON.stringify(res.data));
+          } catch {}
+          fetchNotifications();
+        } else {
+          clearAuthTokens();
+          setUser(null);
+        }
+      })
+      .catch((err) => {
+        console.warn('Auth verification error:', err);
+        if (err?.message?.includes('SESSION_EXPIRED') || err?.message?.includes('401')) {
+          clearAuthTokens();
+          setUser(null);
+        }
+      })
+      .finally(() => {
+        clearTimeout(slowTimer);
+        setLoading(false);
+      });
   }, []);
 
   // Guard: Members and native mobile users should never be on 'download' tab
@@ -306,7 +327,7 @@ export function App() {
     try {
       const res = await api.login({ identifier: loginEmail, email: loginEmail, password: loginPassword });
       if (res.success) {
-        setAuthTokens(res.data.accessToken, res.data.refreshToken);
+        setAuthTokens(res.data.accessToken, res.data.refreshToken, res.data.user);
         setUser(res.data.user);
         setActiveTab('dashboard');
         fetchNotifications();

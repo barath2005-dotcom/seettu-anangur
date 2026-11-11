@@ -15,10 +15,22 @@ export function getAuthToken(): string | null {
   return localStorage.getItem('seettu_access_token');
 }
 
-export function setAuthTokens(accessToken: string, refreshToken?: string) {
+export function setAuthTokens(accessToken: string, refreshToken?: string, user?: any) {
   localStorage.setItem('seettu_access_token', accessToken);
   if (refreshToken) {
     localStorage.setItem('seettu_refresh_token', refreshToken);
+  }
+  if (user) {
+    localStorage.setItem('seettu_user', JSON.stringify(user));
+  }
+}
+
+export function getCachedUser(): any | null {
+  try {
+    const raw = localStorage.getItem('seettu_user');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
   }
 }
 
