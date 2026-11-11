@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   LayoutDashboard,
   Users,
@@ -859,7 +859,7 @@ export function App() {
           />
 
           {/* Drawer Content */}
-          <div className="relative w-72 max-w-[85vw] bg-[#07142A] text-white h-full flex flex-col justify-between shadow-2xl z-10 animate-in slide-in-from-left duration-200 border-r border-blue-900/50 overflow-hidden">
+          <div className="relative w-72 max-w-[85vw] bg-[#07142A] text-white h-full flex flex-col justify-between shadow-2xl z-10 animate-in slide-in-from-left duration-200 rounded-r-3xl border-r border-amber-500/20 overflow-hidden no-scrollbar">
             {/* Full Background with Gopuram & Waves */}
             <img
               src="/sidebar-bg.png"
@@ -902,7 +902,7 @@ export function App() {
             </div>
 
             {/* Nav Links */}
-            <nav className={`flex-1 px-3.5 ${user.role === 'MEMBER' ? 'py-3 space-y-2' : 'py-2 space-y-1.5'} overflow-y-auto relative z-10 scrollbar-none`}>
+            <nav className={`flex-1 px-3.5 ${user.role === 'MEMBER' ? 'py-3 space-y-2' : 'py-2 space-y-1.5'} overflow-y-auto relative z-10 no-scrollbar`}>
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
@@ -1042,33 +1042,42 @@ export function App() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         {/* Top Header Bar (Safe-area padded for Android status bar and camera punch-hole) */}
-        <header className="bg-white dark:bg-[#0E1726] border-b border-slate-200/80 dark:border-slate-800 px-3.5 sm:px-6 mobile-safe-top pb-2.5 sm:pb-3 sticky top-0 z-30 transition-all shadow-xs">
+        <header className="bg-white/92 dark:bg-[#0E1726]/92 backdrop-blur-2xl border-b border-slate-200/80 dark:border-slate-800 px-3 sm:px-6 mobile-safe-top pb-2.5 sm:pb-3 sticky top-0 z-30 transition-all shadow-xs">
           {/* Main Top Row */}
-          <div className="flex items-center justify-between gap-2.5 sm:gap-4 w-full">
-            {/* Left: Menu button + Brand on mobile, Search on desktop */}
+          <div className="flex items-center justify-between gap-2 sm:gap-4 w-full">
+            {/* Left: Menu button + Brand Medallion Logo + Desktop Search */}
             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
               <button
                 onClick={() => setMobileMenuOpen(true)}
-                className="lg:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 focus:outline-none shrink-0 cursor-pointer"
+                className="lg:hidden p-2 rounded-2xl text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 focus:outline-none shrink-0 cursor-pointer press-scale"
                 aria-label="Open Navigation Menu"
               >
                 <Menu className="w-5 h-5" />
               </button>
 
-              {/* Mobile Brand Title */}
-              <div className="flex items-center gap-2 sm:hidden min-w-0">
-                <img
-                  src="/logo.jpg"
-                  alt="Logo"
-                  className="w-7 h-7 rounded-lg object-cover shrink-0 shadow-2xs border border-amber-400/40"
-                />
-                <span className="text-xs font-black text-slate-900 dark:text-white truncate">
-                  {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன்' : 'Sri Pattanathu Mariamman'}
-                </span>
+              {/* Brand Medallion + Title */}
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="relative w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-400 via-amber-500 to-amber-600 p-[1.5px] shadow-sm shrink-0">
+                  <img
+                    src="/logo.jpg"
+                    alt="Sri Pattanathu Mariamman"
+                    className="w-full h-full rounded-[10px] object-cover"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <h1 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate tracking-tight leading-tight">
+                    {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன்' : 'Sri Pattanathu Mariamman'}
+                  </h1>
+                  <div className="flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-slate-400 font-semibold leading-none mt-0.5">
+                    <span className="text-amber-600 dark:text-amber-400 font-bold">{lang === 'ta' ? 'சீட்டு எண்: 08' : 'Chit #08'}</span>
+                    <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                    <span className="font-mono text-[9px] text-emerald-600 dark:text-emerald-400 font-bold">LIVE</span>
+                  </div>
+                </div>
               </div>
 
               {/* Desktop Search Bar */}
-              <div className="relative hidden sm:flex items-center w-64 sm:w-80 md:w-96">
+              <div className="relative hidden md:flex items-center w-64 lg:w-80 ml-2">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
                 <input
                   type="text"
@@ -1083,13 +1092,13 @@ export function App() {
             </div>
 
             {/* Right: Quick Controls & Profile */}
-            <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
               {/* Download Mobile App Button (Hidden inside APK and hidden for Members) */}
               {!Capacitor.isNativePlatform() && user?.role === 'ADMIN' && (
                 <button
                   onClick={() => setActiveTab('download')}
                   title={lang === 'ta' ? 'மொபைல் ஆப் பதிவிறக்கம் (Android & iOS)' : 'Download Mobile App (Android & iOS)'}
-                  className={`hidden md:flex px-3 py-1.5 rounded-full border text-xs font-bold transition-all items-center gap-1.5 shadow-2xs cursor-pointer ${
+                  className={`hidden md:flex px-3 py-1.5 rounded-full border text-xs font-bold transition-all items-center gap-1.5 shadow-2xs cursor-pointer press-scale ${
                     activeTab === 'download'
                       ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                       : 'border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700'
@@ -1106,7 +1115,7 @@ export function App() {
                   <button
                     onClick={() => setIsUpdateModalOpen(true)}
                     title={lang === 'ta' ? 'புதிய ஆப் பதிப்பு கிடைத்துள்ளது! தட்டவும்' : 'New app update available! Tap to install'}
-                    className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[11px] font-black shadow-md shadow-blue-500/30 animate-pulse border border-blue-400/40 cursor-pointer shrink-0"
+                    className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[11px] font-black shadow-md shadow-blue-500/30 animate-pulse border border-blue-400/40 cursor-pointer shrink-0 press-scale"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                     <span>{lang === 'ta' ? 'புதுப்பி' : 'Update'}</span>
@@ -1115,7 +1124,7 @@ export function App() {
                   <button
                     onClick={() => setIsUpdateModalOpen(true)}
                     title={lang === 'ta' ? `செயலி பதிப்பு v${CURRENT_APP_VERSION} (சமீபத்தியது) - விவரங்களுக்கு தட்டவும்` : `App v${CURRENT_APP_VERSION} (Latest) - Tap for info`}
-                    className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-full border border-emerald-500/30 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-[10px] sm:text-[11px] font-bold shadow-2xs cursor-pointer shrink-0 transition-all"
+                    className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-full border border-emerald-500/30 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-[10px] sm:text-[11px] font-bold shadow-2xs cursor-pointer shrink-0 transition-all press-scale"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                     <span className="font-mono font-black">v{CURRENT_APP_VERSION}</span>
@@ -1127,7 +1136,7 @@ export function App() {
               <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-full p-0.5 text-xs font-bold border border-slate-200/80 dark:border-slate-700 shadow-2xs">
                 <button
                   onClick={() => handleLanguageChange('en')}
-                  className={`px-2.5 sm:px-3 py-1 rounded-full transition-all text-[11px] sm:text-xs font-bold ${
+                  className={`px-2 sm:px-2.5 py-1 rounded-full transition-all text-[11px] font-bold ${
                     lang === 'en'
                       ? 'bg-[#2563EB] text-white shadow-2xs'
                       : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
@@ -1137,7 +1146,7 @@ export function App() {
                 </button>
                 <button
                   onClick={() => handleLanguageChange('ta')}
-                  className={`px-2.5 sm:px-3 py-1 rounded-full transition-all text-[11px] sm:text-xs font-bold ${
+                  className={`px-2 sm:px-2.5 py-1 rounded-full transition-all text-[11px] font-bold ${
                     lang === 'ta'
                       ? 'bg-[#2563EB] text-white shadow-2xs'
                       : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
@@ -1151,7 +1160,7 @@ export function App() {
               <button
                 onClick={toggleTheme}
                 title={theme === 'light' ? t.nightMode : t.dayMode}
-                className="p-1.5 sm:p-2 rounded-full border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs transition-colors cursor-pointer"
+                className="p-1.5 sm:p-2 rounded-full border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs transition-colors cursor-pointer press-scale"
               >
                 {theme === 'light' ? (
                   <Moon className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-slate-600" />
@@ -1163,7 +1172,7 @@ export function App() {
               {/* Notifications Bell */}
               <button
                 onClick={() => setActiveTab('notifications')}
-                className="p-1.5 sm:p-2 rounded-full border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 relative shadow-2xs transition-colors cursor-pointer"
+                className="p-1.5 sm:p-2 rounded-full border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 relative shadow-2xs transition-colors cursor-pointer press-scale"
               >
                 <Bell className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
                 {unreadCount > 0 && (
@@ -1175,7 +1184,7 @@ export function App() {
               <div className="relative">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-1.5 pl-0.5 sm:pl-2 py-1 px-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer group"
+                  className="flex items-center gap-1.5 pl-0.5 sm:pl-2 py-1 px-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer group press-scale"
                   aria-label="User profile menu"
                 >
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs group-hover:ring-2 group-hover:ring-blue-400 transition-all">
@@ -1255,26 +1264,10 @@ export function App() {
               </div>
             </div>
           </div>
-
-          {/* Mobile Full-Width Search Input (Row 2 on mobile phones) */}
-          <div className="w-full mt-2 sm:hidden">
-            <div className="relative flex items-center w-full">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 pointer-events-none" />
-              <input
-                type="text"
-                placeholder={
-                  lang === 'ta'
-                    ? 'உறுப்பினர்கள், சீட்டுகள் தேடுக...'
-                    : 'Search members, chit schemes, transactions...'
-                }
-                className="w-full pl-9 pr-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs text-slate-700 dark:text-slate-200 placeholder-slate-400 border border-transparent focus:border-blue-400 focus:bg-white dark:focus:bg-slate-900 outline-none transition-all shadow-inner"
-              />
-            </div>
-          </div>
         </header>
 
         {/* Content Body */}
-        <main className="flex-1 overflow-y-auto p-3.5 sm:p-4 md:p-5 lg:p-6 pb-6">
+        <main className="flex-1 overflow-y-auto p-3.5 sm:p-5 lg:p-6 has-floating-dock lg:pb-6">
           {activeTab === 'dashboard' && (
             <DashboardScreen
               user={user}
@@ -1370,66 +1363,76 @@ export function App() {
           )}
         </main>
 
-        {/* Mobile Bottom Navigation Bar (Phone Optimized) */}
-        <div className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 dark:bg-[#0E1726]/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 z-30 flex items-center justify-around py-1.5 px-1 shadow-lg mobile-safe-bottom">
+        {/* Modern Floating Island Bottom Dock (Phone & Tablet) */}
+        <div className="lg:hidden fixed bottom-3 inset-x-3 max-w-md mx-auto rounded-3xl bg-white/92 dark:bg-[#0E1726]/92 backdrop-blur-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-[0_12px_36px_rgba(0,0,0,0.16)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.45)] z-40 px-2 py-1.5 flex items-center justify-around mobile-safe-bottom">
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl text-[10px] font-bold transition-all ${
-              activeTab === 'dashboard' ? 'text-[#2F7BFF]' : 'text-slate-500 hover:text-slate-800'
+            className={`flex flex-col items-center gap-1 py-1.5 px-3 rounded-2xl text-[10px] font-bold transition-all press-scale ${
+              activeTab === 'dashboard'
+                ? 'text-[#2563EB] dark:text-blue-400 bg-blue-50/80 dark:bg-blue-950/60 shadow-2xs font-black'
+                : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
             }`}
           >
-            <LayoutDashboard className={`w-5 h-5 ${activeTab === 'dashboard' ? 'text-[#2F7BFF] stroke-[2.5]' : 'text-slate-400'}`} />
+            <LayoutDashboard className={`w-5 h-5 ${activeTab === 'dashboard' ? 'text-[#2563EB] dark:text-blue-400 stroke-[2.5]' : 'text-slate-400'}`} />
             <span>{lang === 'ta' ? 'முகப்பு' : 'Home'}</span>
           </button>
 
           <button
             onClick={() => setActiveTab('monthly-entry')}
-            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl text-[10px] font-bold transition-all ${
-              activeTab === 'monthly-entry' ? 'text-[#2F7BFF]' : 'text-slate-500 hover:text-slate-800'
+            className={`flex flex-col items-center gap-1 py-1.5 px-3 rounded-2xl text-[10px] font-bold transition-all press-scale ${
+              activeTab === 'monthly-entry'
+                ? 'text-[#2563EB] dark:text-blue-400 bg-blue-50/80 dark:bg-blue-950/60 shadow-2xs font-black'
+                : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
             }`}
           >
-            <ClipboardList className={`w-5 h-5 ${activeTab === 'monthly-entry' ? 'text-[#2F7BFF] stroke-[2.5]' : 'text-slate-400'}`} />
+            <ClipboardList className={`w-5 h-5 ${activeTab === 'monthly-entry' ? 'text-[#2563EB] dark:text-blue-400 stroke-[2.5]' : 'text-slate-400'}`} />
             <span>{lang === 'ta' ? 'சீட்டு பதிவு' : 'Chit Entry'}</span>
           </button>
 
           {user.role !== 'MEMBER' ? (
             <button
               onClick={() => setActiveTab('members')}
-              className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl text-[10px] font-bold transition-all ${
-                activeTab === 'members' ? 'text-[#2F7BFF]' : 'text-slate-500 hover:text-slate-800'
+              className={`flex flex-col items-center gap-1 py-1.5 px-3 rounded-2xl text-[10px] font-bold transition-all press-scale ${
+                activeTab === 'members'
+                  ? 'text-[#2563EB] dark:text-blue-400 bg-blue-50/80 dark:bg-blue-950/60 shadow-2xs font-black'
+                  : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
               }`}
             >
-              <Users className={`w-5 h-5 ${activeTab === 'members' ? 'text-[#2F7BFF] stroke-[2.5]' : 'text-slate-400'}`} />
-              <span>{lang === 'ta' ? 'உறுப்பினர்கள்' : 'Members'}</span>
+              <Users className={`w-5 h-5 ${activeTab === 'members' ? 'text-[#2563EB] dark:text-blue-400 stroke-[2.5]' : 'text-slate-400'}`} />
+              <span>{lang === 'ta' ? 'உறுப்பினர்' : 'Members'}</span>
             </button>
           ) : (
             <button
               onClick={() => setActiveTab('schemes')}
-              className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl text-[10px] font-bold transition-all ${
-                activeTab === 'schemes' ? 'text-[#2F7BFF]' : 'text-slate-500 hover:text-slate-800'
+              className={`flex flex-col items-center gap-1 py-1.5 px-3 rounded-2xl text-[10px] font-bold transition-all press-scale ${
+                activeTab === 'schemes'
+                  ? 'text-[#2563EB] dark:text-blue-400 bg-blue-50/80 dark:bg-blue-950/60 shadow-2xs font-black'
+                  : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
               }`}
             >
-              <Coins className={`w-5 h-5 ${activeTab === 'schemes' ? 'text-[#2F7BFF] stroke-[2.5]' : 'text-slate-400'}`} />
+              <Coins className={`w-5 h-5 ${activeTab === 'schemes' ? 'text-[#2563EB] dark:text-blue-400 stroke-[2.5]' : 'text-slate-400'}`} />
               <span>{lang === 'ta' ? 'திட்டங்கள்' : 'Schemes'}</span>
             </button>
           )}
 
           <button
             onClick={() => setActiveTab('calendar')}
-            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl text-[10px] font-bold transition-all ${
-              activeTab === 'calendar' ? 'text-[#2F7BFF]' : 'text-slate-500 hover:text-slate-800'
+            className={`flex flex-col items-center gap-1 py-1.5 px-3 rounded-2xl text-[10px] font-bold transition-all press-scale ${
+              activeTab === 'calendar'
+                ? 'text-[#2563EB] dark:text-blue-400 bg-blue-50/80 dark:bg-blue-950/60 shadow-2xs font-black'
+                : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
             }`}
           >
-            <Calendar className={`w-5 h-5 ${activeTab === 'calendar' ? 'text-[#2F7BFF] stroke-[2.5]' : 'text-slate-400'}`} />
-            <span>{lang === 'ta' ? 'காலண்டர்' : 'Calendar'}</span>
+            <Calendar className={`w-5 h-5 ${activeTab === 'calendar' ? 'text-[#2563EB] dark:text-blue-400 stroke-[2.5]' : 'text-slate-400'}`} />
+            <span>{lang === 'ta' ? 'நாட்காட்டி' : 'Calendar'}</span>
           </button>
 
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl text-[10px] font-bold text-slate-500 hover:text-slate-800 transition-all cursor-pointer"
+            className="flex flex-col items-center gap-1 py-1.5 px-3 rounded-2xl text-[10px] font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-all cursor-pointer press-scale"
           >
             <Menu className="w-5 h-5 text-slate-400" />
-            <span>{lang === 'ta' ? 'மேலும்' : 'Menu'}</span>
+            <span>{lang === 'ta' ? 'மெனு' : 'Menu'}</span>
           </button>
         </div>
       </div>
@@ -1446,6 +1449,30 @@ function DashboardScreen({ user, lang, onNavigate, onViewReceipt }: { user: any;
   const [loading, setLoading] = useState(true);
 
   const nextPournami = getNextPournami();
+
+  const formattedPournami = useMemo(() => {
+    if (!nextPournami?.dateStr) return '24 Nov 2026';
+    try {
+      const [y, m, d] = nextPournami.dateStr.split('-').map(Number);
+      const dt = new Date(y, m - 1, d);
+      return dt.toLocaleDateString(lang === 'ta' ? 'ta-IN' : 'en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
+    } catch (e) {
+      return nextPournami.dateStr;
+    }
+  }, [nextPournami?.dateStr, lang]);
+
+  const todayFormatted = useMemo(() => {
+    return new Date().toLocaleDateString(lang === 'ta' ? 'ta-IN' : 'en-IN', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  }, [lang]);
 
   useEffect(() => {
     api.getDashboard()
@@ -1535,61 +1562,93 @@ function DashboardScreen({ user, lang, onNavigate, onViewReceipt }: { user: any;
                 {lang === 'ta' ? 'இன்று' : 'Today'}
               </div>
               <div className="text-xs font-black text-slate-800 dark:text-slate-200">
-                Sunday, 26 Oct 2026
+                {todayFormatted}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Hero Banner: Pournami / Next Chit Day (Image 1 style) */}
-        <div className="rounded-3xl bg-gradient-to-r from-[#0C1E3E] via-[#0E2954] to-[#0A1732] text-white p-5 sm:p-6 relative overflow-hidden shadow-xl border border-blue-900/50 flex flex-col md:flex-row items-center justify-between gap-5">
-          <div className="hidden md:flex items-center justify-center shrink-0 w-20 h-20 relative">
-            <img
-              src="/logo.jpg"
-              alt="Sri Pattanathu Mariamman Gopuram"
-              className="w-18 h-18 rounded-2xl object-cover border-2 border-amber-400/60 shadow-[0_0_25px_rgba(251,191,36,0.35)] ring-4 ring-amber-400/20"
-            />
-          </div>
+        {/* Luxury Gold Foil Chit Passbook Smart Card (Apple Wallet / CRED style) */}
+        <div className="rounded-3xl bg-gradient-to-br from-[#071328] via-[#0E244C] to-[#09152B] text-white p-5 sm:p-7 relative overflow-hidden shadow-2xl border border-amber-400/30">
+          {/* Subtle Ambient Radial Lighting */}
+          <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-amber-500/15 blur-3xl pointer-events-none"></div>
+          <div className="absolute -bottom-16 -left-16 w-56 h-56 rounded-full bg-blue-600/15 blur-3xl pointer-events-none"></div>
 
-          <div className="flex-1 min-w-0 z-10 text-center md:text-left">
-            <div className="text-[11px] font-bold tracking-widest text-blue-300 uppercase flex items-center justify-center md:justify-start gap-1.5 mb-1">
-              <span>{lang === 'ta' ? 'அடுத்த சீட்டு நாள்' : 'NEXT CHIT DAY'}</span>
-              <ChevronRight className="w-3.5 h-3.5 text-blue-400" />
+          {/* Top Passbook Header Row */}
+          <div className="flex items-center justify-between gap-3 relative z-10 mb-4 pb-3 border-b border-white/10">
+            <div className="flex items-center gap-2.5">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-600 p-[1.5px] shadow-md shrink-0">
+                <img
+                  src="/logo.jpg"
+                  alt="Sri Pattanathu Mariamman"
+                  className="w-full h-full rounded-[14px] object-cover"
+                />
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-amber-300 uppercase tracking-widest block">
+                  {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர்' : 'Sri Pattanathu Mariamman Anangur'}
+                </span>
+                <span className="text-xs font-black text-white">
+                  {lang === 'ta' ? 'சீட்டு எண்: 08 • அதிகாரப்பூர்வ பாஸ்புக்' : 'Chit Scheme No: 08 • Passbook'}
+                </span>
+              </div>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Pournami - 2026-10-26
-            </h2>
-            <p className="text-xs text-blue-200/90 mt-1 flex items-center justify-center md:justify-start gap-1.5">
-              <span>🎁</span>
-              <span>
-                {lang === 'ta'
-                  ? 'மாதாந்திர அதிர்ஷ்ட குலுக்கல் & தவணை செலுத்துதல் பௌர்ணமி நாளில் நடைபெறும்.'
-                  : 'Monthly lucky draw and collections held on every Full Moon day.'}
-              </span>
-            </p>
-          </div>
 
-          <div className="relative flex items-center justify-center shrink-0 z-10">
-            <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-amber-200 via-amber-100 to-yellow-300 shadow-[0_0_40px_rgba(251,191,36,0.7)] border-2 border-yellow-200/70 overflow-hidden relative flex items-center justify-center">
-              <div className="absolute top-2 left-3 w-4 h-4 rounded-full bg-amber-300/35 blur-xs"></div>
-              <div className="absolute bottom-3 right-4 w-6 h-5 rounded-full bg-amber-300/40 blur-xs"></div>
-              <div className="absolute inset-0 bg-radial from-transparent via-amber-200/10 to-amber-400/30"></div>
-            </div>
-          </div>
-
-          <div className="flex flex-col items-center md:items-end shrink-0 z-10">
-            <div className="text-amber-400 font-black text-xs sm:text-sm tracking-wider uppercase mb-2">
+            <span className="px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[10px] font-black uppercase tracking-wider backdrop-blur-md shrink-0">
               {nextPournami.isToday
-                ? (lang === 'ta' ? 'இன்று பௌர்ணமி!' : 'TODAY IS POURNAMI!')
-                : (lang === 'ta' ? `${nextPournami.daysRemaining} நாள் மீதமுள்ளது` : `${nextPournami.daysRemaining} DAY REMAINING`)}
+                ? (lang === 'ta' ? 'இன்று பௌர்ணமி!' : 'TODAY!')
+                : (lang === 'ta' ? `${nextPournami.daysRemaining} நாள் மீதம்` : `${nextPournami.daysRemaining}d Left`)}
+            </span>
+          </div>
+
+          {/* Main Hero Body: Date & Moon */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 relative z-10">
+            <div className="space-y-1 text-center sm:text-left">
+              <div className="text-[11px] font-bold text-blue-200 uppercase tracking-widest flex items-center justify-center sm:justify-start gap-1.5">
+                <span>🌕 {lang === 'ta' ? 'அடுத்த தவணை & குலுக்கல் நாள்' : 'NEXT CHIT DRAW & COLLECTION'}</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight whitespace-nowrap">
+                {formattedPournami}
+              </h2>
+              <p className="text-xs text-blue-200/80 font-medium">
+                {lang === 'ta'
+                  ? 'மாதாந்திர சீட்டு குலுக்கல், ஏலம் மற்றும் புதிய தவணை வசூல் நடைபெறும் நாள்.'
+                  : 'Monthly rotational chit draws, lucky spins, and collections held on Pournami.'}
+              </p>
             </div>
-            <button
-              onClick={() => onNavigate('calendar')}
-              className="bg-[#F59E0B] hover:bg-[#D97706] text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
-            >
-              <Calendar className="w-4 h-4" />
-              <span>{lang === 'ta' ? 'சீட்டு நாட்காட்டி ➔' : 'View Chit Calendar →'}</span>
-            </button>
+
+            {/* Glowing Moon Emblem */}
+            <div className="relative flex items-center justify-center shrink-0 self-center">
+              <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-amber-200 via-amber-100 to-yellow-300 shadow-[0_0_40px_rgba(251,191,36,0.6)] border-2 border-yellow-200/80 overflow-hidden relative flex items-center justify-center">
+                <div className="absolute top-2 left-3 w-4 h-4 rounded-full bg-amber-300/35 blur-xs"></div>
+                <div className="absolute bottom-3 right-4 w-6 h-5 rounded-full bg-amber-300/40 blur-xs"></div>
+                <div className="absolute inset-0 bg-radial from-transparent via-amber-200/10 to-amber-400/30"></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Passbook Quick Action Footer */}
+          <div className="mt-5 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 relative z-10">
+            <div className="text-[11px] text-amber-200/90 font-semibold flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <span>{lang === 'ta' ? '78 உறுப்பினர்கள் • மாத தவணை ₹10,000' : '78 Members • Monthly ₹10,000'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onNavigate('calendar')}
+                className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs transition-all shadow-md flex items-center gap-1.5 cursor-pointer press-scale"
+              >
+                <Calendar className="w-4 h-4" />
+                <span>{lang === 'ta' ? 'நாட்காட்டி' : 'Calendar'}</span>
+              </button>
+              <button
+                onClick={() => onNavigate('monthly-entry')}
+                className="px-4 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-white font-black text-xs transition-all backdrop-blur-md border border-white/20 flex items-center gap-1.5 cursor-pointer press-scale"
+              >
+                <ClipboardList className="w-4 h-4" />
+                <span>{lang === 'ta' ? 'அறிக்கை' : 'Report'}</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -2069,69 +2128,88 @@ function DashboardScreen({ user, lang, onNavigate, onViewReceipt }: { user: any;
               {lang === 'ta' ? 'இன்று' : 'Today'}
             </div>
             <div className="text-xs font-black text-slate-800 dark:text-slate-200">
-              Sunday, 26 Oct 2026
+              {todayFormatted}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Hero Banner: Pournami / Next Chit Day */}
-      <div className="rounded-3xl bg-gradient-to-r from-[#0C1E3E] via-[#0E2954] to-[#0A1732] text-white p-5 sm:p-6 relative overflow-hidden shadow-xl border border-blue-900/50 flex flex-col md:flex-row items-center justify-between gap-5">
-        {/* Subtle illuminated Temple Gopuram picture on the left */}
-        <div className="hidden md:flex items-center justify-center shrink-0 w-24 h-24 relative">
-          <img
-            src="/logo.jpg"
-            alt="Sri Pattanathu Mariamman Gopuram"
-            className="w-20 h-20 rounded-2xl object-cover border-2 border-amber-400/60 shadow-[0_0_30px_rgba(251,191,36,0.35)] ring-4 ring-amber-400/20"
-          />
+      {/* Luxury Gold Foil Chit Passbook Smart Card for Admin */}
+      <div className="rounded-3xl bg-gradient-to-br from-[#071328] via-[#0E244C] to-[#09152B] text-white p-5 sm:p-7 relative overflow-hidden shadow-2xl border border-amber-400/30">
+        {/* Subtle Ambient Radial Lighting */}
+        <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-amber-500/15 blur-3xl pointer-events-none"></div>
+        <div className="absolute -bottom-16 -left-16 w-56 h-56 rounded-full bg-blue-600/15 blur-3xl pointer-events-none"></div>
+
+        {/* Top Passbook Header Row */}
+        <div className="flex items-center justify-between gap-3 relative z-10 mb-4 pb-3 border-b border-white/10">
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-600 p-[1.5px] shadow-md shrink-0">
+              <img
+                src="/logo.jpg"
+                alt="Sri Pattanathu Mariamman"
+                className="w-full h-full rounded-[14px] object-cover"
+              />
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-amber-300 uppercase tracking-widest block">
+                {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர்' : 'Sri Pattanathu Mariamman Anangur'}
+              </span>
+              <span className="text-xs font-black text-white">
+                {lang === 'ta' ? 'நிர்வாக மையம் • சீட்டு எண்: 08' : 'Admin Control • Chit Scheme No: 08'}
+              </span>
+            </div>
+          </div>
+
+          <span className="px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[10px] font-black uppercase tracking-wider backdrop-blur-md shrink-0">
+            {nextPournami.isToday
+              ? (lang === 'ta' ? 'இன்று பௌர்ணமி!' : 'TODAY!')
+              : (lang === 'ta' ? `${nextPournami.daysRemaining} நாள் மீதம்` : `${nextPournami.daysRemaining}d Left`)}
+          </span>
         </div>
 
-        {/* Center: Next Chit Announcement */}
-        <div className="flex-1 min-w-0 z-10 text-center md:text-left">
-          <div className="text-[11px] font-bold tracking-widest text-blue-300 uppercase flex items-center justify-center md:justify-start gap-1.5 mb-1">
-            <span>{lang === 'ta' ? 'அடுத்த சீட்டு நாள்' : 'NEXT CHIT DAY'}</span>
-            <ChevronRight className="w-3.5 h-3.5 text-blue-400" />
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            Pournami - 2026-10-26
-          </h2>
-          <p className="text-xs text-blue-200/90 mt-1.5 flex items-center justify-center md:justify-start gap-1.5">
-            <span>🎁</span>
-            <span>
+        {/* Main Hero Body: Date & Moon */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 relative z-10">
+          <div className="space-y-1 text-center sm:text-left">
+            <div className="text-[11px] font-bold text-blue-200 uppercase tracking-widest flex items-center justify-center sm:justify-start gap-1.5">
+              <span>🌕 {lang === 'ta' ? 'அடுத்த சீட்டு குலுக்கல் & வசூல் நாள்' : 'NEXT CHIT DRAW & COLLECTION'}</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight whitespace-nowrap">
+              {formattedPournami}
+            </h2>
+            <p className="text-xs text-blue-200/80 font-medium">
               {lang === 'ta'
-                ? 'மாதாந்திர அதிர்ஷ்ட குலுக்கல் & வசூல் பௌர்ணமி தோறும் நடைபெறும்.'
-                : 'Monthly lucky draw and collections held on every Full Moon day.'}
-            </span>
-          </p>
-        </div>
+                ? 'மாதாந்திர அதிர்ஷ்ட குலுக்கல் & வசூல் பௌர்ணமி தோறும் கோவில் வளாகத்தில் நடைபெறும்.'
+                : 'Monthly lucky draw and collections held on Pournami at temple premises.'}
+            </p>
+          </div>
 
-        {/* Glowing Full Moon */}
-        <div className="relative flex items-center justify-center shrink-0 z-10">
-          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-tr from-amber-200 via-amber-100 to-yellow-300 shadow-[0_0_50px_rgba(251,191,36,0.7)] border-2 border-yellow-200/70 overflow-hidden relative flex items-center justify-center">
-            <div className="absolute top-3 left-4 w-5 h-5 rounded-full bg-amber-300/35 blur-xs"></div>
-            <div className="absolute bottom-4 right-5 w-7 h-6 rounded-full bg-amber-300/40 blur-xs"></div>
-            <div className="absolute top-7 right-3 w-4 h-4 rounded-full bg-amber-300/30 blur-xs"></div>
-            <div className="absolute inset-0 bg-radial from-transparent via-amber-200/10 to-amber-400/30"></div>
+          {/* Glowing Moon Emblem */}
+          <div className="relative flex items-center justify-center shrink-0 self-center">
+            <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-amber-200 via-amber-100 to-yellow-300 shadow-[0_0_50px_rgba(251,191,36,0.6)] border-2 border-yellow-200/80 overflow-hidden relative flex items-center justify-center">
+              <div className="absolute top-2 left-3 w-4 h-4 rounded-full bg-amber-300/35 blur-xs"></div>
+              <div className="absolute bottom-3 right-4 w-6 h-5 rounded-full bg-amber-300/40 blur-xs"></div>
+              <div className="absolute inset-0 bg-radial from-transparent via-amber-200/10 to-amber-400/30"></div>
+            </div>
           </div>
         </div>
 
-        {/* Countdown & View Calendar Action Button */}
-        <div className="flex flex-col items-center md:items-end shrink-0 z-10">
-          <div className="text-sm font-black text-amber-300 tracking-wider mb-2.5 flex items-center gap-1.5">
-            <span className="text-lg">1</span>
-            <span>{lang === 'ta' ? 'நாள் மீதமுள்ளது' : 'DAY REMAINING'}</span>
+        {/* Action Buttons: Live Lucky Draw & Chit Calendar */}
+        <div className="mt-5 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 relative z-10">
+          <div className="text-[11px] text-amber-200/90 font-semibold flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+            <span>{lang === 'ta' ? '78 உறுப்பினர்கள் • தவணை நிதி ₹7,80,000' : '78 Members • Total Pool ₹7,80,000'}</span>
           </div>
-          <div className="flex flex-wrap items-center justify-center md:justify-end gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => onNavigate('lucky-draw')}
-              className="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 hover:from-amber-600 hover:to-red-600 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer hover:shadow-lg hover:-translate-y-0.5"
+              className="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 hover:from-amber-600 hover:to-red-600 text-white font-black text-xs px-4 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer press-scale shadow-orange-500/25"
             >
               <Sparkles className="w-4 h-4 text-yellow-200" />
               <span>{lang === 'ta' ? 'டிஜிட்டல் குலுக்கல் 🎡' : 'Live Lucky Draw 🎡'}</span>
             </button>
             <button
               onClick={() => onNavigate('calendar')}
-              className="bg-[#F59E0B] hover:bg-[#D97706] text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+              className="bg-[#F59E0B] hover:bg-[#D97706] text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer press-scale"
             >
               <Calendar className="w-4 h-4" />
               <span>{lang === 'ta' ? 'சீட்டு நாட்காட்டி ➔' : 'Chit Calendar →'}</span>
@@ -3600,10 +3678,33 @@ function SchemesScreen({
     notes: '',
   });
 
+  const fallbackSchemes = [
+    {
+      id: 'scheme-08',
+      code: 'SCH-CHIT-08',
+      name: lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன் ஆனங்கூர் சீட்டு எண்: 08' : 'Sri Pattanathu Mariamman Anangur Chit No: 08',
+      schemeType: 'ROTATING_CHIT',
+      status: 'ACTIVE',
+      totalInstallments: 20,
+      contributionAmountPaise: 1000000,
+      totalPoolAmountPaise: 78000000,
+      membersEnrolled: 78,
+      totalMembersCount: 78,
+      currentRoundNumber: 8,
+    },
+  ];
+
   const loadSchemes = () => {
     setLoading(true);
     api.getSchemes().then((res) => {
-      if (res.success) setSchemes(res.data);
+      if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+        setSchemes(res.data);
+      } else {
+        setSchemes(fallbackSchemes);
+      }
+    }).catch(() => {
+      setSchemes(fallbackSchemes);
+    }).finally(() => {
       setLoading(false);
     });
   };
@@ -3650,81 +3751,124 @@ function SchemesScreen({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
-        <div>
-          <h2 className="text-base font-bold text-slate-800">{t.schemesTitle}</h2>
-          <p className="text-xs text-slate-400">{t.schemesSubtitle}</p>
+    <div className="space-y-5">
+      {/* Schemes Screen Top Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[#111C2E] p-4 sm:p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-400/20">
+            <Coins className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-tight">
+              {t.schemesTitle}
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {lang === 'ta' ? 'ஆனங்கூர் கிராம ஸ்ரீ பட்டணத்து மாரியம்மன் சீட்டு திட்டங்கள்' : t.schemesSubtitle}
+            </p>
+          </div>
         </div>
         {user.role === 'ADMIN' && (
           <button
             onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#2F7BFF] hover:bg-blue-600 text-white rounded-lg text-xs font-bold transition-colors shadow-sm"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-[#2563EB] hover:bg-blue-600 text-white rounded-2xl text-xs font-black transition-all shadow-md shadow-blue-500/20 cursor-pointer press-scale shrink-0"
           >
             <Plus className="w-4 h-4" /> {t.createNewScheme}
           </button>
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {schemes.map((s) => (
-          <div key={s.id} className="bg-white rounded-xl p-5 border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-mono text-xs font-bold text-[#2F7BFF] bg-blue-50 px-2 py-0.5 rounded">
-                  {s.code}
-                </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                  {s.status === 'ACTIVE' ? t.active : s.status}
-                </span>
+      {/* Shimmer Skeleton Loader when Loading */}
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-pulse">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className="rounded-3xl p-5 bg-white dark:bg-[#111C2E] border border-slate-200/80 dark:border-slate-800 space-y-4">
+              <div className="flex justify-between items-center">
+                <div className="h-5 w-24 bg-slate-200 dark:bg-slate-800 rounded-lg"></div>
+                <div className="h-5 w-16 bg-emerald-100 dark:bg-emerald-950/60 rounded-full"></div>
               </div>
-
-              <h3 className="text-base font-bold text-slate-900 leading-snug">{s.name}</h3>
-              <p className="text-xs text-slate-500 mt-1">
-                {s.schemeType === 'ROTATING_CHIT' ? t.rotatingChit : t.fixedSavings} • {s.totalInstallments} {lang === 'ta' ? 'மாதங்கள்' : 'Installments'}
-              </p>
-
-              <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-2 gap-3 text-xs">
-                <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-semibold">{t.installmentAmount}</span>
-                  <span className="font-bold text-slate-800">{formatINR(s.contributionAmountPaise)}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-semibold">{t.totalPoolPerRound}</span>
-                  <span className="font-bold text-slate-800">{formatINR(s.totalPoolAmountPaise)}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-semibold">{t.totalMembers}</span>
-                  <span className="font-bold text-slate-800">{s.membersEnrolled} / {s.totalMembersCount}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-semibold">{lang === 'ta' ? 'நடப்பு சுற்று' : 'Current Round'}</span>
-                  <span className="font-bold text-blue-600">{t.roundNumber} #{s.currentRoundNumber || 1}</span>
-                </div>
+              <div className="h-6 w-3/4 bg-slate-200 dark:bg-slate-800 rounded-xl"></div>
+              <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <div className="h-10 bg-slate-100 dark:bg-slate-800/60 rounded-xl"></div>
+                <div className="h-10 bg-slate-100 dark:bg-slate-800/60 rounded-xl"></div>
               </div>
+              <div className="h-10 bg-slate-100 dark:bg-slate-800 rounded-xl"></div>
             </div>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          {schemes.map((s) => (
+            <div
+              key={s.id}
+              className="bg-white dark:bg-[#111C2E] rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-amber-400/40 transition-all flex flex-col justify-between relative overflow-hidden group"
+            >
+              {/* Gold foil corner accent */}
+              <div className="absolute top-0 right-0 w-28 h-28 bg-gradient-to-bl from-amber-400/10 to-transparent pointer-events-none rounded-tr-3xl"></div>
 
-            <div className="mt-5 pt-3 border-t border-slate-100 flex items-center gap-2">
-              <button
-                onClick={() => handleViewScheme(s.id)}
-                className="flex-1 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold transition-colors text-center"
-              >
-                {t.viewDetailsAndRounds}
-              </button>
-              {onLaunchLuckyDraw && (
+              <div>
+                <div className="flex items-center justify-between mb-3 relative z-10">
+                  <span className="font-mono text-xs font-black text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2.5 py-1 rounded-xl border border-blue-200/60 dark:border-blue-900/40">
+                    {s.code}
+                  </span>
+                  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                    {s.status === 'ACTIVE' ? (lang === 'ta' ? 'செயலில் உள்ளது' : t.active) : s.status}
+                  </span>
+                </div>
+
+                <h3 className="text-base font-black text-slate-900 dark:text-white leading-snug">
+                  {s.name}
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5 font-medium">
+                  <span>🛕</span>
+                  <span>
+                    {s.schemeType === 'ROTATING_CHIT' ? (lang === 'ta' ? 'சுழற்சி சீட்டு' : t.rotatingChit) : t.fixedSavings} • {s.totalInstallments} {lang === 'ta' ? 'மாதங்கள் (20 தவணை)' : 'Installments'}
+                  </span>
+                </p>
+
+                {/* 4 Metrics Bento Tiles */}
+                <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-2.5 text-xs">
+                  <div className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                    <span className="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold">{t.installmentAmount}</span>
+                    <span className="font-black text-slate-900 dark:text-white text-sm">{formatINR(s.contributionAmountPaise)}</span>
+                  </div>
+                  <div className="p-2.5 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/40 dark:border-amber-900/30">
+                    <span className="text-amber-700 dark:text-amber-400 block text-[10px] uppercase font-bold">{t.totalPoolPerRound}</span>
+                    <span className="font-black text-amber-900 dark:text-amber-200 text-sm">{formatINR(s.totalPoolAmountPaise)}</span>
+                  </div>
+                  <div className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800">
+                    <span className="text-slate-400 dark:text-slate-500 block text-[10px] uppercase font-bold">{t.totalMembers}</span>
+                    <span className="font-black text-slate-900 dark:text-white text-sm">{s.membersEnrolled} / {s.totalMembersCount}</span>
+                  </div>
+                  <div className="p-2.5 rounded-2xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200/40 dark:border-blue-900/30">
+                    <span className="text-blue-700 dark:text-blue-400 block text-[10px] uppercase font-bold">{lang === 'ta' ? 'நடப்பு சுற்று' : 'Current Round'}</span>
+                    <span className="font-black text-blue-700 dark:text-blue-300 text-sm">#{s.currentRoundNumber || 8} / {s.totalInstallments}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
                 <button
-                  onClick={() => onLaunchLuckyDraw(s.id)}
-                  className="py-2 px-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer hover:shadow-md"
-                  title={lang === 'ta' ? 'டிஜிட்டல் குலுக்கல் துவக்குக' : 'Launch Lucky Draw'}
+                  onClick={() => handleViewScheme(s.id)}
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-bold transition-all text-center cursor-pointer press-scale"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>{lang === 'ta' ? 'குலுக்கல்' : 'Draw'}</span>
+                  {t.viewDetailsAndRounds}
                 </button>
-              )}
+                {onLaunchLuckyDraw && (
+                  <button
+                    onClick={() => onLaunchLuckyDraw(s.id)}
+                    className="py-2.5 px-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-xs font-black transition-all shadow-md shadow-orange-500/20 flex items-center gap-1.5 cursor-pointer press-scale shrink-0"
+                    title={lang === 'ta' ? 'டிஜிட்டல் குலுக்கல் துவக்குக' : 'Launch Lucky Draw'}
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-yellow-200" />
+                    <span>{lang === 'ta' ? 'குலுக்கல் 🎡' : 'Draw 🎡'}</span>
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Create Scheme Modal */}
       {showCreateModal && (

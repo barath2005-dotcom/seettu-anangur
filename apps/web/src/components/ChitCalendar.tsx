@@ -128,6 +128,25 @@ export const ChitCalendar: React.FC<ChitCalendarProps> = ({ lang, onOpenMonthlyR
   const nextPournami = getNextPournami(today);
   const yearlySchedule = getYearlyLunarSchedule(currentYear);
 
+  const formattedPournamiDate = useMemo(() => {
+    if (!nextPournami?.dateStr) return '';
+    try {
+      const parts = nextPournami.dateStr.split('-');
+      if (parts.length === 3) {
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10) - 1;
+        const d = parseInt(parts[2], 10);
+        const dt = new Date(y, m, d);
+        return dt.toLocaleDateString(isTa ? 'ta-IN' : 'en-IN', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        });
+      }
+    } catch (e) {}
+    return nextPournami.dateStr;
+  }, [nextPournami?.dateStr, isTa]);
+
   // Month navigation
   const prevMonth = () => {
     if (currentMonth === 0) {
@@ -282,23 +301,25 @@ export const ChitCalendar: React.FC<ChitCalendarProps> = ({ lang, onOpenMonthlyR
       {/* Top Auspicious Countdown Header Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Next Chit Draw Day (Pournami) */}
-        <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/20 relative overflow-hidden">
-          <div className="absolute -right-4 -bottom-4 opacity-15 pointer-events-none text-8xl">
+        <div className="p-5 rounded-3xl bg-gradient-to-br from-amber-500 via-amber-500 to-amber-600 text-white shadow-xl shadow-amber-500/25 relative overflow-hidden border border-amber-400/40">
+          <div className="absolute -right-4 -bottom-4 opacity-20 pointer-events-none text-8xl">
             🌕
           </div>
           <div className="flex items-center gap-2 text-amber-100 text-xs font-bold uppercase tracking-wider">
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-4 h-4 text-yellow-200" />
             <span>{t.nextChitDay}</span>
           </div>
-          <div className="mt-2 flex items-baseline gap-3">
-            <span className="text-3xl font-extrabold">{nextPournami.dateStr}</span>
-            <span className="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm text-xs font-bold">
+          <div className="mt-2.5 flex flex-wrap items-baseline gap-2.5">
+            <span className="text-2xl sm:text-3xl font-black whitespace-nowrap tracking-tight">
+              {formattedPournamiDate || nextPournami.dateStr}
+            </span>
+            <span className="px-3 py-1 rounded-full bg-white/25 backdrop-blur-md text-xs font-black whitespace-nowrap border border-white/20 shadow-xs">
               {nextPournami.isToday
                 ? isTa ? 'இன்று!' : 'Today!'
                 : `${nextPournami.daysRemaining} ${t.daysRemaining}`}
             </span>
           </div>
-          <p className="mt-2 text-xs text-amber-100/90 leading-relaxed font-medium">
+          <p className="mt-2.5 text-xs text-amber-100/95 leading-relaxed font-medium">
             🎯 {isTa
               ? 'மாதாந்திர சீட்டு குலுக்கல், ஏலம் மற்றும் புதிய தவணை வசூல் நடைபெறும் நாள். தேதியை தொட்டு வெற்றியாளரைக் காணலாம்.'
               : 'Monthly lucky draw and collection day. Touch any date on the calendar to view who won the draw.'}
