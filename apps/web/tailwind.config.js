@@ -9,25 +9,37 @@ export default {
     extend: {
       colors: {
         brand: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          500: '#2F7BFF', // Primary blue
-          600: '#1d63e6',
-          700: '#154ec2',
+          50: '#FDF2F4',
+          100: '#FCE7EB',
+          200: '#F9D0D7',
+          500: '#7A121D', // Royal Temple Maroon
+          600: '#680E18',
+          700: '#540B13',
+          800: '#3F070E',
+          900: '#2A0509',
+        },
+        gold: {
+          50: '#FFFDF0',
+          100: '#FEF9C3',
+          200: '#FEF08A',
+          400: '#FBBF24',
+          500: '#F59E0B', // Temple Gold
+          600: '#D97706',
+          700: '#B45309',
         },
         surface: {
-          bg: '#F5F7FB', // Light banking background
+          bg: '#FCFAF5', // Warm Ivory background
           card: '#FFFFFF',
         },
         content: {
-          main: '#172033', // Deep navy text
-          muted: '#64748b',
+          main: '#1A0B0E', // Deep maroon-tinted obsidian text
+          muted: '#6B585B',
         },
         financial: {
           success: '#10B981',
-          pending: '#F59E0B',
-          overdue: '#EF4444',
-          disbursed: '#8B5CF6',
+          pending: '#D97706',
+          overdue: '#DC2626',
+          disbursed: '#7A121D',
         }
       },
       fontFamily: {

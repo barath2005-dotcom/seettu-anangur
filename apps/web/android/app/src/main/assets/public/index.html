@@ -21,8 +21,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="/assets/index-CpchwHFN.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-B8jHM8gz.css">
+    <script type="module" crossorigin src="/assets/index-ubU4sVCS.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-QAJEUQq2.css">
   </head>
   <body class="bg-[#071328] text-[#172033] antialiased">
     <div id="root">
@@ -40,7 +40,14 @@
           <div style="width: 180px; height: 6px; background: rgba(15,23,42,0.9); border-radius: 9999px; overflow: hidden; margin-top: 32px; border: 1px solid rgba(59,130,246,0.3);">
             <div style="width: 50%; height: 100%; background: linear-gradient(90deg, #3B82F6, #FBBF24, #6366F1); border-radius: 9999px; animation: initial-progress 1.6s ease-in-out infinite;"></div>
           </div>
-          <p style="font-size: 11px; font-weight: 600; color: #94A3B8; margin-top: 12px; letter-spacing: 0.02em;">பாதுகாப்பாக இணைக்கப்படுகிறது...</p>
+          <p id="app-init-status" style="font-size: 11px; font-weight: 600; color: #94A3B8; margin-top: 12px; letter-spacing: 0.02em;">பாதுகாப்பாக இணைக்கப்படுகிறது...</p>
+          <div id="init-recovery-actions" style="display: none; margin-top: 16px; flex-direction: column; align-items: center; gap: 8px; width: 100%;">
+            <p style="font-size: 11px; color: #F59E0B; font-weight: 600; margin: 0 0 6px 0;">இணைப்பு தாமதமாகிறது (Slow connection)</p>
+            <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+              <button onclick="window.location.reload()" style="padding: 7px 14px; border-radius: 8px; background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.25); font-size: 11px; font-weight: 700; cursor: pointer;">🔄 மீண்டும் புதுப்பிக்கவும் (Reload)</button>
+              <button onclick="localStorage.clear(); window.location.reload()" style="padding: 7px 14px; border-radius: 8px; background: #7A121D; color: #FDE68A; border: 1px solid #D97706; font-size: 11px; font-weight: 700; cursor: pointer;">🚪 உள்நுழைவு (Go to Login)</button>
+            </div>
+          </div>
         </div>
         <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding-bottom: 12px;">
           <span style="font-size: 11px; font-weight: 700; color: #94A3B8;">🔐 256-Bit SSL Encrypted Cloud Ledger</span>
@@ -55,6 +62,15 @@
         }
       </style>
     </div>
+    <script>
+      // Fallback watchdog: if root still contains the initial static loader after 6 seconds, reveal reload buttons
+      setTimeout(() => {
+        const recovery = document.getElementById('init-recovery-actions');
+        if (recovery) {
+          recovery.style.display = 'flex';
+        }
+      }, 6000);
+    </script>
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {

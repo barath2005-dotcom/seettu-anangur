@@ -44,8 +44,9 @@ router.post('/login', validateBody(LoginSchema), async (req: Request, res: Respo
 
     const matchedUser = existingUsers.find((u) => {
       if (u.email && u.email.toLowerCase() === rawIdentifier.toLowerCase()) return true;
-      if (rawIdentifier.toLowerCase() === 'admin' && u.role === 'ADMIN') return true;
-      if (rawIdentifier.toLowerCase() === 'staff' && u.role === 'STAFF') return true;
+      if ((rawIdentifier.toLowerCase() === 'admin' || rawIdentifier.toLowerCase() === 'admin@seettu.com') && u.role === 'ADMIN') return true;
+      if ((rawIdentifier.toLowerCase() === 'staff' || rawIdentifier.toLowerCase() === 'staff@seettu.com') && u.role === 'STAFF') return true;
+      if ((rawIdentifier.toLowerCase() === 'member' || rawIdentifier.toLowerCase() === 'member@seettu.com') && u.role === 'MEMBER' && (!u.member || u.member.memberNumber === 'M-001' || u.member.memberNumber.endsWith('001') || u.member.memberNumber === '1')) return true;
       if (normalizeString(u.name) === normId) return true;
       if (u.phone && u.phone.replace(/[^0-9]/g, '') === rawIdentifier.replace(/[^0-9]/g, '')) return true;
       if (u.member && normalizeString(u.member.memberNumber) === normId) return true;
@@ -95,6 +96,10 @@ router.post('/login', validateBody(LoginSchema), async (req: Request, res: Respo
       });
 
       const matchedMember = allMembers.find((m) => {
+        if ((rawIdentifier.toLowerCase() === 'member' || rawIdentifier.toLowerCase() === 'member@seettu.com') && (m.memberNumber === 'M-001' || m.memberNumber === '1' || m.memberNumber.endsWith('001'))) {
+          return true;
+        }
+
         // Match memberNumber (e.g. M-001 or 001)
         if (normalizeString(m.memberNumber) === normId) return true;
         if (

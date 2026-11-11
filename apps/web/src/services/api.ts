@@ -1,7 +1,15 @@
 export const PRODUCTION_API_URL = 'https://seettu-anangur.vercel.app/api';
 
-// Use production backend URL by default, or localhost in dev when proxy is present
-const API_BASE = (import.meta as any).env?.VITE_API_BASE || PRODUCTION_API_URL;
+const isNativePlatform = () => {
+  if (typeof window === 'undefined') return false;
+  const isCap = !!(window as any).Capacitor?.isNativePlatform?.();
+  const isCapProto = window.location.protocol.startsWith('capacitor') || window.location.protocol.startsWith('ionic');
+  return isCap || isCapProto;
+};
+
+// Use relative '/api' on web browser so requests are same-origin, auto-multiplexed, without CORS preflight.
+// On native Capacitor APK, use the full PRODUCTION_API_URL.
+const API_BASE = (import.meta as any).env?.VITE_API_BASE || (isNativePlatform() ? PRODUCTION_API_URL : '/api');
 
 export function getAuthToken(): string | null {
   return localStorage.getItem('seettu_access_token');
@@ -20,21 +28,42 @@ export function clearAuthTokens() {
   localStorage.removeItem('seettu_user');
 }
 
-export async function apiFetch<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
+export async function apiFetch<T = any>(
+  endpoint: string,
+  options: RequestInit & { timeoutMs?: number } = {}
+): Promise<T> {
+  const { timeoutMs = 12000, ...fetchOptions } = options;
   const token = getAuthToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
+    ...(fetchOptions.headers as Record<string, string>),
   };
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, timeoutMs);
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${endpoint}`, {
+      ...fetchOptions,
+      headers,
+      signal: fetchOptions.signal || controller.signal,
+    });
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error('சேவையக இணைப்பு நேரம் முடிந்தது (Connection timed out. Please check network/retry.)');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   // Handle token expiration
   if (response.status === 401 && endpoint !== '/auth/login' && endpoint !== '/auth/refresh') {
@@ -51,7 +80,7 @@ export async function apiFetch<T = any>(endpoint: string, options: RequestInit =
           setAuthTokens(refreshData.data.accessToken);
           // Retry original request
           headers['Authorization'] = `Bearer ${refreshData.data.accessToken}`;
-          const retryRes = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
+          const retryRes = await fetch(`${API_BASE}${endpoint}`, { ...fetchOptions, headers });
           return retryRes.json();
         }
       } catch (e) {
@@ -59,7 +88,7 @@ export async function apiFetch<T = any>(endpoint: string, options: RequestInit =
       }
     }
     clearAuthTokens();
-    window.location.reload();
+    throw new Error('SESSION_EXPIRED');
   }
 
   let data: any;
