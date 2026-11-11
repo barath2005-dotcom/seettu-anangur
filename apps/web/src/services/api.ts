@@ -44,7 +44,7 @@ export async function apiFetch<T = any>(
   endpoint: string,
   options: RequestInit & { timeoutMs?: number } = {}
 ): Promise<T> {
-  const { timeoutMs = 12000, ...fetchOptions } = options;
+  const { timeoutMs = 8000, ...fetchOptions } = options;
   const token = getAuthToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -93,6 +93,10 @@ export async function apiFetch<T = any>(
           // Retry original request
           headers['Authorization'] = `Bearer ${refreshData.data.accessToken}`;
           const retryRes = await fetch(`${API_BASE}${endpoint}`, { ...fetchOptions, headers });
+          if (!retryRes.ok) {
+            clearAuthTokens();
+            throw new Error('SESSION_EXPIRED');
+          }
           return retryRes.json();
         }
       } catch (e) {
@@ -133,7 +137,7 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(credentials),
     }),
-  getMe: () => apiFetch<{ success: boolean; data: any }>('/auth/me'),
+  getMe: () => apiFetch<{ success: boolean; data: any }>('/auth/me', { timeoutMs: 6000 }),
   updateProfile: (data: { phone?: string; email?: string; address?: string; name?: string }) =>
     apiFetch<{ success: boolean; data: any; message: string }>('/auth/profile', {
       method: 'PUT',

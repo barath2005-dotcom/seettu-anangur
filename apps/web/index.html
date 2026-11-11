@@ -39,13 +39,6 @@
             <div style="width: 50%; height: 100%; background: linear-gradient(90deg, #7A121D, #F59E0B, #921623); border-radius: 9999px; animation: initial-progress 1.6s ease-in-out infinite;"></div>
           </div>
           <p id="app-init-status" style="font-size: 11px; font-weight: 600; color: #FDE68A; opacity: 0.8; margin-top: 14px; letter-spacing: 0.02em;">ஸ்ரீ பட்டணத்து மாரியம்மன் அருள்...</p>
-          <div id="init-recovery-actions" style="display: none; margin-top: 16px; flex-direction: column; align-items: center; gap: 8px; width: 100%;">
-            <p style="font-size: 11px; color: #F59E0B; font-weight: 600; margin: 0 0 6px 0;">இணைப்பு நேரம் எடுக்கிறது (Slow network)</p>
-            <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
-              <button onclick="window.location.reload()" style="padding: 7px 14px; border-radius: 8px; background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.25); font-size: 11px; font-weight: 700; cursor: pointer;">🔄 மீண்டும் புதுப்பிக்கவும் (Reload)</button>
-              <button onclick="localStorage.clear(); window.location.reload()" style="padding: 7px 14px; border-radius: 8px; background: #7A121D; color: #FDE68A; border: 1px solid #D97706; font-size: 11px; font-weight: 700; cursor: pointer;">🚪 நேரடி உள்நுழைவு (Go to Login)</button>
-            </div>
-          </div>
         </div>
         <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding-bottom: 12px;">
           <span style="font-size: 11px; font-weight: 700; color: #FDE68A; opacity: 0.75;">🔐 256-Bit SSL Encrypted Ledger</span>
@@ -60,21 +53,24 @@
         }
       </style>
     </div>
-    <script>
-      // Fallback watchdog: only triggers if initial root static HTML remains unmounted for 10 seconds
-      setTimeout(() => {
-        const recovery = document.getElementById('init-recovery-actions');
-        if (recovery) {
-          recovery.style.display = 'flex';
-        }
-      }, 10000);
-    </script>
     <script type="module" src="/src/main.tsx"></script>
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch((err) => {
-            console.log('ServiceWorker registration failed: ', err);
+          navigator.serviceWorker.register('/sw.js').then((reg) => {
+            reg.update();
+            reg.onupdatefound = () => {
+              const installing = reg.installing;
+              if (installing) {
+                installing.onstatechange = () => {
+                  if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+                    installing.postMessage({ type: 'SKIP_WAITING' });
+                  }
+                };
+              }
+            };
+          }).catch((err) => {
+            console.log('ServiceWorker registration error: ', err);
           });
         });
       }

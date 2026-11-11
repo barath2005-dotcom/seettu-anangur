@@ -114,13 +114,7 @@ export function App() {
       return null;
     }
   });
-  const [loading, setLoading] = useState<boolean>(() => {
-    const token = getAuthToken();
-    const cached = getCachedUser();
-    // Only enter loading state if there's a stored access token that needs initial validation without cache
-    return Boolean(token && !cached);
-  });
-  const [initSlowWarning, setInitSlowWarning] = useState(false);
+  const [isVerifyingSession, setIsVerifyingSession] = useState<boolean>(false);
   const [activeTab, setActiveTabState] = useState<string>(() => {
     return localStorage.getItem('seettu_active_tab') || 'dashboard';
   });
@@ -208,14 +202,10 @@ export function App() {
   useEffect(() => {
     const token = getAuthToken();
     if (!token) {
-      setLoading(false);
       return;
     }
 
-    const slowTimer = setTimeout(() => {
-      setInitSlowWarning(true);
-    }, 4500);
-
+    setIsVerifyingSession(true);
     api.getMe()
       .then((res) => {
         if (res.success && res.data) {
@@ -237,8 +227,7 @@ export function App() {
         }
       })
       .finally(() => {
-        clearTimeout(slowTimer);
-        setLoading(false);
+        setIsVerifyingSession(false);
       });
   }, []);
 
@@ -349,106 +338,6 @@ export function App() {
     showToast(lang === 'ta' ? 'வெற்றிகரமாக வெளியேற்றப்பட்டீர்கள்' : 'Logged out successfully');
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col justify-between items-center bg-[#0C0204] text-white relative overflow-hidden p-6 select-none mobile-safe-top mobile-safe-bottom">
-        {/* Subtle Ambient Glowing Mesh Background with Royal Maroon & Gold */}
-        <div className="absolute -top-36 -left-36 w-96 h-96 bg-rose-900/30 rounded-full blur-[100px] pointer-events-none"></div>
-        <div className="absolute -bottom-36 -right-36 w-96 h-96 bg-amber-500/20 rounded-full blur-[120px] pointer-events-none"></div>
-        <img
-          src="/sidebar-bg.png"
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover opacity-15 pointer-events-none select-none z-0 mix-blend-overlay"
-        />
-
-        {/* Top App Version Tag */}
-        <div className="w-full flex justify-between items-center relative z-10 pt-2 px-2">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="text-[11px] font-bold text-amber-200/70 tracking-wide uppercase">
-              {lang === 'ta' ? 'அதிகாரப்பூர்வ செயலி' : 'Official App'}
-            </span>
-          </div>
-          <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/10 text-amber-300 border border-amber-400/20 backdrop-blur-md">
-            v{CURRENT_APP_VERSION}
-          </span>
-        </div>
-
-        {/* Center: Glowing Brand Logo & Title & Shimmer Progress Bar */}
-        <div className="flex flex-col items-center text-center relative z-10 max-w-sm px-4 my-auto">
-          {/* Logo with pulsing golden aura */}
-          <div className="relative mb-6">
-            <div className="absolute -inset-2 bg-gradient-to-r from-amber-400/50 via-yellow-500/30 to-amber-600/50 rounded-[28px] blur-md animate-pulse"></div>
-            <div className="relative w-24 h-24 rounded-[24px] border-2 border-amber-400/80 bg-gradient-to-b from-amber-400/25 to-amber-600/10 shadow-[0_0_35px_rgba(251,191,36,0.35)] ring-4 ring-amber-400/20 p-1 flex items-center justify-center">
-              <img
-                src="/logo.jpg"
-                alt="Logo"
-                className="w-full h-full rounded-[20px] object-cover"
-              />
-            </div>
-          </div>
-
-          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-snug">
-            {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன்' : 'Sri Pattanathu Mariamman'}
-          </h1>
-          <p className="text-xs sm:text-sm text-amber-200/90 font-semibold tracking-wide mt-1">
-            {lang === 'ta' ? 'ஆனங்கூர் சீட்டு குழு' : 'Anangur Seettu Kuzhu'}
-          </p>
-
-          {/* Sleek Royal Temple Shimmer Progress Bar */}
-          <div className="w-48 h-1.5 bg-rose-950/90 rounded-full overflow-hidden mt-8 border border-amber-500/30 shadow-inner">
-            <div className="w-1/2 h-full bg-gradient-to-r from-rose-600 via-amber-400 to-rose-700 rounded-full animate-shimmer-progress"></div>
-          </div>
-
-          <p className="text-[11px] font-semibold text-amber-200/80 tracking-wider mt-3">
-            {lang === 'ta' ? 'பாதுகாப்பாக இணைக்கப்படுகிறது...' : 'Connecting securely to cloud ledger...'}
-          </p>
-
-          {/* Recovery Actions if connection is taking longer than 4.5s */}
-          {initSlowWarning && (
-            <div className="mt-5 p-3.5 rounded-2xl bg-black/50 border border-amber-500/40 backdrop-blur-md flex flex-col items-center gap-2.5 max-w-xs w-full">
-              <p className="text-[11px] text-amber-300 font-semibold text-center leading-relaxed">
-                {lang === 'ta'
-                  ? 'சேவையக இணைப்பு தாமதமாகிறது. இணையத்தை சரிபார்க்கவும் அல்லது உள்நுழையவும்.'
-                  : 'Server connection is taking longer than expected.'}
-              </p>
-              <div className="flex items-center gap-2 w-full justify-center">
-                <button
-                  type="button"
-                  onClick={() => window.location.reload()}
-                  className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition cursor-pointer"
-                >
-                  🔄 {lang === 'ta' ? 'புதுப்பிக்க' : 'Reload'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    clearAuthTokens();
-                    setLoading(false);
-                  }}
-                  className="px-3.5 py-1.5 rounded-xl bg-[#7A121D] hover:bg-[#921623] text-amber-200 text-xs font-bold border border-amber-500/40 shadow-xs transition cursor-pointer"
-                >
-                  🚪 {lang === 'ta' ? 'உள்நுழைவு' : 'Go to Login'}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Bottom Trust Badge */}
-        <div className="flex flex-col items-center gap-1.5 text-center relative z-10 pb-2">
-          <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{lang === 'ta' ? '256-Bit SSL பாதுகாப்பானது' : '256-Bit SSL Encrypted Cloud Ledger'}</span>
-          </div>
-          <p className="text-[10px] text-slate-500">
-            {lang === 'ta' ? 'அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை © 2026' : 'Official Mobile App • All Rights Reserved © 2026'}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   // Public Download Page (Accessible without login)
   if (showPublicDownload) {
     return (
@@ -486,6 +375,9 @@ export function App() {
   if (!user) {
     return (
       <div className="min-h-screen flex flex-col justify-center items-center bg-[#0E0306] relative overflow-hidden p-4 sm:p-6 mobile-safe-top mobile-safe-bottom select-none">
+        {isVerifyingSession && (
+          <div className="fixed top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-400 animate-pulse z-50 pointer-events-none" />
+        )}
         {/* Subtle Ambient Glowing Mesh Background with Royal Maroon & Gold */}
         <div className="absolute -top-40 -left-40 w-96 h-96 bg-rose-950/40 rounded-full blur-[100px] pointer-events-none"></div>
         <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-amber-600/20 rounded-full blur-[120px] pointer-events-none"></div>
@@ -749,6 +641,9 @@ export function App() {
 
   return (
     <div className="h-screen w-screen overflow-hidden flex bg-[#F4F7FC] dark:bg-[#080E1A]">
+      {isVerifyingSession && (
+        <div className="fixed top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-400 animate-pulse z-50 pointer-events-none" />
+      )}
       {/* Toast Notification */}
       {toast && (
         <div
