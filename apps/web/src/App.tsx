@@ -1043,8 +1043,8 @@ export function App() {
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         {/* Top Header Bar (Safe-area padded for Android status bar and camera punch-hole) */}
         <header className="bg-white/92 dark:bg-[#0E1726]/92 backdrop-blur-2xl border-b border-slate-200/80 dark:border-slate-800 px-3 sm:px-6 mobile-safe-top pb-2.5 sm:pb-3 sticky top-0 z-30 transition-all shadow-xs">
-          {/* Main Top Row */}
-          <div className="flex items-center justify-between gap-2 sm:gap-4 w-full">
+          {/* Main Top Row (Row 1): Menu + Brand Medallion on left, Profile & Bell on right */}
+          <div className="flex items-center justify-between gap-2.5 sm:gap-4 w-full">
             {/* Left: Menu button + Brand Medallion Logo + Desktop Search */}
             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
               <button
@@ -1055,7 +1055,7 @@ export function App() {
                 <Menu className="w-5 h-5" />
               </button>
 
-              {/* Brand Medallion + Title */}
+              {/* Brand Medallion + Title (LIVE badge removed) */}
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="relative w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-400 via-amber-500 to-amber-600 p-[1.5px] shadow-sm shrink-0">
                   <img
@@ -1068,11 +1068,9 @@ export function App() {
                   <h1 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white truncate tracking-tight leading-tight">
                     {lang === 'ta' ? 'ஸ்ரீ பட்டணத்து மாரியம்மன்' : 'Sri Pattanathu Mariamman'}
                   </h1>
-                  <div className="flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-slate-400 font-semibold leading-none mt-0.5">
-                    <span className="text-amber-600 dark:text-amber-400 font-bold">{lang === 'ta' ? 'சீட்டு எண்: 08' : 'Chit #08'}</span>
-                    <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
-                    <span className="font-mono text-[9px] text-emerald-600 dark:text-emerald-400 font-bold">LIVE</span>
-                  </div>
+                  <p className="text-[10px] text-amber-600 dark:text-amber-400 font-bold leading-none mt-0.5 truncate">
+                    {lang === 'ta' ? 'ஆனங்கூர் சீட்டு எண்: 08' : 'Anangur Chit #08'}
+                  </p>
                 </div>
               </div>
 
@@ -1091,9 +1089,9 @@ export function App() {
               </div>
             </div>
 
-            {/* Right: Quick Controls & Profile */}
+            {/* Right: Controls (Desktop has everything, Mobile has Bell + Profile Avatar) */}
             <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-              {/* Download Mobile App Button (Hidden inside APK and hidden for Members) */}
+              {/* Desktop Only: Download Mobile App Button */}
               {!Capacitor.isNativePlatform() && user?.role === 'ADMIN' && (
                 <button
                   onClick={() => setActiveTab('download')}
@@ -1109,13 +1107,13 @@ export function App() {
                 </button>
               )}
 
-              {/* In-App Software Version & Update Button (Mobile APK only) */}
+              {/* Desktop Only: In-App Software Version & Update Button */}
               {Capacitor.isNativePlatform() && (
                 updateInfo?.hasUpdate ? (
                   <button
                     onClick={() => setIsUpdateModalOpen(true)}
                     title={lang === 'ta' ? 'புதிய ஆப் பதிப்பு கிடைத்துள்ளது! தட்டவும்' : 'New app update available! Tap to install'}
-                    className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[11px] font-black shadow-md shadow-blue-500/30 animate-pulse border border-blue-400/40 cursor-pointer shrink-0 press-scale"
+                    className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[11px] font-black shadow-md shadow-blue-500/30 animate-pulse border border-blue-400/40 cursor-pointer shrink-0 press-scale"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                     <span>{lang === 'ta' ? 'புதுப்பி' : 'Update'}</span>
@@ -1124,7 +1122,7 @@ export function App() {
                   <button
                     onClick={() => setIsUpdateModalOpen(true)}
                     title={lang === 'ta' ? `செயலி பதிப்பு v${CURRENT_APP_VERSION} (சமீபத்தியது) - விவரங்களுக்கு தட்டவும்` : `App v${CURRENT_APP_VERSION} (Latest) - Tap for info`}
-                    className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-full border border-emerald-500/30 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-[10px] sm:text-[11px] font-bold shadow-2xs cursor-pointer shrink-0 transition-all press-scale"
+                    className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-emerald-500/30 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-[11px] font-bold shadow-2xs cursor-pointer shrink-0 transition-all press-scale"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                     <span className="font-mono font-black">v{CURRENT_APP_VERSION}</span>
@@ -1132,11 +1130,11 @@ export function App() {
                 )
               )}
 
-              {/* Bilingual Switcher [EN | தமிழ்] */}
-              <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-full p-0.5 text-xs font-bold border border-slate-200/80 dark:border-slate-700 shadow-2xs">
+              {/* Desktop Only: Bilingual Switcher [EN | தமிழ்] */}
+              <div className="hidden sm:flex items-center bg-slate-100 dark:bg-slate-800 rounded-full p-0.5 text-xs font-bold border border-slate-200/80 dark:border-slate-700 shadow-2xs">
                 <button
                   onClick={() => handleLanguageChange('en')}
-                  className={`px-2 sm:px-2.5 py-1 rounded-full transition-all text-[11px] font-bold ${
+                  className={`px-2.5 py-1 rounded-full transition-all text-xs font-bold ${
                     lang === 'en'
                       ? 'bg-[#2563EB] text-white shadow-2xs'
                       : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
@@ -1146,7 +1144,7 @@ export function App() {
                 </button>
                 <button
                   onClick={() => handleLanguageChange('ta')}
-                  className={`px-2 sm:px-2.5 py-1 rounded-full transition-all text-[11px] font-bold ${
+                  className={`px-2.5 py-1 rounded-full transition-all text-xs font-bold ${
                     lang === 'ta'
                       ? 'bg-[#2563EB] text-white shadow-2xs'
                       : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
@@ -1156,16 +1154,16 @@ export function App() {
                 </button>
               </div>
 
-              {/* Day / Night Mode Toggle */}
+              {/* Desktop Only: Day / Night Mode Toggle */}
               <button
                 onClick={toggleTheme}
                 title={theme === 'light' ? t.nightMode : t.dayMode}
-                className="p-1.5 sm:p-2 rounded-full border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs transition-colors cursor-pointer press-scale"
+                className="hidden sm:flex p-2 rounded-full border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-2xs transition-colors cursor-pointer press-scale"
               >
                 {theme === 'light' ? (
-                  <Moon className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-slate-600" />
+                  <Moon className="w-4 h-4 text-slate-600" />
                 ) : (
-                  <Sun className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-amber-400" />
+                  <Sun className="w-4 h-4 text-amber-400" />
                 )}
               </button>
 
@@ -1173,6 +1171,7 @@ export function App() {
               <button
                 onClick={() => setActiveTab('notifications')}
                 className="p-1.5 sm:p-2 rounded-full border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 relative shadow-2xs transition-colors cursor-pointer press-scale"
+                aria-label="Notifications"
               >
                 <Bell className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
                 {unreadCount > 0 && (
@@ -1187,7 +1186,7 @@ export function App() {
                   className="flex items-center gap-1.5 pl-0.5 sm:pl-2 py-1 px-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer group press-scale"
                   aria-label="User profile menu"
                 >
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs group-hover:ring-2 group-hover:ring-blue-400 transition-all">
+                  <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs group-hover:ring-2 group-hover:ring-blue-400 transition-all">
                     {user.name.slice(0, 2).toUpperCase()}
                   </div>
                   <span className="text-xs font-bold text-slate-800 dark:text-slate-200 hidden sm:inline truncate max-w-[120px]">
@@ -1263,6 +1262,80 @@ export function App() {
                 )}
               </div>
             </div>
+          </div>
+
+          {/* Row 2: Mobile Dedicated Controls Row (Fits Tamil, English, Daylight comfortably with zero camera overlap!) */}
+          <div className="flex sm:hidden items-center justify-between gap-2 pt-2.5 mt-2 border-t border-slate-100 dark:border-slate-800/80 w-full">
+            {/* Left: Tamil, English & Daylight Theme Toggle */}
+            <div className="flex items-center gap-2">
+              {/* Bilingual Switcher [ EN | தமிழ் ] */}
+              <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-full p-0.5 text-xs font-bold border border-slate-200/80 dark:border-slate-700 shadow-2xs">
+                <button
+                  onClick={() => handleLanguageChange('en')}
+                  className={`px-3 py-1 rounded-full transition-all text-[11px] font-bold press-scale ${
+                    lang === 'en'
+                      ? 'bg-[#2563EB] text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                  }`}
+                >
+                  EN
+                </button>
+                <button
+                  onClick={() => handleLanguageChange('ta')}
+                  className={`px-3 py-1 rounded-full transition-all text-[11px] font-bold press-scale ${
+                    lang === 'ta'
+                      ? 'bg-[#2563EB] text-white shadow-xs'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                  }`}
+                >
+                  தமிழ்
+                </button>
+              </div>
+
+              {/* Daylight / Night Mode Toggle */}
+              <button
+                onClick={toggleTheme}
+                title={theme === 'light' ? t.nightMode : t.dayMode}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-2xs transition-all cursor-pointer press-scale"
+              >
+                {theme === 'light' ? (
+                  <>
+                    <Moon className="w-3.5 h-3.5 text-slate-600" />
+                    <span className="text-[11px] font-semibold">{lang === 'ta' ? 'இரவு' : 'Night'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Sun className="w-3.5 h-3.5 text-amber-400" />
+                    <span className="text-[11px] font-semibold">{lang === 'ta' ? 'பகல்' : 'Daylight'}</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Right: In-App Version Pill or Update Button */}
+            {Capacitor.isNativePlatform() ? (
+              updateInfo?.hasUpdate ? (
+                <button
+                  onClick={() => setIsUpdateModalOpen(true)}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[10px] font-black shadow-md shadow-blue-500/30 animate-pulse border border-blue-400/40 cursor-pointer press-scale shrink-0"
+                >
+                  <Sparkles className="w-3 h-3 text-amber-300" />
+                  <span>{lang === 'ta' ? 'புதுப்பி' : 'Update'}</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => setIsUpdateModalOpen(true)}
+                  className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-emerald-500/30 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold shadow-2xs cursor-pointer transition-all press-scale shrink-0"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  <span className="font-mono font-black">v{CURRENT_APP_VERSION}</span>
+                </button>
+              )
+            ) : (
+              <span className="text-[10px] font-mono text-slate-400 font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800">
+                v{CURRENT_APP_VERSION}
+              </span>
+            )}
           </div>
         </header>
 
